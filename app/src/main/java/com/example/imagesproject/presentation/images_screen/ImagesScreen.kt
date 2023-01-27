@@ -3,10 +3,7 @@ package com.example.imagesproject.presentation.images_screen
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.material3.*
@@ -53,20 +50,30 @@ fun ImagesScreen(
             )
         }
     ) { paddingValues ->
-        Box(Modifier.padding(paddingValues).fillMaxSize()) {
+        Box(
+            Modifier
+                .padding(paddingValues)
+                .fillMaxSize()) {
             LazyVerticalStaggeredGrid(
-                columns = StaggeredGridCells.Adaptive(100.dp)
+                modifier = Modifier.fillMaxSize(),
+                columns = StaggeredGridCells.Adaptive(100.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalArrangement = Arrangement.Center,
+                contentPadding = PaddingValues(0.dp),
             ) {
                 items(state.imagesList.size) { index ->
                     val imageUrl = state.imagesList[index]
                     GlideImage(
                         imageModel = { imageUrl },
-                        modifier = Modifier.size(100.dp).clickable {
-                            val encodedUrl = URLEncoder.encode(imageUrl, StandardCharsets.UTF_8.toString())
-                            navController.navigate(Screen.ImageItemScreen.withArgs(encodedUrl))
-                        },
+                        modifier = Modifier
+                            .size(130.dp)
+                            .clickable {
+                                val encodedUrl =
+                                    URLEncoder.encode(imageUrl, StandardCharsets.UTF_8.toString())
+                                navController.navigate(Screen.ImageItemScreen.withArgs(encodedUrl))
+                            },
                         imageOptions = ImageOptions(
-                            contentScale = ContentScale.Crop,
+                            contentScale = ContentScale.FillBounds,
                         ),
                         component = rememberImageComponent {
                             +ShimmerPlugin(
@@ -78,12 +85,9 @@ fun ImagesScreen(
                                 useCache = true,
                             )
                         },
-                        // shows an error text if fail to load an image.
-                        failure = { Text(
-                            text = "image request failed.",
-                            modifier = Modifier.align(Alignment.Center),
-                            textAlign = TextAlign.Center,
-                        ) },
+                        failure = {
+                            viewModel.onDeleteFailedImage(imageUrl)
+                        }
                     )
                 }
             }
