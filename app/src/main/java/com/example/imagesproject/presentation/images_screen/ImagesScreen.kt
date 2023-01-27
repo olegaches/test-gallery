@@ -62,7 +62,7 @@ fun ImagesScreen(
                     GlideImage(
                         imageModel = { imageUrl },
                         modifier = Modifier
-                            .size(110.dp)
+                            .size(120.dp)
                             .clickable {
                                 val encodedUrl =
                                     URLEncoder.encode(imageUrl, StandardCharsets.UTF_8.toString())
