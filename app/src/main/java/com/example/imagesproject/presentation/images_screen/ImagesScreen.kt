@@ -1,10 +1,9 @@
 package com.example.imagesproject.presentation.images_screen
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -25,7 +24,7 @@ import com.skydoves.landscapist.placeholder.shimmer.ShimmerPlugin
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImagesScreen(
     navController: NavController,
@@ -52,19 +51,17 @@ fun ImagesScreen(
             Modifier
                 .padding(paddingValues)
                 .fillMaxSize()) {
-            LazyVerticalStaggeredGrid(
+            LazyVerticalGrid(
                 modifier = Modifier.fillMaxSize(),
-                columns = StaggeredGridCells.Adaptive(100.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalArrangement = Arrangement.Center,
-                contentPadding = PaddingValues(0.dp),
+                columns = GridCells.Adaptive(90.dp),
             ) {
                 items(state.imagesList.size) { index ->
                     val imageUrl = state.imagesList[index]
                     GlideImage(
                         imageModel = { imageUrl },
                         modifier = Modifier
-                            .size(120.dp)
+                            .padding(1.dp)
+                            .size(100.dp)
                             .clickable {
                                 val encodedUrl =
                                     URLEncoder.encode(imageUrl, StandardCharsets.UTF_8.toString())

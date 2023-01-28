@@ -23,9 +23,6 @@ class DownloaderImpl @Inject constructor(
         val request = DownloadManager.Request(url.toUri())
             .setMimeType("text/plain")
             .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE)
-            //.setNotificationVisibility(DownloadManager.Request.)
-//            .setTitle("images.txt")
-//            .addRequestHeader("Authorization", "Bearer <token>")
             .setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOCUMENTS, "images.txt")
         return downloadManager.enqueue(request)
     }

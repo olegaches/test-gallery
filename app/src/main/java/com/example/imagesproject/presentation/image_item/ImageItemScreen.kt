@@ -1,7 +1,6 @@
 package com.example.imagesproject.presentation.image_item
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -9,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.skydoves.landscapist.ImageOptions
@@ -25,10 +25,11 @@ fun ImageItemScreen(
 ) {
     Scaffold(
     ) { padding ->
+        Box(modifier = Modifier.padding(padding).fillMaxSize())
         GlideImage(
             imageModel = { viewModel.imageUrl },
             modifier = Modifier
-                .padding(padding)
+                .padding(vertical = 20.dp)
                 .fillMaxSize(),
             imageOptions = ImageOptions(
                 contentScale = ContentScale.Fit,
