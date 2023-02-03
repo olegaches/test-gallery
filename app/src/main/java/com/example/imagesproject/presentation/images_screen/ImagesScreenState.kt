@@ -6,5 +6,5 @@ data class ImagesScreenState(
     val isLoading: Boolean = false,
     val imagesList: List<String> = emptyList(),
     val error: UiText? = null,
-    val imageUrlList: List<String> = emptyList(),
+    val isExpanded: Boolean = false,
 )

@@ -4,11 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.imagesproject.core.util.Resource
 import com.example.imagesproject.domain.use_case.GetImagesUrlListUseCase
-import com.example.imagesproject.presentation.Constants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -23,6 +21,14 @@ class ImagesViewModel @Inject constructor(
 
     init {
         loadImageUrlList()
+    }
+
+    fun onOpened() {
+        _state.update {
+            it.copy(
+                isExpanded = true
+            )
+        }
     }
 
     fun onDeleteFailedImage(url: String) {
