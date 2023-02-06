@@ -1,23 +1,27 @@
 package com.example.imagesproject.presentation.images_screen
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.*
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -25,132 +29,171 @@ import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.imagesproject.R
+import com.example.imagesproject.presentation.Constants
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.components.*
 import com.skydoves.landscapist.glide.GlideImage
 import com.skydoves.landscapist.palette.PalettePlugin
 import com.skydoves.landscapist.placeholder.shimmer.ShimmerPlugin
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImagesScreen(
     navController: NavController,
     viewModel: ImagesViewModel = hiltViewModel(),
 ) {
-    Box(
-        Modifier
-            .fillMaxSize()
-    ) {
-        val state = viewModel.state.collectAsState().value
-        val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-        var isExpanded by remember {
-            mutableStateOf(false)
-        }
-        var sizeOfImageOnTopLayout by remember { mutableStateOf(IntSize.Zero) }
-        var positionOfImageOnTopLayout by remember { mutableStateOf(Offset.Zero) }
-        var imageBitmapOnTopLayout by remember { mutableStateOf<ImageBitmap?>(null) }
-        var imageIndexOnTopLayout by remember { mutableStateOf(0) }
-
-
-        Scaffold(
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-            topBar = {
+    val state = viewModel.state.collectAsState().value
+    Scaffold(
+        topBar = {
+            AnimatedVisibility(
+                visible = state.topBarVisible,
+                enter = fadeIn(
+                    animationSpec = tween(Constants.TOP_BAR_VISIBILITY_ANIMATION_TIME)
+                ),
+                exit = fadeOut(
+                    animationSpec = tween(Constants.TOP_BAR_VISIBILITY_ANIMATION_TIME)
+                )
+            ) {
                 CenterAlignedTopAppBar(
-                    scrollBehavior = scrollBehavior,
-                    title = {
-                        Text(
-                            text = stringResource(R.string.top_bar_title),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                    },
+                    title = {},
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = Color.Black,
+                        navigationIconContentColor = Color.White,
+                    ),
+                    navigationIcon = {
+                        IconButton(
+                            onClick = viewModel::onBackClicked
+                        ) {
+                            Icon(
+                                contentDescription = null,
+                                imageVector = Icons.Default.ArrowBack
+                            )
+                        }
+                    }
                 )
             }
-        ) { paddingValues ->
-            Box(
-                Modifier
-                    //.padding(paddingValues)
-                    .fillMaxSize()) {
-                LazyVerticalGrid(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    columns = GridCells.Adaptive(90.dp),
-                ) {
-                    items(state.imagesList.size) { index ->
-                        val imageUrl = state.imagesList[index]
-                        var sizeOfImage by remember { mutableStateOf(IntSize.Zero) }
-                        var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
-                        var positionOfImage by remember { mutableStateOf(Offset.Zero) }
-                        GlideImage(
-                            success = { imageState ->
-                                imageState.imageBitmap?.let {
-                                    Image(
-                                        bitmap = it,
-                                        modifier = Modifier.size(90.dp),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.FillBounds,
-                                    )
-                                    imageBitmap = it
-                                }
-                            },
-                            imageModel = { imageUrl },
-                            modifier = Modifier
-                                .padding(1.dp)
-                                .onGloballyPositioned { coordinates ->
-                                    sizeOfImage = coordinates.size
-                                    positionOfImage = coordinates.boundsInWindow().topLeft
-                                }
-                                .clickable {
-                                    sizeOfImageOnTopLayout = sizeOfImage
-                                    positionOfImageOnTopLayout = positionOfImage
-                                    imageBitmapOnTopLayout = imageBitmap
-                                    imageIndexOnTopLayout = index
-                                    isExpanded = true
-                                },
-                            imageOptions = ImageOptions(
-                                contentScale = ContentScale.FillBounds,
-                            ),
-                            component = rememberImageComponent {
-                                +ShimmerPlugin(
-                                    baseColor = MaterialTheme.colorScheme.background,
-                                    highlightColor = Color.LightGray,
-                                )
-                                +PalettePlugin(
-                                    imageModel = { imageUrl },
-                                    useCache = true,
-                                )
-                            },
-                            failure = {
-                                viewModel.onDeleteFailedImage(imageUrl)
+        }
+    ) {
+        Box(
+            Modifier
+                .fillMaxSize()
+        ) {
+            BackHandler() {
+                viewModel.onBackClicked()
+            }
+            Scaffold(
+                topBar = {
+                    CenterAlignedTopAppBar(
+                        title = {
+                            Text(
+                                text = stringResource(R.string.top_bar_title),
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                        },
+                    )
+                }
+            ) { paddingValues ->
+                Box(
+                    Modifier
+                        .padding(paddingValues)
+                        .fillMaxSize()) {
+                    LazyVerticalGrid(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        columns = GridCells.Adaptive(90.dp),
+                    ) {
+                        items(state.imagesList.size) { index ->
+                            var globalImageOffset by remember {
+                                mutableStateOf(Offset.Zero)
                             }
-                        )
+                            val imageUrl = state.imagesList[index]
+                            GlideImage(
+                                success = { imageState ->
+                                    imageState.imageBitmap?.let {
+                                        Image(
+                                            bitmap = it,
+                                            modifier = Modifier.size(90.dp),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.FillBounds,
+                                        )
+                                    }
+                                },
+                                imageModel = { imageUrl },
+                                modifier = Modifier
+                                    .padding(1.dp)
+                                    .onGloballyPositioned { coordinates ->
+                                        globalImageOffset = coordinates.boundsInWindow().topLeft
+                                    }
+                                    .clickable {
+                                        viewModel.onImageClicked(index, globalImageOffset)
+                                    },
+                                imageOptions = ImageOptions(
+                                    contentScale = ContentScale.FillBounds,
+                                ),
+                                component = rememberImageComponent {
+                                    +ShimmerPlugin(
+                                        baseColor = MaterialTheme.colorScheme.background,
+                                        highlightColor = Color.LightGray,
+                                    )
+                                    +PalettePlugin(
+                                        imageModel = { imageUrl },
+                                        useCache = true,
+                                    )
+                                },
+                                failure = {
+                                    viewModel.onDeleteFailedImage(imageUrl)
+                                }
+                            )
+                        }
                     }
                 }
             }
-        }
-        if(isExpanded) {
-            CopyOfImage(positionOfImageOnTopLayout, state.imagesList, imageIndexOnTopLayout)
+            if(state.isExpanded) {
+                state.clickedImageGlobalOffset?.let { CopyOfImage(it, state.imagesList, state.currentImageIndex, viewModel::onTopBarChangeVisibility) }
+            }
         }
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun CopyOfImage(offset: Offset, imagesList: List<String>, imageIndex: Int) {
+fun CopyOfImage(
+    offset: Offset,
+    imagesList: List<String>,
+    imageIndex: Int,
+    onImageClick :() -> Unit
+) {
+    LaunchedEffect(key1 = true) {
+        onImageClick()
+    }
+    var scale by remember { mutableStateOf(1f) }
     Box(
         modifier = Modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .pointerInput(Unit) {
+                detectTransformGestures { _, _, zoom, _ ->
+                    scale = when {
+                        scale * zoom < 1f -> scale
+                        zoom * scale > 3f -> scale
+                        else -> scale * zoom
+                    }
+                }
+            }
             .fillMaxSize()
+            .combinedClickable(
+                onClick = onImageClick,
+            )
     ) {
-        var onBackClicked by remember { mutableStateOf(false) }
         val statusBars = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
         val navigationBars = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
         val maxWidth = LocalConfiguration.current.screenWidthDp.dp
         val maxHeight = (LocalConfiguration.current.screenHeightDp
-        + statusBars.value + navigationBars.value + 1.0).dp
+                + statusBars.value + navigationBars.value + 1.0).dp
         var isAnimated by remember { mutableStateOf(false) }
-        BackHandler() {
-            onBackClicked = true
-            isAnimated = !isAnimated
-        }
         val transition = updateTransition(targetState = isAnimated, label = "transition")
         val sizeHeight by transition.animateDp(transitionSpec = {
             tween(1000)
@@ -167,7 +210,7 @@ fun CopyOfImage(offset: Offset, imagesList: List<String>, imageIndex: Int) {
                 tween(1000) // launch duration
 
             } else {
-                tween(1500) // land duration
+                tween(1000) // land duration
             }
         }, label = "rocket offset") { animated ->
             if (animated) Offset(0f, 0f) else offset
@@ -186,8 +229,7 @@ fun CopyOfImage(offset: Offset, imagesList: List<String>, imageIndex: Int) {
                 }
                 .animateContentSize()
                 .onPlaced {
-                    if(!onBackClicked)
-                        isAnimated = true
+                    isAnimated = true
                 }
             ,
             verticalAlignment = Alignment.CenterVertically,

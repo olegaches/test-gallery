@@ -1,5 +1,6 @@
 package com.example.imagesproject.presentation.images_screen
 
+import androidx.compose.ui.geometry.Offset
 import com.example.imagesproject.core.util.UiText
 
 data class ImagesScreenState(
@@ -7,4 +8,8 @@ data class ImagesScreenState(
     val imagesList: List<String> = emptyList(),
     val error: UiText? = null,
     val isExpanded: Boolean = false,
+    val currentImageIndex: Int = 0,
+    val currentImageUrl: String? = null,
+    val clickedImageGlobalOffset: Offset? = null,
+    val topBarVisible: Boolean = false
 )

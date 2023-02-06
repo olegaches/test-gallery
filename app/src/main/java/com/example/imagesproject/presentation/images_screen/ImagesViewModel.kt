@@ -1,5 +1,6 @@
 package com.example.imagesproject.presentation.images_screen
 
+import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.imagesproject.core.util.Resource
@@ -23,10 +24,34 @@ class ImagesViewModel @Inject constructor(
         loadImageUrlList()
     }
 
-    fun onOpened() {
+    fun onImageClicked(index: Int, globalImageOffset: Offset) {
         _state.update {
             it.copy(
-                isExpanded = true
+                isExpanded = true,
+                currentImageIndex = index,
+                clickedImageGlobalOffset = globalImageOffset,
+            )
+        }
+    }
+
+    fun onTopBarChangeVisibility() {
+        _state.update {
+            it.copy(
+                topBarVisible = !it.topBarVisible
+            )
+        }
+    }
+
+    fun onBackClicked() {
+        if(!_state.value.isExpanded)
+            return
+        _state.update {
+            it.copy(
+                topBarVisible = false,
+                currentImageIndex = 0,
+                currentImageUrl = null,
+                isExpanded = false,
+                clickedImageGlobalOffset = null,
             )
         }
     }
