@@ -8,15 +8,13 @@ import com.example.imagesproject.core.util.Resource
 import com.example.imagesproject.domain.downloader.Downloader
 import com.example.imagesproject.domain.file_provider.FileProvider
 import com.example.imagesproject.domain.repository.Repository
+import com.example.imagesproject.presentation.Constants
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import java.io.FileInputStream
-import java.io.IOException
 import javax.inject.Inject
 
 class RepositoryImpl @Inject constructor(
@@ -26,7 +24,7 @@ class RepositoryImpl @Inject constructor(
 ): Repository {
     override fun getImagesUrlList(): Flow<Resource<List<String>>> {
         return callbackFlow {
-            downloader.downloadFile("https://it-link.ru/test/images.txt")
+            downloader.downloadFile(Constants.FILE_URL)
             val receiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context?, intent: Intent?) {
                     if (intent?.action == "android.intent.action.DOWNLOAD_COMPLETE") {
