@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">ImagesProject</string>
     <string name="top_bar_title">Галерея</string>
+    <string name="image_loading_error_text">Не удалось загрузить изображение</string>
 </resources>

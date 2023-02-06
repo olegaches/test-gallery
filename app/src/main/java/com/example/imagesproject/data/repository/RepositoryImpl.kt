@@ -35,9 +35,7 @@ class RepositoryImpl @Inject constructor(
                             val lines = file?.readLines()
                             if (lines != null) {
                                 for(line in lines) {
-                                    if(line.startsWith("https",true)) {
-                                        urlList.add(line)
-                                    }
+                                    urlList.add(line)
                                 }
                             }
                             trySend(Resource.Success(urlList.toList()))

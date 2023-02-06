@@ -65,18 +65,6 @@ class ImagesViewModel @Inject constructor(
         }
     }
 
-    fun onDeleteFailedImage(url: String) {
-        val list = state.value.imagesList
-        viewModelScope.launch {
-            val newList = list.minus(url)
-            _state.update {
-                it.copy(
-                    imagesList = newList
-                )
-            }
-        }
-    }
-
     fun loadImageUrlList() {
         viewModelScope.launch {
             _state.update {

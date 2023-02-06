@@ -25,6 +25,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.*
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -120,13 +121,16 @@ fun ImagesScreen(
                             var globalImageOffset by remember {
                                 mutableStateOf(Offset.Zero)
                             }
+                            var isSuccess by remember {
+                                mutableStateOf(true)
+                            }
                             val imageUrl = state.imagesList[index]
                             GlideImage(
                                 success = { imageState ->
                                     imageState.imageBitmap?.let {
                                         Image(
                                             bitmap = it,
-                                            modifier = Modifier.size(90.dp),
+                                            modifier = Modifier.size(100.dp),
                                             contentDescription = null,
                                             contentScale = ContentScale.FillBounds,
                                         )
@@ -138,9 +142,13 @@ fun ImagesScreen(
                                     .onGloballyPositioned { coordinates ->
                                         globalImageOffset = coordinates.boundsInWindow().topLeft
                                     }
-                                    .clickable {
-                                        viewModel.onImageClicked(index, globalImageOffset)
-                                    },
+                                    .clickable(
+                                        enabled = isSuccess,
+                                        onClick = {
+                                            viewModel.onImageClicked(index, globalImageOffset)
+                                        }
+                                    )
+                                    ,
                                 imageOptions = ImageOptions(
                                     contentScale = ContentScale.FillBounds,
                                 ),
@@ -155,7 +163,22 @@ fun ImagesScreen(
                                     )
                                 },
                                 failure = {
-                                    viewModel.onDeleteFailedImage(imageUrl)
+                                    isSuccess = false
+                                    Box(
+                                        modifier = Modifier
+                                            .size(100.dp)
+                                            .background(Color.LightGray)
+                                    ) {
+                                        Text(
+                                            modifier = Modifier
+                                                .align(Alignment.Center)
+                                                ,
+                                            text = stringResource(id = R.string.image_loading_error_text),
+                                            color = Color.Gray,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            textAlign = TextAlign.Center,
+                                        )
+                                    }
                                 }
                             )
                         }
