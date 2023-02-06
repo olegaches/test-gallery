@@ -11,5 +11,6 @@ data class ImagesScreenState(
     val currentImageIndex: Int = 0,
     val currentImageUrl: String? = null,
     val clickedImageGlobalOffset: Offset? = null,
-    val topBarVisible: Boolean = false
+    val topBarVisible: Boolean = false,
+    val systemNavigationBarVisible: Boolean = true,
 )

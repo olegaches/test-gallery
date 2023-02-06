@@ -26,10 +26,12 @@ import androidx.compose.ui.layout.*
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.*
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.imagesproject.R
 import com.example.imagesproject.presentation.Constants
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.components.*
 import com.skydoves.landscapist.glide.GlideImage
@@ -44,7 +46,16 @@ fun ImagesScreen(
     viewModel: ImagesViewModel = hiltViewModel(),
 ) {
     val state = viewModel.state.collectAsState().value
+    val systemUiController = rememberSystemUiController()
+    LaunchedEffect(key1 = state.systemNavigationBarVisible) {
+        systemUiController.isNavigationBarVisible = state.systemNavigationBarVisible
+    }
+    SideEffect {
+        systemUiController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+    }
+
     Scaffold(
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             AnimatedVisibility(
                 visible = state.topBarVisible,
@@ -78,6 +89,7 @@ fun ImagesScreen(
         Box(
             Modifier
                 .fillMaxSize()
+                .background(Color.Blue)
         ) {
             BackHandler() {
                 viewModel.onBackClicked()
@@ -97,7 +109,8 @@ fun ImagesScreen(
                 Box(
                     Modifier
                         .padding(paddingValues)
-                        .fillMaxSize()) {
+                        .fillMaxSize()
+                ) {
                     LazyVerticalGrid(
                         modifier = Modifier
                             .fillMaxSize(),
@@ -149,8 +162,15 @@ fun ImagesScreen(
                     }
                 }
             }
-            if(state.isExpanded) {
-                state.clickedImageGlobalOffset?.let { CopyOfImage(it, state.imagesList, state.currentImageIndex, viewModel::onTopBarChangeVisibility) }
+            if (state.isExpanded) {
+                state.clickedImageGlobalOffset?.let {
+                    CopyOfImage(
+                        it,
+                        state.imagesList,
+                        state.currentImageIndex,
+                        viewModel::onBarsVisibilityChange,
+                    )
+                }
             }
         }
     }
@@ -162,7 +182,7 @@ fun CopyOfImage(
     offset: Offset,
     imagesList: List<String>,
     imageIndex: Int,
-    onImageClick :() -> Unit
+    onImageClick :() -> Unit,
 ) {
     LaunchedEffect(key1 = true) {
         onImageClick()
@@ -170,6 +190,7 @@ fun CopyOfImage(
     var scale by remember { mutableStateOf(1f) }
     Box(
         modifier = Modifier
+            .fillMaxSize()
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
@@ -183,16 +204,16 @@ fun CopyOfImage(
                     }
                 }
             }
-            .fillMaxSize()
             .combinedClickable(
-                onClick = onImageClick,
+                onClick = onImageClick
             )
     ) {
         val statusBars = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
         val navigationBars = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-        val maxWidth = LocalConfiguration.current.screenWidthDp.dp
-        val maxHeight = (LocalConfiguration.current.screenHeightDp
-                + statusBars.value + navigationBars.value + 1.0).dp
+        val localConfig = LocalConfiguration.current
+        val maxWidth = remember { localConfig.screenWidthDp.dp }
+        val maxHeight = remember { (localConfig.screenHeightDp
+                + statusBars.value + navigationBars.value + 1.0).dp }
         var isAnimated by remember { mutableStateOf(false) }
         val transition = updateTransition(targetState = isAnimated, label = "transition")
         val sizeHeight by transition.animateDp(transitionSpec = {
@@ -205,14 +226,14 @@ fun CopyOfImage(
         }, "") { animated ->
             if (animated) maxWidth else 90.dp
         }
-        val rocketOffset by transition.animateOffset(transitionSpec = {
+        val imageOffset by transition.animateOffset(transitionSpec = {
             if (this.targetState) {
                 tween(1000) // launch duration
 
             } else {
                 tween(1000) // land duration
             }
-        }, label = "rocket offset") { animated ->
+        }, label = "image offset") { animated ->
             if (animated) Offset(0f, 0f) else offset
         }
 
@@ -225,7 +246,7 @@ fun CopyOfImage(
             modifier = Modifier
                 .size(sizeWidth, sizeHeight)
                 .offset {
-                    rocketOffset.round()
+                    imageOffset.round()
                 }
                 .animateContentSize()
                 .onPlaced {

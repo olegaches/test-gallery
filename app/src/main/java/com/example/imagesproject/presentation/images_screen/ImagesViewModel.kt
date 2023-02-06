@@ -34,10 +34,19 @@ class ImagesViewModel @Inject constructor(
         }
     }
 
-    fun onTopBarChangeVisibility() {
+    fun onBarsVisibilityChange() {
         _state.update {
             it.copy(
-                topBarVisible = !it.topBarVisible
+                topBarVisible = !it.topBarVisible,
+            )
+        }
+        onNavigationBarVisibilityChange()
+    }
+
+    private fun onNavigationBarVisibilityChange() {
+        _state.update {
+            it.copy(
+                systemNavigationBarVisible = it.topBarVisible
             )
         }
     }
