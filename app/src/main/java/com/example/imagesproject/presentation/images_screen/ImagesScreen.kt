@@ -19,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -234,27 +235,22 @@ fun CopyOfImage(
         val statusBars = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
         val navigationBars = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
         val localConfig = LocalConfiguration.current
-        val maxWidth = remember { localConfig.screenWidthDp.dp }
+        val maxWidth = remember { localConfig.screenWidthDp.toFloat() }
         val maxHeight = remember { (localConfig.screenHeightDp
-                + statusBars.value + navigationBars.value + 1.0).dp }
+                + statusBars.value + navigationBars.value + 1.0f) }
         var isAnimated by remember { mutableStateOf(false) }
         val transition = updateTransition(targetState = isAnimated, label = "transition")
-        val sizeHeight by transition.animateDp(transitionSpec = {
+        val animatedSize by transition.animateSize(transitionSpec = {
             tween(1000)
         }, "") { animated ->
-            if (animated) maxHeight else 90.dp
-        }
-        val sizeWidth by transition.animateDp(transitionSpec = {
-            tween(1000)
-        }, "") { animated ->
-            if (animated) maxWidth else 90.dp
+            if (animated) Size(maxWidth, maxHeight) else Size(100f, 100f)
         }
         val imageOffset by transition.animateOffset(transitionSpec = {
             if (this.targetState) {
-                tween(1000) // launch duration
+                tween(800) // launch duration
 
             } else {
-                tween(1000) // land duration
+                tween(800) // land duration
             }
         }, label = "image offset") { animated ->
             if (animated) Offset(0f, 0f) else offset
@@ -263,48 +259,59 @@ fun CopyOfImage(
         val pagerState = rememberPagerState(
             initialPage = imageIndex
         )
+
         HorizontalPager(
             state = pagerState,
             pageCount = imagesList.size,
             modifier = Modifier
-                .size(sizeWidth, sizeHeight)
-                .offset {
-                    imageOffset.round()
-                }
-                .animateContentSize()
-                .onPlaced {
-                    isAnimated = true
-                }
-            ,
+                .fillMaxSize(),
+            contentPadding = PaddingValues(0.dp),
+            pageSpacing = 0.dp,
             verticalAlignment = Alignment.CenterVertically,
         ) { index ->
-            val imageUrl = imagesList[index]
-            Log.e("66", imageUrl + " " + index)
-            GlideImage(
-                success = { imageState ->
-                    imageState.imageBitmap?.let {
-                        Image(
-                            modifier = Modifier
-                                .fillMaxSize()
-                            ,
-                            bitmap = it,
-                            contentDescription = null,
-                            contentScale = ContentScale.FillBounds,
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    ,
+            ) {
+                val imageUrl = imagesList[index]
+                Log.e("66", imageUrl + " " + index)
+                GlideImage(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        ,
+                    success = { imageState ->
+                        imageState.imageBitmap?.let {
+                            Image(
+                                modifier = Modifier
+                                    .size(animatedSize.width.dp, animatedSize.height.dp)
+                                    .offset {
+                                        imageOffset.round()
+                                    }
+                                    .animateContentSize()
+                                    .onPlaced {
+                                        isAnimated = true
+                                    }
+                                ,
+                                bitmap = it,
+                                contentDescription = null,
+                                contentScale = ContentScale.FillBounds,
+                            )
+                        }
+                    },
+                    imageModel = { imageUrl },
+                    component = rememberImageComponent {
+                        +ShimmerPlugin(
+                            baseColor = MaterialTheme.colorScheme.background,
+                            highlightColor = Color.LightGray,
                         )
-                    }
-                },
-                imageModel = { imageUrl },
-                component = rememberImageComponent {
-                    +ShimmerPlugin(
-                        baseColor = MaterialTheme.colorScheme.background,
-                        highlightColor = Color.LightGray,
-                    )
-                    +PalettePlugin(
-                        imageModel = { imageUrl },
-                        useCache = true,
-                    )
-                },
-            )
+                        +PalettePlugin(
+                            imageModel = { imageUrl },
+                            useCache = true,
+                        )
+                    },
+                )
+            }
         }
     }
 }
