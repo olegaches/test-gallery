@@ -32,6 +32,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.imagesproject.R
+import com.example.imagesproject.domain.model.ImageItem
 import com.example.imagesproject.presentation.Constants
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.skydoves.landscapist.ImageOptions
@@ -120,12 +121,19 @@ fun ImagesScreen(
                     ) {
                         items(state.imagesList.size) { index ->
                             var globalImageOffset by remember {
-                                mutableStateOf(Offset.Zero)
+                                mutableStateOf<Offset?>(null)
+                            }
+                            LaunchedEffect(key1 = globalImageOffset) {
+                                globalImageOffset?.let { notNullableOffset ->
+                                    viewModel.setItemOffset(index,
+                                        notNullableOffset
+                                    )
+                                }
                             }
                             var isSuccess by remember {
                                 mutableStateOf(true)
                             }
-                            val imageUrl = state.imagesList[index]
+                            val imageUrl = state.imagesList[index].url
                             GlideImage(
                                 success = { imageState ->
                                     imageState.imageBitmap?.let {
@@ -146,7 +154,7 @@ fun ImagesScreen(
                                     .clickable(
                                         enabled = isSuccess,
                                         onClick = {
-                                            viewModel.onImageClicked(index, globalImageOffset)
+                                            viewModel.onImageClicked(index)
                                         }
                                     )
                                     ,
@@ -186,15 +194,16 @@ fun ImagesScreen(
                     }
                 }
             }
-            if (state.isExpanded) {
-                state.clickedImageGlobalOffset?.let {
-                    CopyOfImage(
-                        it,
-                        state.imagesList,
-                        state.currentImageIndex,
-                        viewModel::onBarsVisibilityChange,
-                    )
-                }
+            if(state.openedImageLayer) {
+                CopyOfImage(
+                    state.imagesList,
+                    state.currentImageIndex,
+                    state.isExpandAnimated,
+                    state.isExpanded,
+                    viewModel::onBarsVisibilityChange,
+                    viewModel::animateImage,
+                    viewModel::onHideImageLayer,
+                )
             }
         }
     }
@@ -203,13 +212,19 @@ fun ImagesScreen(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CopyOfImage(
-    offset: Offset,
-    imagesList: List<String>,
+    imagesList: List<ImageItem>,
     imageIndex: Int,
+    isAnimated: Boolean,
+    isExpanded: Boolean,
     onImageClick :() -> Unit,
+    onAnimateImage: (Boolean) -> Unit,
+    onHideImageLayer: () -> Unit,
 ) {
     LaunchedEffect(key1 = true) {
         onImageClick()
+    }
+    LaunchedEffect(key1 = isAnimated) {
+        onAnimateImage(isExpanded)
     }
     var scale by remember { mutableStateOf(1f) }
     Box(
@@ -238,22 +253,11 @@ fun CopyOfImage(
         val maxWidth = remember { localConfig.screenWidthDp.toFloat() }
         val maxHeight = remember { (localConfig.screenHeightDp
                 + statusBars.value + navigationBars.value + 1.0f) }
-        var isAnimated by remember { mutableStateOf(false) }
         val transition = updateTransition(targetState = isAnimated, label = "transition")
         val animatedSize by transition.animateSize(transitionSpec = {
             tween(1000)
         }, "") { animated ->
             if (animated) Size(maxWidth, maxHeight) else Size(100f, 100f)
-        }
-        val imageOffset by transition.animateOffset(transitionSpec = {
-            if (this.targetState) {
-                tween(800) // launch duration
-
-            } else {
-                tween(800) // land duration
-            }
-        }, label = "image offset") { animated ->
-            if (animated) Offset(0f, 0f) else offset
         }
 
         val pagerState = rememberPagerState(
@@ -274,8 +278,18 @@ fun CopyOfImage(
                     .fillMaxSize()
                     ,
             ) {
-                val imageUrl = imagesList[index]
-                Log.e("66", imageUrl + " " + index)
+                val imageItem = imagesList[index]
+                val imageOffset by transition.animateOffset(transitionSpec = {
+                    if (this.targetState) {
+                        tween(800) // launch duration
+
+                    } else {
+                        tween(800) // land duration
+                    }
+                }, label = "image offset") { animated ->
+                    if (animated) Offset.Zero else imageItem.offset ?: Offset.Zero
+                }
+                Log.e("66", imageItem.url + " " + index)
                 GlideImage(
                     modifier = Modifier
                         .align(Alignment.TopStart)
@@ -289,8 +303,10 @@ fun CopyOfImage(
                                         imageOffset.round()
                                     }
                                     .animateContentSize()
-                                    .onPlaced {
-                                        isAnimated = true
+                                    .onGloballyPositioned { layoutCoordinates ->
+                                        if (layoutCoordinates.positionInRoot() == imageItem.offset && !isExpanded) {
+                                            onHideImageLayer()
+                                        }
                                     }
                                 ,
                                 bitmap = it,
@@ -299,14 +315,14 @@ fun CopyOfImage(
                             )
                         }
                     },
-                    imageModel = { imageUrl },
+                    imageModel = { imageItem.url },
                     component = rememberImageComponent {
                         +ShimmerPlugin(
                             baseColor = MaterialTheme.colorScheme.background,
                             highlightColor = Color.LightGray,
                         )
                         +PalettePlugin(
-                            imageModel = { imageUrl },
+                            imageModel = { imageItem.url },
                             useCache = true,
                         )
                     },

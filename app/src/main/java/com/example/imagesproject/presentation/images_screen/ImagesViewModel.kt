@@ -24,12 +24,30 @@ class ImagesViewModel @Inject constructor(
         loadImageUrlList()
     }
 
-    fun onImageClicked(index: Int, globalImageOffset: Offset) {
+    fun setItemOffset(imageIndex: Int, offset: Offset) {
+        val newList = _state.value.imagesList.mapIndexed { index, imageItem ->
+            if(index == imageIndex) {
+                imageItem.copy(
+                    offset = offset
+                )
+            }
+            else {
+                imageItem
+            }
+        }
+        _state.update {
+            it.copy(
+                imagesList = newList
+            )
+        }
+    }
+
+    fun onImageClicked(index: Int) {
         _state.update {
             it.copy(
                 isExpanded = true,
                 currentImageIndex = index,
-                clickedImageGlobalOffset = globalImageOffset,
+                openedImageLayer = true,
             )
         }
     }
@@ -51,16 +69,32 @@ class ImagesViewModel @Inject constructor(
         }
     }
 
+    fun animateImage(expand: Boolean) {
+        _state.update {
+            it.copy(
+                isExpandAnimated = expand
+            )
+        }
+    }
+
+    fun onHideImageLayer() {
+        _state.update {
+            it.copy(
+                openedImageLayer = false,
+            )
+        }
+    }
+
     fun onBackClicked() {
         if(!_state.value.isExpanded)
             return
         _state.update {
             it.copy(
+                isExpandAnimated = false,
                 topBarVisible = false,
                 currentImageIndex = 0,
                 currentImageUrl = null,
                 isExpanded = false,
-                clickedImageGlobalOffset = null,
             )
         }
     }
