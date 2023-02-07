@@ -1,5 +1,6 @@
 package com.example.imagesproject.presentation.images_screen
 
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import com.example.imagesproject.core.util.UiText
 import com.example.imagesproject.domain.model.ImageItem
 
@@ -14,4 +15,8 @@ data class ImagesScreenState(
     val systemNavigationBarVisible: Boolean = true,
     val isExpandAnimated: Boolean = false,
     val openedImageLayer: Boolean = false,
+    val indexOfLastGridVisibleItem: Int = 0,
+    val lazyGridState: LazyGridState = LazyGridState(),
+    val gridLayoutParams: GridLayoutParams? = null,
+    val indexToScroll: Int? = null,
 )

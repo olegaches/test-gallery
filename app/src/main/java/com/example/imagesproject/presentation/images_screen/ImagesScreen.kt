@@ -42,7 +42,6 @@ import com.skydoves.landscapist.components.*
 import com.skydoves.landscapist.glide.GlideImage
 import com.skydoves.landscapist.palette.PalettePlugin
 import com.skydoves.landscapist.placeholder.shimmer.ShimmerPlugin
-
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,7 +78,9 @@ fun ImagesScreen(
                     ),
                     navigationIcon = {
                         IconButton(
-                            onClick = viewModel::onBackClicked
+                            onClick = {
+                                viewModel.onBackClicked()
+                            }
                         ) {
                             Icon(
                                 contentDescription = null,
@@ -117,6 +118,7 @@ fun ImagesScreen(
                         .fillMaxSize()
                 ) {
                     LazyVerticalGrid(
+                        state = state.lazyGridState,
                         modifier = Modifier
                             .fillMaxSize(),
                         columns = GridCells.Adaptive(90.dp),
@@ -156,7 +158,18 @@ fun ImagesScreen(
                                     .clickable(
                                         enabled = isSuccess,
                                         onClick = {
-                                            viewModel.onImageClicked(index)
+                                            val visibleItems =
+                                                state.lazyGridState.layoutInfo.visibleItemsInfo
+                                            val lastVisibleRow = visibleItems.last().row + 1
+                                            val lastVisibleColumn = visibleItems.last().column + 1
+                                            val visibleGridSize = lastVisibleRow * lastVisibleColumn
+                                            val visibleParams = GridLayoutParams(
+                                                visibleRows = lastVisibleRow,
+                                                visibleColumns = lastVisibleColumn,
+                                                visibleGridSize = visibleGridSize,
+                                            )
+                                            viewModel.saveLayoutParams(visibleParams)
+                                            viewModel.onImageClicked(index, visibleItems.lastIndex)
                                         }
                                     )
                                     ,
@@ -196,15 +209,18 @@ fun ImagesScreen(
                     }
                 }
             }
-            if(state.openedImageLayer) {
+            if(state.openedImageLayer && state.gridLayoutParams != null) {
                 CopyOfImage(
-                    state.imagesList,
-                    state.currentImageIndex,
-                    state.isExpandAnimated,
-                    state.isExpanded,
-                    viewModel::onBarsVisibilityChange,
-                    viewModel::animateImage,
-                    viewModel::onHideImageLayer,
+                    gridLayoutParams = state.gridLayoutParams,
+                    imagesList = state.imagesList,
+                    imageIndex = state.currentImageIndex,
+                    isAnimated = state.isExpandAnimated,
+                    isExpanded = state.isExpanded,
+                    indexOfLastGridVisibleItem = state.indexOfLastGridVisibleItem,
+                    onImageClick = viewModel::onBarsVisibilityChange,
+                    onAnimateImage = viewModel::animateImage,
+                    savePagerIndex = viewModel::savePagerIndex,
+                    onHideImageLayer = viewModel::onHideImageLayer,
                 )
             }
         }
@@ -218,7 +234,10 @@ fun CopyOfImage(
     imageIndex: Int,
     isAnimated: Boolean,
     isExpanded: Boolean,
-    onImageClick :() -> Unit,
+    gridLayoutParams: GridLayoutParams,
+    indexOfLastGridVisibleItem: Int,
+    onImageClick:() -> Unit,
+    savePagerIndex: (Int) -> Unit,
     onAnimateImage: (Boolean) -> Unit,
     onHideImageLayer: () -> Unit,
 ) {
@@ -285,6 +304,10 @@ fun CopyOfImage(
                     .fillMaxSize()
                     ,
             ) {
+                LaunchedEffect(key1 = index) {
+                    if(index > indexOfLastGridVisibleItem)
+                        savePagerIndex(index)
+                }
                 val imageItem = imagesList[index]
                 val imageOffset by transition.animateOffset(transitionSpec = {
                     if (this.targetState) {
@@ -294,7 +317,12 @@ fun CopyOfImage(
                         tween(800) // land duration
                     }
                 }, label = "image offset") { animated ->
-                    if (animated) Offset.Zero else imageItem.offset ?: Offset.Zero
+
+                    if (animated) {
+                        Offset.Zero
+                    } else {
+                        imageItem.offset ?: Offset.Zero
+                    }
                 }
                 Log.e("66", imageItem.url + " " + index)
                 GlideImage(
@@ -311,7 +339,7 @@ fun CopyOfImage(
                                     }
                                     .animateContentSize()
                                     .onGloballyPositioned { layoutCoordinates ->
-                                        if (layoutCoordinates.positionInRoot() == imageItem.offset && !isExpanded) {
+                                        if (layoutCoordinates.positionInRoot() == imageItem.offset && !isExpanded && imageItem.offset != Offset.Zero) {
                                             onHideImageLayer()
                                         }
                                     }

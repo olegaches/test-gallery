@@ -42,9 +42,18 @@ class ImagesViewModel @Inject constructor(
         }
     }
 
-    fun onImageClicked(index: Int) {
+    fun saveLayoutParams(gridLayoutParams: GridLayoutParams) {
         _state.update {
             it.copy(
+                gridLayoutParams = gridLayoutParams,
+            )
+        }
+    }
+
+    fun onImageClicked(index: Int, indexOfLastGridVisibleItem: Int) {
+        _state.update {
+            it.copy(
+                indexOfLastGridVisibleItem = indexOfLastGridVisibleItem,
                 isExpanded = true,
                 currentImageIndex = index,
                 openedImageLayer = true,
@@ -72,7 +81,15 @@ class ImagesViewModel @Inject constructor(
     fun animateImage(expand: Boolean) {
         _state.update {
             it.copy(
-                isExpandAnimated = expand
+                isExpandAnimated = expand,
+            )
+        }
+    }
+
+    fun savePagerIndex(index: Int) {
+        _state.update {
+            it.copy(
+                indexToScroll = index,
             )
         }
     }
@@ -86,7 +103,8 @@ class ImagesViewModel @Inject constructor(
     }
 
     fun onBackClicked() {
-        if(!_state.value.isExpanded)
+        val stateValue = state.value
+        if(!stateValue.isExpanded)
             return
         _state.update {
             it.copy(
@@ -94,7 +112,7 @@ class ImagesViewModel @Inject constructor(
                 topBarVisible = false,
                 currentImageIndex = 0,
                 currentImageUrl = null,
-                isExpanded = false,
+                isExpanded = false
             )
         }
     }
