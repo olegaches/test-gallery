@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerDefaults
+import androidx.compose.foundation.pager.PagerSnapDistance
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -269,6 +271,11 @@ fun CopyOfImage(
             pageCount = imagesList.size,
             modifier = Modifier
                 .fillMaxSize(),
+            flingBehavior =  PagerDefaults.flingBehavior(
+                state = pagerState,
+                pagerSnapDistance = PagerSnapDistance.atMost(0)
+            )
+                    ,
             contentPadding = PaddingValues(0.dp),
             pageSpacing = 0.dp,
             verticalAlignment = Alignment.CenterVertically,
