@@ -28,20 +28,16 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.*
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.imagesproject.R
 import com.example.imagesproject.domain.model.ImageItem
 import com.example.imagesproject.presentation.Constants
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.skydoves.landscapist.ImageOptions
-import com.skydoves.landscapist.components.*
-import com.skydoves.landscapist.glide.GlideImage
-import com.skydoves.landscapist.palette.PalettePlugin
-import com.skydoves.landscapist.placeholder.shimmer.ShimmerPlugin
+
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,10 +113,16 @@ fun ImagesScreen(
                         .padding(paddingValues)
                         .fillMaxSize()
                 ) {
+                    var gridHeight by remember {
+                        mutableStateOf(0)
+                    }
                     LazyVerticalGrid(
                         state = state.lazyGridState,
                         modifier = Modifier
-                            .fillMaxSize(),
+                            .fillMaxSize()
+                            .onGloballyPositioned {
+                                gridHeight = it.size.height
+                            },
                         columns = GridCells.Adaptive(90.dp),
                     ) {
                         items(state.imagesList.size) { index ->
@@ -138,20 +140,10 @@ fun ImagesScreen(
                                 mutableStateOf(true)
                             }
                             val imageUrl = state.imagesList[index].url
-                            GlideImage(
-                                success = { imageState ->
-                                    imageState.imageBitmap?.let {
-                                        Image(
-                                            bitmap = it,
-                                            modifier = Modifier.size(100.dp),
-                                            contentDescription = null,
-                                            contentScale = ContentScale.FillBounds,
-                                        )
-                                    }
-                                },
-                                imageModel = { imageUrl },
+                            AsyncImage(
                                 modifier = Modifier
                                     .padding(1.dp)
+                                    .size(100.dp)
                                     .onGloballyPositioned { coordinates ->
                                         globalImageOffset = coordinates.boundsInWindow().topLeft
                                     }
@@ -161,49 +153,28 @@ fun ImagesScreen(
                                             val visibleItems =
                                                 state.lazyGridState.layoutInfo.visibleItemsInfo
                                             val lastVisibleRow = visibleItems.last().row + 1
+                                            val lastElement = visibleItems.last()
                                             val lastVisibleColumn = visibleItems.last().column + 1
+                                            val lastFullVisibleIndex = lastElement.index - lastVisibleColumn
+                                            val firstFullVisibleIndex = visibleItems.first().index + lastVisibleColumn - 1 - lastVisibleColumn
+                                            val offset = gridHeight - lastElement.size.height
                                             val visibleGridSize = lastVisibleRow * lastVisibleColumn
                                             val visibleParams = GridLayoutParams(
                                                 visibleRows = lastVisibleRow,
                                                 visibleColumns = lastVisibleColumn,
                                                 visibleGridSize = visibleGridSize,
+                                                itemOffset = offset,
+                                                lastFullVisibleIndex = if(lastFullVisibleIndex < 0) 0 else lastFullVisibleIndex,
+                                                firstFullVisibleIndex = if(firstFullVisibleIndex < 0) lastVisibleColumn - 1 else firstFullVisibleIndex,
                                             )
                                             viewModel.saveLayoutParams(visibleParams)
-                                            viewModel.onImageClicked(index, visibleItems.lastIndex)
+                                            viewModel.onImageClicked(index)
                                         }
                                     )
-                                    ,
-                                imageOptions = ImageOptions(
-                                    contentScale = ContentScale.FillBounds,
-                                ),
-                                component = rememberImageComponent {
-                                    +ShimmerPlugin(
-                                        baseColor = MaterialTheme.colorScheme.background,
-                                        highlightColor = Color.LightGray,
-                                    )
-                                    +PalettePlugin(
-                                        imageModel = { imageUrl },
-                                        useCache = true,
-                                    )
-                                },
-                                failure = {
-                                    isSuccess = false
-                                    Box(
-                                        modifier = Modifier
-                                            .size(100.dp)
-                                            .background(Color.LightGray)
-                                    ) {
-                                        Text(
-                                            modifier = Modifier
-                                                .align(Alignment.Center)
-                                                ,
-                                            text = stringResource(id = R.string.image_loading_error_text),
-                                            color = Color.Gray,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            textAlign = TextAlign.Center,
-                                        )
-                                    }
-                                }
+                                ,
+                                contentScale = ContentScale.FillBounds,
+                                model = imageUrl,
+                                contentDescription = null,
                             )
                         }
                     }
@@ -216,7 +187,6 @@ fun ImagesScreen(
                     imageIndex = state.currentImageIndex,
                     isAnimated = state.isExpandAnimated,
                     isExpanded = state.isExpanded,
-                    indexOfLastGridVisibleItem = state.indexOfLastGridVisibleItem,
                     onImageClick = viewModel::onBarsVisibilityChange,
                     onAnimateImage = viewModel::animateImage,
                     savePagerIndex = viewModel::savePagerIndex,
@@ -235,7 +205,6 @@ fun CopyOfImage(
     isAnimated: Boolean,
     isExpanded: Boolean,
     gridLayoutParams: GridLayoutParams,
-    indexOfLastGridVisibleItem: Int,
     onImageClick:() -> Unit,
     savePagerIndex: (Int) -> Unit,
     onAnimateImage: (Boolean) -> Unit,
@@ -305,8 +274,10 @@ fun CopyOfImage(
                     ,
             ) {
                 LaunchedEffect(key1 = index) {
-                    if(index > indexOfLastGridVisibleItem)
+                    if(index >= gridLayoutParams.lastFullVisibleIndex || index <= gridLayoutParams.firstFullVisibleIndex) {
                         savePagerIndex(index)
+                    }
+
                 }
                 val imageItem = imagesList[index]
                 val imageOffset by transition.animateOffset(transitionSpec = {
@@ -325,42 +296,23 @@ fun CopyOfImage(
                     }
                 }
                 Log.e("66", imageItem.url + " " + index)
-                GlideImage(
+                AsyncImage(
                     modifier = Modifier
                         .align(Alignment.TopStart)
-                        ,
-                    success = { imageState ->
-                        imageState.imageBitmap?.let {
-                            Image(
-                                modifier = Modifier
-                                    .size(animatedSize.width.dp, animatedSize.height.dp)
-                                    .offset {
-                                        imageOffset.round()
-                                    }
-                                    .animateContentSize()
-                                    .onGloballyPositioned { layoutCoordinates ->
-                                        if (layoutCoordinates.positionInRoot() == imageItem.offset && !isExpanded && imageItem.offset != Offset.Zero) {
-                                            onHideImageLayer()
-                                        }
-                                    }
-                                ,
-                                bitmap = it,
-                                contentDescription = null,
-                                contentScale = ContentScale.FillBounds,
-                            )
+                        .size(animatedSize.width.dp, animatedSize.height.dp)
+                        .offset {
+                            imageOffset.round()
                         }
-                    },
-                    imageModel = { imageItem.url },
-                    component = rememberImageComponent {
-                        +ShimmerPlugin(
-                            baseColor = MaterialTheme.colorScheme.background,
-                            highlightColor = Color.LightGray,
-                        )
-                        +PalettePlugin(
-                            imageModel = { imageItem.url },
-                            useCache = true,
-                        )
-                    },
+                        .animateContentSize()
+                        .onGloballyPositioned { layoutCoordinates ->
+                            if (layoutCoordinates.positionInRoot() == imageItem.offset && !isExpanded) {
+                                onHideImageLayer()
+                            }
+                        }
+                    ,
+                    contentScale = ContentScale.FillBounds,
+                    model = imageItem.url,
+                    contentDescription = null,
                 )
             }
         }

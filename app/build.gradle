@@ -61,9 +61,8 @@ dependencies {
     implementation "com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.3"
     implementation 'com.squareup.retrofit2:converter-moshi:2.9.0'
 
-    implementation "com.github.skydoves:landscapist-palette:2.1.1"
-    implementation "com.github.skydoves:landscapist-glide:2.1.1"
-    implementation "com.github.skydoves:landscapist-placeholder:2.1.1"
+    //Coil compose
+    implementation "io.coil-kt:coil-compose:2.2.2"
 
     // Hilt - Dagger
     implementation "com.google.dagger:hilt-android:$hilt_version"

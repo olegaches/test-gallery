@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.imagesproject.core.util.Resource
 import com.example.imagesproject.domain.use_case.GetImagesUrlListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -50,10 +51,9 @@ class ImagesViewModel @Inject constructor(
         }
     }
 
-    fun onImageClicked(index: Int, indexOfLastGridVisibleItem: Int) {
+    fun onImageClicked(index: Int) {
         _state.update {
             it.copy(
-                indexOfLastGridVisibleItem = indexOfLastGridVisibleItem,
                 isExpanded = true,
                 currentImageIndex = index,
                 openedImageLayer = true,
@@ -102,10 +102,35 @@ class ImagesViewModel @Inject constructor(
         }
     }
 
+    private fun onScrollToImage(imageIndex: Int) {
+        viewModelScope.launch(Dispatchers.Main) {
+            val stateValue = _state.value
+            if(stateValue.gridLayoutParams == null) {
+                return@launch
+            }
+            stateValue.lazyGridState.scrollToItem(
+                index = imageIndex,
+                scrollOffset =
+                if(stateValue.gridLayoutParams.lastFullVisibleIndex <= imageIndex)
+                    -stateValue.gridLayoutParams.itemOffset else {
+                        0
+                }
+            )
+            _state.update {
+                it.copy(
+                    indexToScroll = null,
+                )
+            }
+        }
+    }
+
     fun onBackClicked() {
         val stateValue = state.value
         if(!stateValue.isExpanded)
             return
+        stateValue.indexToScroll?.let {
+            onScrollToImage(it)
+        }
         _state.update {
             it.copy(
                 isExpandAnimated = false,
@@ -117,7 +142,7 @@ class ImagesViewModel @Inject constructor(
         }
     }
 
-    fun loadImageUrlList() {
+    private fun loadImageUrlList() {
         viewModelScope.launch {
             _state.update {
                 it.copy(

@@ -7,21 +7,16 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.view.WindowCompat
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.imagesproject.presentation.Constants
 import com.example.imagesproject.presentation.Screen
-import com.example.imagesproject.presentation.image_item.ImageItemScreen
 import com.example.imagesproject.presentation.images_screen.ImagesScreen
 import com.example.imagesproject.ui.theme.ImagesProjectTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -41,7 +36,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Navigation(navController, modifier = Modifier)
+                    Navigation(navController)
                 }
             }
         }
@@ -67,7 +62,7 @@ fun TransparentSystemBars() {
 }
 
 @Composable
-fun Navigation(navHostController: NavHostController, modifier: Modifier) {
+fun Navigation(navHostController: NavHostController) {
     NavHost(
         navController = navHostController,
         startDestination = Screen.ImagesScreen.route,
@@ -76,11 +71,6 @@ fun Navigation(navHostController: NavHostController, modifier: Modifier) {
             route = Screen.ImagesScreen.route
         ) {
             ImagesScreen(navHostController)
-        }
-        composable(
-            route = "${Screen.ImageItemScreen.route}/{${Constants.IMAGE_URL_PARAM}}",
-        ) {
-            ImageItemScreen(navHostController)
         }
     }
 }
