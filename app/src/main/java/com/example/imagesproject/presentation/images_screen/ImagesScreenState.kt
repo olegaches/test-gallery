@@ -18,4 +18,5 @@ data class ImagesScreenState(
     val lazyGridState: LazyGridState = LazyGridState(),
     val gridLayoutParams: GridLayoutParams? = null,
     val indexToScroll: Int? = null,
+    val imageScreenState: ImageScreenState = ImageScreenState(),
 )

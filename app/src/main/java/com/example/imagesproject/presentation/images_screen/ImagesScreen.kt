@@ -18,15 +18,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.*
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.*
 import androidx.core.view.WindowInsetsControllerCompat
@@ -37,7 +36,10 @@ import com.example.imagesproject.R
 import com.example.imagesproject.domain.model.ImageItem
 import com.example.imagesproject.presentation.Constants
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-
+import com.skydoves.orbital.Orbital
+import com.skydoves.orbital.animateSharedElementTransition
+import com.skydoves.orbital.rememberContentWithOrbitalScope
+import kotlinx.coroutines.delay
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -155,8 +157,10 @@ fun ImagesScreen(
                                             val lastVisibleRow = visibleItems.last().row + 1
                                             val lastElement = visibleItems.last()
                                             val lastVisibleColumn = visibleItems.last().column + 1
-                                            val lastFullVisibleIndex = lastElement.index - lastVisibleColumn
-                                            val firstFullVisibleIndex = visibleItems.first().index + lastVisibleColumn - 1 - lastVisibleColumn
+                                            val lastFullVisibleIndex =
+                                                lastElement.index - lastVisibleColumn
+                                            val firstFullVisibleIndex =
+                                                visibleItems.first().index + lastVisibleColumn - 1 - lastVisibleColumn
                                             val offset = gridHeight - lastElement.size.height
                                             val visibleGridSize = lastVisibleRow * lastVisibleColumn
                                             val visibleParams = GridLayoutParams(
@@ -164,8 +168,8 @@ fun ImagesScreen(
                                                 visibleColumns = lastVisibleColumn,
                                                 visibleGridSize = visibleGridSize,
                                                 itemOffset = offset,
-                                                lastFullVisibleIndex = if(lastFullVisibleIndex < 0) 0 else lastFullVisibleIndex,
-                                                firstFullVisibleIndex = if(firstFullVisibleIndex < 0) lastVisibleColumn - 1 else firstFullVisibleIndex,
+                                                lastFullVisibleIndex = if (lastFullVisibleIndex < 0) 0 else lastFullVisibleIndex,
+                                                firstFullVisibleIndex = if (firstFullVisibleIndex < 0) lastVisibleColumn - 1 else firstFullVisibleIndex,
                                             )
                                             viewModel.saveLayoutParams(visibleParams)
                                             viewModel.onImageClicked(index)
@@ -187,10 +191,12 @@ fun ImagesScreen(
                     imageIndex = state.currentImageIndex,
                     isAnimated = state.isExpandAnimated,
                     isExpanded = state.isExpanded,
+                    imageScreenState = state.imageScreenState,
                     onImageClick = viewModel::onBarsVisibilityChange,
                     onAnimateImage = viewModel::animateImage,
                     savePagerIndex = viewModel::savePagerIndex,
                     onHideImageLayer = viewModel::onHideImageLayer,
+                    onImageScreenEvent = viewModel::onImageScreenEvent,
                 )
             }
         }
@@ -205,7 +211,9 @@ fun CopyOfImage(
     isAnimated: Boolean,
     isExpanded: Boolean,
     gridLayoutParams: GridLayoutParams,
+    imageScreenState: ImageScreenState,
     onImageClick:() -> Unit,
+    onImageScreenEvent: (ImageScreenEvent) -> Unit,
     savePagerIndex: (Int) -> Unit,
     onAnimateImage: (Boolean) -> Unit,
     onHideImageLayer: () -> Unit,
@@ -216,105 +224,241 @@ fun CopyOfImage(
     LaunchedEffect(key1 = isAnimated) {
         onAnimateImage(isExpanded)
     }
-    var scale by remember { mutableStateOf(1f) }
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
-            .pointerInput(Unit) {
-                detectTransformGestures { _, _, zoom, _ ->
-                    scale = when {
-                        scale * zoom < 1f -> scale
-                        zoom * scale > 3f -> scale
-                        else -> scale * zoom
+    val pagerState = rememberPagerState(
+        initialPage = imageIndex
+    )
+    var isAnimationFinished by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(key1 = isAnimated) {
+        if(isAnimated) {
+            delay(300)
+            isAnimationFinished = true
+        }
+    }
+
+    val imageContent = rememberContentWithOrbitalScope {
+        val imageItem = imagesList[imageIndex]
+        AsyncImage(
+            modifier = if (isAnimated) {
+                Modifier.fillMaxSize()
+            } else {
+                Modifier
+                    .offset {
+                        imageItem.offset!!.round()
                     }
-                }
-            }
-            .combinedClickable(
-                onClick = onImageClick
+                    .size(100.dp, 100.dp)
+            }.animateSharedElementTransition(
+                this,
+                SpringSpec(stiffness = 500f),
+                SpringSpec(stiffness = 500f)
             )
-    ) {
-        val statusBars = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-        val navigationBars = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-        val localConfig = LocalConfiguration.current
-        val maxWidth = remember { localConfig.screenWidthDp.toFloat() }
-        val maxHeight = remember { (localConfig.screenHeightDp
-                + statusBars.value + navigationBars.value + 1.0f) }
-        val transition = updateTransition(targetState = isAnimated, label = "transition")
-        val animatedSize by transition.animateSize(transitionSpec = {
+                    ,
+            model = imageItem.url,
+            contentScale = ContentScale.FillBounds,
+            contentDescription = null,
+        )
+    }
+    if(!isAnimationFinished) {
+        Orbital(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            imageContent()
+        }
+    } else {
+        var scale by remember { mutableStateOf(1f) }
+        val transition = updateTransition(targetState = imageScreenState.isAnimatedScale, label = "transition")
+        val animatedScale by transition.animateFloat(transitionSpec = {
             tween(1000)
         }, "") { animated ->
-            if (animated) Size(maxWidth, maxHeight) else Size(100f, 100f)
+            if (animated) {
+                1f
+            } else
+                scale
         }
-
-        val pagerState = rememberPagerState(
-            initialPage = imageIndex
-        )
-
         HorizontalPager(
             state = pagerState,
             pageCount = imagesList.size,
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .background(Color.Black)
+                .pointerInput(Unit) {
+                    detectTransformGestures { _, _, zoom, _ ->
+                        when {
+                            scale * zoom < 0.5f -> scale *= zoom
+                            zoom * scale > 3f -> scale *= zoom
+                            scale * zoom < 1f -> onImageScreenEvent(ImageScreenEvent.IsAnimatedScaleChanged(true))
+                            else -> scale *= zoom
+                        }
+                    }
+                }
+                .combinedClickable(
+                    onClick = onImageClick
+                )
+            ,
+            pageSpacing = 12.dp,
             flingBehavior =  PagerDefaults.flingBehavior(
                 state = pagerState,
                 pagerSnapDistance = PagerSnapDistance.atMost(0)
             )
-                    ,
+            ,
             contentPadding = PaddingValues(0.dp),
-            pageSpacing = 0.dp,
             verticalAlignment = Alignment.CenterVertically,
         ) { index ->
-            Box(
+            LaunchedEffect(key1 = index) {
+                scale = 1f
+            }
+            Log.e("66", imagesList[index].url + " " + index)
+            AsyncImage(
                 modifier = Modifier
                     .fillMaxSize()
-                    ,
-            ) {
-                LaunchedEffect(key1 = index) {
-                    if(index >= gridLayoutParams.lastFullVisibleIndex || index <= gridLayoutParams.firstFullVisibleIndex) {
-                        savePagerIndex(index)
+                    .graphicsLayer {
+                        scaleX = animatedScale
+                        scaleY = animatedScale
                     }
-
-                }
-                val imageItem = imagesList[index]
-                val imageOffset by transition.animateOffset(transitionSpec = {
-                    if (this.targetState) {
-                        tween(800) // launch duration
-
-                    } else {
-                        tween(800) // land duration
-                    }
-                }, label = "image offset") { animated ->
-
-                    if (animated) {
-                        Offset.Zero
-                    } else {
-                        imageItem.offset ?: Offset.Zero
-                    }
-                }
-                Log.e("66", imageItem.url + " " + index)
-                AsyncImage(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .size(animatedSize.width.dp, animatedSize.height.dp)
-                        .offset {
-                            imageOffset.round()
-                        }
-                        .animateContentSize()
-                        .onGloballyPositioned { layoutCoordinates ->
-                            if (layoutCoordinates.positionInRoot() == imageItem.offset && !isExpanded) {
-                                onHideImageLayer()
-                            }
-                        }
-                    ,
-                    contentScale = ContentScale.FillBounds,
-                    model = imageItem.url,
-                    contentDescription = null,
-                )
-            }
+                ,
+                contentScale = ContentScale.FillBounds,
+                model = imagesList[index].url,
+                contentDescription = null,
+            )
         }
     }
+//    Box(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            //.clickable { isTransformed = !isTransformed }
+//    ) {
+//        HorizontalPager(
+//            state = pagerState,
+//            pageCount = imagesList.size,
+//            modifier = Modifier
+//                .fillMaxSize(),
+//            flingBehavior =  PagerDefaults.flingBehavior(
+//                state = pagerState,
+//                pagerSnapDistance = PagerSnapDistance.atMost(0)
+//            )
+//            ,
+//            contentPadding = PaddingValues(0.dp),
+//            pageSpacing = 0.dp,
+//            verticalAlignment = Alignment.CenterVertically,
+//        ) { index ->
+//            pagerIndex = index
+//            Orbital(
+//                isTransformed = isTransformed,
+//                onStartContent = {
+//
+//                },
+//                onTransformedContent = {
+//                    HorizontalPager(pageCount = 3) {
+//
+//                    }
+//                }
+//            )
+                //onTransformedContent
+//                modifier = Modifier
+//                    .clickable { isTransformed = !isTransformed },
+//            ) {
+//                imageContent()
+//            }
+//        }
+//    }
+
+//    Box(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .graphicsLayer {
+//                scaleX = scale
+//                scaleY = scale
+//            }
+//            .pointerInput(Unit) {
+//                detectTransformGestures { _, _, zoom, _ ->
+//                    scale = when {
+//                        scale * zoom < 1f -> scale
+//                        zoom * scale > 3f -> scale
+//                        else -> scale * zoom
+//                    }
+//                }
+//            }
+//            .combinedClickable(
+//                onClick = onImageClick
+//            )
+//    ) {
+//        val statusBars = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+//        val navigationBars = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+//        val localConfig = LocalConfiguration.current
+//        val maxWidth = remember { localConfig.screenWidthDp.toFloat() }
+//        val maxHeight = remember { (localConfig.screenHeightDp
+//                + statusBars.value + navigationBars.value + 1.0f) }
+//        val transition = updateTransition(targetState = isAnimated, label = "transition")
+//        val animatedSize by transition.animateSize(transitionSpec = {
+//            tween(1000)
+//        }, "") { animated ->
+//            if (animated) Size(maxWidth, maxHeight) else Size(100f, 100f)
+//        }
+//
+//        val pagerState = rememberPagerState(
+//            initialPage = imageIndex
+//        )
+//
+//        HorizontalPager(
+//            state = pagerState,
+//            pageCount = imagesList.size,
+//            modifier = Modifier
+//                .fillMaxSize(),
+//            flingBehavior =  PagerDefaults.flingBehavior(
+//                state = pagerState,
+//                pagerSnapDistance = PagerSnapDistance.atMost(0)
+//            )
+//                    ,
+//            contentPadding = PaddingValues(0.dp),
+//            pageSpacing = 0.dp,
+//            verticalAlignment = Alignment.CenterVertically,
+//        ) { index ->
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    ,
+//            ) {
+//                LaunchedEffect(key1 = index) {
+//                    if(index >= gridLayoutParams.lastFullVisibleIndex || index <= gridLayoutParams.firstFullVisibleIndex) {
+//                        savePagerIndex(index)
+//                    }
+//
+//                }
+//                val imageItem = imagesList[index]
+//                val imageOffset by transition.animateOffset(transitionSpec = {
+//                    if (this.targetState) {
+//                        tween(800) // launch duration
+//
+//                    } else {
+//                        tween(800) // land duration
+//                    }
+//                }, label = "image offset") { animated ->
+//
+//                    if (animated) {
+//                        Offset.Zero
+//                    } else {
+//                        imageItem.offset ?: Offset.Zero
+//                    }
+//                }
+//                Log.e("66", imageItem.url + " " + index)
+//                AsyncImage(
+//                    modifier = Modifier
+//                        .align(Alignment.TopStart)
+//                        .size(animatedSize.width.dp, animatedSize.height.dp)
+//                        .offset {
+//                            imageOffset.round()
+//                        }
+//                        .animateContentSize()
+//                        .onGloballyPositioned { layoutCoordinates ->
+//                            if (layoutCoordinates.positionInRoot() == imageItem.offset && !isExpanded) {
+//                                onHideImageLayer()
+//                            }
+//                        }
+//                    ,
+//                    contentScale = ContentScale.FillBounds,
+//                    model = imageItem.url,
+//                    contentDescription = null,
+//                )
+//            }
+//        }
+//    }
 }

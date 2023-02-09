@@ -7,6 +7,7 @@ import com.example.imagesproject.core.util.Resource
 import com.example.imagesproject.domain.use_case.GetImagesUrlListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -23,6 +24,34 @@ class ImagesViewModel @Inject constructor(
 
     init {
         loadImageUrlList()
+    }
+
+    fun onImageScreenEvent(event: ImageScreenEvent) {
+        when(event) {
+            is ImageScreenEvent.IsAnimatedScaleChanged -> {
+                viewModelScope.launch {
+                    delay(300)
+                    _state.update {
+                        it.copy(
+                            imageScreenState = it.imageScreenState.copy(
+                                isAnimatedScale = event.value
+                            )
+                        )
+                    }
+                    delay(300)
+                    _state.update {
+                        it.copy(
+                            imageScreenState = it.imageScreenState.copy(
+                                isAnimatedScale = !event.value
+                            )
+                        )
+                    }
+                }
+            }
+            else -> {
+
+            }
+        }
     }
 
     fun setItemOffset(imageIndex: Int, offset: Offset) {
