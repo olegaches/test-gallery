@@ -1,7 +1,6 @@
 package com.example.imagesproject.presentation.images_screen
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -10,17 +9,15 @@ import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerDefaults
-import androidx.compose.foundation.pager.PagerSnapDistance
-import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.pager.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -38,7 +35,6 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.skydoves.orbital.Orbital
 import com.skydoves.orbital.animateSharedElementTransition
 import com.skydoves.orbital.rememberContentWithOrbitalScope
-import kotlinx.coroutines.delay
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -133,7 +129,8 @@ fun GalleryScreen(
                                     .padding(1.dp)
                                     .size(100.dp)
                                     .onGloballyPositioned { coordinates ->
-                                        viewModel.setItemOffset(index,
+                                        viewModel.setItemOffset(
+                                            index,
                                             coordinates.boundsInWindow().topLeft
                                         )
                                         viewModel.saveGridItemSize(coordinates.size)
@@ -187,7 +184,7 @@ fun GalleryScreen(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun ImageScreen(
     imagesList: List<ImageItem>,
@@ -222,7 +219,7 @@ fun ImageScreen(
             } else {
                 Modifier
                     .offset {
-                        imageItem.offset!!.round()
+                        imageItem.offset?.round() ?: Offset.Zero.round()
                     }
                     .size(100.dp, 100.dp)
             }.animateSharedElementTransition(
@@ -248,9 +245,12 @@ fun ImageScreen(
             tween(1000)
         }, "") { animated ->
             if (animated) {
-                1f
-            } else
-                scale
+                scale = 1f
+            }
+            scale
+        }
+        LaunchedEffect(key1 = pagerState.currentPage) {
+            onImageScreenEvent(ImageScreenEvent.OnPagerIndexChanged(pagerState.currentPage))
         }
         HorizontalPager(
             state = pagerState,
@@ -261,35 +261,34 @@ fun ImageScreen(
                 .pointerInput(Unit) {
                     detectTransformGestures { _, _, zoom, _ ->
                         when {
-                            scale * zoom < 0.5f -> scale *= zoom
-                            zoom * scale > 3f -> scale *= zoom
-                            scale * zoom < 1f -> onImageScreenEvent(
-                                ImageScreenEvent.IsAnimatedScaleChanged(
-                                    true
+                            scale * zoom < 0.5f -> {}
+                            zoom * scale > 3f -> {}
+                            scale * zoom < 1f -> {
+                                scale *= zoom
+                                onImageScreenEvent(
+                                    ImageScreenEvent.IsAnimatedScaleChanged(
+                                        true
+                                    )
                                 )
-                            )
+                            }
                             else -> scale *= zoom
                         }
                     }
                 }
                 .combinedClickable(
                     onClick = onImageClick
-                )
-            ,
+                ),
             pageSpacing = 12.dp,
-            flingBehavior =  PagerDefaults.flingBehavior(
+            flingBehavior = PagerDefaults.flingBehavior(
                 state = pagerState,
                 pagerSnapDistance = PagerSnapDistance.atMost(0)
-            )
-            ,
+            ),
             contentPadding = PaddingValues(0.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) { index ->
             LaunchedEffect(key1 = index) {
-                onImageScreenEvent(ImageScreenEvent.OnPagerIndexChanged(index))
                 scale = 1f
             }
-            Log.e("66", imagesList[index].url + " " + index)
             AsyncImage(
                 modifier = Modifier
                     .fillMaxSize()

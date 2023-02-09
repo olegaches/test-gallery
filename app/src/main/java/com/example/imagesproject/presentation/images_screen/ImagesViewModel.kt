@@ -31,7 +31,7 @@ class ImagesViewModel @Inject constructor(
         when(event) {
             is ImageScreenEvent.IsAnimatedScaleChanged -> {
                 viewModelScope.launch {
-                    delay(5000)
+                    delay(700)
                     _state.update {
                         it.copy(
                             imageScreenState = it.imageScreenState.copy(
@@ -39,7 +39,7 @@ class ImagesViewModel @Inject constructor(
                             )
                         )
                     }
-                    delay(300)
+                    delay(700)
                     _state.update {
                         it.copy(
                             imageScreenState = it.imageScreenState.copy(
@@ -83,10 +83,12 @@ class ImagesViewModel @Inject constructor(
                 }
             }
             is ImageScreenEvent.OnPagerIndexChanged -> {
+                if(_state.value.imageScreenState.imageIndex == event.value)
+                    return
                 _state.update {
                     it.copy(
                         imageScreenState = it.imageScreenState.copy(
-                            imageIndex = event.value - 1
+                            imageIndex = event.value
                         )
                     )
                 }
