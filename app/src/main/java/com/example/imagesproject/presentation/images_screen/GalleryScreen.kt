@@ -215,11 +215,11 @@ fun ImageScreen(
         onImageScreenEvent(ImageScreenEvent.OnAnimate(AnimationType.EXPAND_ANIMATION))
     }
 
-    var isTransformed by remember {
-        mutableStateOf(false)
+    var animationType by remember {
+        mutableStateOf(imageScreenState.animationState.animationType)
     }
-    LaunchedEffect(key1 = imageScreenState.animationState.animationType == AnimationType.EXPAND_ANIMATION) {
-        isTransformed != isTransformed
+    LaunchedEffect(key1 = imageScreenState.animationState.animationType) {
+        animationType = imageScreenState.animationState.animationType
     }
 
     val pagerState = rememberPagerState(
@@ -229,7 +229,7 @@ fun ImageScreen(
     val imageContent = rememberContentWithOrbitalScope {
         val imageItem = imagesList[imageScreenState.imageIndex]
         AsyncImage(
-            modifier = if (imageScreenState.animationState.animationType == AnimationType.EXPAND_ANIMATION) {
+            modifier = if (animationType == AnimationType.EXPAND_ANIMATION) {
                 Modifier.fillMaxSize()
             } else {
                 Modifier
@@ -298,6 +298,7 @@ fun ImageScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) { index ->
             LaunchedEffect(key1 = index) {
+                onImageScreenEvent(ImageScreenEvent.OnPagerIndexChanged(index))
                 scale = 1f
             }
             Log.e("66", imagesList[index].url + " " + index)

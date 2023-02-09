@@ -81,8 +81,14 @@ class ImagesViewModel @Inject constructor(
                     )
                 }
             }
-            else -> {
-
+            is ImageScreenEvent.OnPagerIndexChanged -> {
+                _state.update {
+                    it.copy(
+                        imageScreenState = it.imageScreenState.copy(
+                            imageIndex = event.value - 1
+                        )
+                    )
+                }
             }
         }
     }
@@ -191,8 +197,8 @@ class ImagesViewModel @Inject constructor(
                     topBarVisible = false,
                     imageScreenState = it.imageScreenState.copy(
                         animationState = it.imageScreenState.animationState.copy(
-                            animationType = AnimationType.HIDE_ANIMATION,
                             isAnimationInProgress = true,
+                            animationType = AnimationType.HIDE_ANIMATION
                         )
                     )
                 )
