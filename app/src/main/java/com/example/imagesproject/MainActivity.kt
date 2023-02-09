@@ -17,7 +17,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.imagesproject.presentation.Screen
-import com.example.imagesproject.presentation.images_screen.ImagesScreen
+import com.example.imagesproject.presentation.images_screen.GalleryScreen
 import com.example.imagesproject.ui.theme.ImagesProjectTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
@@ -70,7 +70,7 @@ fun Navigation(navHostController: NavHostController) {
         composable(
             route = Screen.ImagesScreen.route
         ) {
-            ImagesScreen(navHostController)
+            GalleryScreen(navHostController)
         }
     }
 }

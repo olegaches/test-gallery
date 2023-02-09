@@ -43,7 +43,7 @@ import kotlinx.coroutines.delay
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ImagesScreen(
+fun GalleryScreen(
     navController: NavController,
     viewModel: ImagesViewModel = hiltViewModel(),
 ) {
@@ -184,16 +184,12 @@ fun ImagesScreen(
                     }
                 }
             }
-            if(state.openedImageLayer && state.gridLayoutParams != null) {
-                CopyOfImage(
+            if(state.gridLayoutParams != null && state.imageScreenState.isVisible) {
+                ImageScreen(
                     gridLayoutParams = state.gridLayoutParams,
                     imagesList = state.imagesList,
-                    imageIndex = state.currentImageIndex,
-                    isAnimated = state.isExpandAnimated,
-                    isExpanded = state.isExpanded,
                     imageScreenState = state.imageScreenState,
                     onImageClick = viewModel::onBarsVisibilityChange,
-                    onAnimateImage = viewModel::animateImage,
                     savePagerIndex = viewModel::savePagerIndex,
                     onHideImageLayer = viewModel::onHideImageLayer,
                     onImageScreenEvent = viewModel::onImageScreenEvent,
@@ -205,40 +201,35 @@ fun ImagesScreen(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun CopyOfImage(
+fun ImageScreen(
     imagesList: List<ImageItem>,
-    imageIndex: Int,
-    isAnimated: Boolean,
-    isExpanded: Boolean,
     gridLayoutParams: GridLayoutParams,
     imageScreenState: ImageScreenState,
     onImageClick:() -> Unit,
     onImageScreenEvent: (ImageScreenEvent) -> Unit,
     savePagerIndex: (Int) -> Unit,
-    onAnimateImage: (Boolean) -> Unit,
     onHideImageLayer: () -> Unit,
 ) {
     LaunchedEffect(key1 = true) {
         onImageClick()
-    }
-    LaunchedEffect(key1 = isAnimated) {
-        onAnimateImage(isExpanded)
-    }
-    val pagerState = rememberPagerState(
-        initialPage = imageIndex
-    )
-    var isAnimationFinished by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(key1 = isAnimated) {
-        if(isAnimated) {
-            delay(300)
-            isAnimationFinished = true
-        }
+        onImageScreenEvent(ImageScreenEvent.OnAnimate(AnimationType.EXPAND_ANIMATION))
     }
 
+    var isTransformed by remember {
+        mutableStateOf(false)
+    }
+    LaunchedEffect(key1 = imageScreenState.animationState.animationType == AnimationType.EXPAND_ANIMATION) {
+        isTransformed != isTransformed
+    }
+
+    val pagerState = rememberPagerState(
+        initialPage = imageScreenState.imageIndex
+    )
+
     val imageContent = rememberContentWithOrbitalScope {
-        val imageItem = imagesList[imageIndex]
+        val imageItem = imagesList[imageScreenState.imageIndex]
         AsyncImage(
-            modifier = if (isAnimated) {
+            modifier = if (imageScreenState.animationState.animationType == AnimationType.EXPAND_ANIMATION) {
                 Modifier.fillMaxSize()
             } else {
                 Modifier
@@ -250,14 +241,13 @@ fun CopyOfImage(
                 this,
                 SpringSpec(stiffness = 500f),
                 SpringSpec(stiffness = 500f)
-            )
-                    ,
+            ),
             model = imageItem.url,
             contentScale = ContentScale.FillBounds,
             contentDescription = null,
         )
     }
-    if(!isAnimationFinished) {
+    if(imageScreenState.animationState.isAnimationInProgress) {
         Orbital(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -285,7 +275,11 @@ fun CopyOfImage(
                         when {
                             scale * zoom < 0.5f -> scale *= zoom
                             zoom * scale > 3f -> scale *= zoom
-                            scale * zoom < 1f -> onImageScreenEvent(ImageScreenEvent.IsAnimatedScaleChanged(true))
+                            scale * zoom < 1f -> onImageScreenEvent(
+                                ImageScreenEvent.IsAnimatedScaleChanged(
+                                    true
+                                )
+                            )
                             else -> scale *= zoom
                         }
                     }

@@ -30,7 +30,7 @@ class ImagesViewModel @Inject constructor(
         when(event) {
             is ImageScreenEvent.IsAnimatedScaleChanged -> {
                 viewModelScope.launch {
-                    delay(300)
+                    delay(5000)
                     _state.update {
                         it.copy(
                             imageScreenState = it.imageScreenState.copy(
@@ -46,6 +46,39 @@ class ImagesViewModel @Inject constructor(
                             )
                         )
                     }
+                }
+            }
+            is ImageScreenEvent.OnAnimate -> {
+                viewModelScope.launch {
+                    _state.update {
+                        it.copy(
+                            imageScreenState = it.imageScreenState.copy(
+                                animationState = it.imageScreenState.animationState.copy(
+                                    isAnimationInProgress = true,
+                                    animationType = event.value
+                                )
+                            )
+                        )
+                    }
+                    delay(300)
+                    _state.update {
+                        it.copy(
+                            imageScreenState = it.imageScreenState.copy(
+                                animationState = it.imageScreenState.animationState.copy(
+                                    isAnimationInProgress = false,
+                                )
+                            )
+                        )
+                    }
+                }
+            }
+            is ImageScreenEvent.OnVisibleChanged -> {
+                _state.update {
+                    it.copy(
+                        imageScreenState = it.imageScreenState.copy(
+                            isVisible = event.value
+                        )
+                    )
                 }
             }
             else -> {
@@ -83,8 +116,10 @@ class ImagesViewModel @Inject constructor(
     fun onImageClicked(index: Int) {
         _state.update {
             it.copy(
-                isExpanded = true,
-                currentImageIndex = index,
+                imageScreenState = it.imageScreenState.copy(
+                    imageIndex = index,
+                    isVisible = true,
+                ),
                 openedImageLayer = true,
             )
         }
@@ -103,14 +138,6 @@ class ImagesViewModel @Inject constructor(
         _state.update {
             it.copy(
                 systemNavigationBarVisible = it.topBarVisible
-            )
-        }
-    }
-
-    fun animateImage(expand: Boolean) {
-        _state.update {
-            it.copy(
-                isExpandAnimated = expand,
             )
         }
     }
@@ -155,19 +182,32 @@ class ImagesViewModel @Inject constructor(
 
     fun onBackClicked() {
         val stateValue = state.value
-        if(!stateValue.isExpanded)
-            return
         stateValue.indexToScroll?.let {
             onScrollToImage(it)
         }
-        _state.update {
-            it.copy(
-                isExpandAnimated = false,
-                topBarVisible = false,
-                currentImageIndex = 0,
-                currentImageUrl = null,
-                isExpanded = false
-            )
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    topBarVisible = false,
+                    imageScreenState = it.imageScreenState.copy(
+                        animationState = it.imageScreenState.animationState.copy(
+                            animationType = AnimationType.HIDE_ANIMATION,
+                            isAnimationInProgress = true,
+                        )
+                    )
+                )
+            }
+            delay(300)
+            _state.update {
+                it.copy(
+                    imageScreenState = it.imageScreenState.copy(
+                        isVisible = false,
+                        animationState = it.imageScreenState.animationState.copy(
+                            isAnimationInProgress = true
+                        )
+                    )
+                )
+            }
         }
     }
 
