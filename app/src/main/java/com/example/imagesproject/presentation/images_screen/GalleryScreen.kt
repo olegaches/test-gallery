@@ -136,6 +136,7 @@ fun GalleryScreen(
                                         viewModel.setItemOffset(index,
                                             coordinates.boundsInWindow().topLeft
                                         )
+                                        viewModel.saveGridItemSize(coordinates.size)
                                     }
                                     .clickable(
                                         onClick = {

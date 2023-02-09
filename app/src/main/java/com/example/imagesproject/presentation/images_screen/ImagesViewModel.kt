@@ -1,6 +1,7 @@
 package com.example.imagesproject.presentation.images_screen
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.imagesproject.core.util.Resource
@@ -90,6 +91,16 @@ class ImagesViewModel @Inject constructor(
                     )
                 }
             }
+        }
+    }
+
+    fun saveGridItemSize(size: IntSize) {
+        if(_state.value.gridItemSize == size)
+            return
+        _state.update {
+            it.copy(
+                gridItemSize = size
+            )
         }
     }
 
