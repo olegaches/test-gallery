@@ -21,7 +21,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -125,32 +124,20 @@ fun GalleryScreen(
                             .onGloballyPositioned {
                                 gridHeight = it.size.height
                             },
-                        columns = GridCells.Adaptive(90.dp),
+                        columns = GridCells.Adaptive(100.dp),
                     ) {
                         items(state.imagesList.size) { index ->
-                            var globalImageOffset by remember {
-                                mutableStateOf<Offset?>(null)
-                            }
-                            LaunchedEffect(key1 = globalImageOffset) {
-                                globalImageOffset?.let { notNullableOffset ->
-                                    viewModel.setItemOffset(index,
-                                        notNullableOffset
-                                    )
-                                }
-                            }
-                            var isSuccess by remember {
-                                mutableStateOf(true)
-                            }
                             val imageUrl = state.imagesList[index].url
                             AsyncImage(
                                 modifier = Modifier
                                     .padding(1.dp)
                                     .size(100.dp)
                                     .onGloballyPositioned { coordinates ->
-                                        globalImageOffset = coordinates.boundsInWindow().topLeft
+                                        viewModel.setItemOffset(index,
+                                            coordinates.boundsInWindow().topLeft
+                                        )
                                     }
                                     .clickable(
-                                        enabled = isSuccess,
                                         onClick = {
                                             val visibleItems =
                                                 state.lazyGridState.layoutInfo.visibleItemsInfo
