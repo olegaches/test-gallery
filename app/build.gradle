@@ -63,6 +63,7 @@ dependencies {
 
     //эх, щас бы щас бы
     implementation "com.github.skydoves:orbital:0.2.4"
+    implementation "com.mxalbert.zoomable:zoomable:1.5.1"
 
     //Coil compose
     implementation "io.coil-kt:coil-compose:2.2.2"

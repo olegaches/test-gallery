@@ -8,7 +8,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -22,8 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -35,6 +34,8 @@ import com.example.imagesproject.R
 import com.example.imagesproject.domain.model.ImageItem
 import com.example.imagesproject.presentation.Constants
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.mxalbert.zoomable.Zoomable
+import com.mxalbert.zoomable.rememberZoomableState
 import com.skydoves.orbital.Orbital
 import com.skydoves.orbital.animateSharedElementTransition
 import com.skydoves.orbital.rememberContentWithOrbitalScope
@@ -144,7 +145,8 @@ fun GalleryScreen(
                                                 lastElement.index - lastVisibleColumn
                                             val firstFullVisibleIndex =
                                                 visibleItems.first().index + lastVisibleColumn - 1 - lastVisibleColumn
-                                            val offset = state.lazyGridState.layoutInfo.viewportSize.height - lastElement.size.height
+                                            val offset =
+                                                state.lazyGridState.layoutInfo.viewportSize.height - lastElement.size.height
                                             val visibleGridSize = lastVisibleRow * lastVisibleColumn
                                             val visibleParams = GridLayoutParams(
                                                 visibleRows = lastVisibleRow,
@@ -154,7 +156,10 @@ fun GalleryScreen(
                                                 lastFullVisibleIndex = if (lastFullVisibleIndex < 0) 0 else lastFullVisibleIndex,
                                                 firstFullVisibleIndex = if (firstFullVisibleIndex < 0) lastVisibleColumn - 1 else firstFullVisibleIndex,
                                             )
-                                            val intSizeDp = convertPixelsToDp(context = context, size = lastElement.size.toSize())
+                                            val intSizeDp = convertPixelsToDp(
+                                                context = context,
+                                                size = lastElement.size.toSize()
+                                            )
                                             viewModel.saveGridItemSize(intSizeDp)
                                             viewModel.saveLayoutParams(visibleParams)
                                             viewModel.onImageClicked(index)
@@ -241,8 +246,8 @@ fun ImageScreen(
                     )
             }.animateSharedElementTransition(
                 this,
-                SpringSpec(stiffness = 500f),
-                SpringSpec(stiffness = 500f)
+                SpringSpec(stiffness = 600f),
+                SpringSpec(stiffness = 600f)
             ),
             model = imageItem.url,
             contentScale = ContentScale.FillBounds,
@@ -256,16 +261,6 @@ fun ImageScreen(
             imageContent()
         }
     } else {
-        var scale by remember { mutableStateOf(1f) }
-        val transition = updateTransition(targetState = imageScreenState.isAnimatedScale, label = "transition")
-        val animatedScale by transition.animateFloat(transitionSpec = {
-            tween(1000)
-        }, "") { animated ->
-            if (animated) {
-                scale = 1f
-            }
-            scale
-        }
         LaunchedEffect(key1 = pagerState.currentPage) {
             onImageScreenEvent(ImageScreenEvent.OnPagerIndexChanged(pagerState.currentPage))
             if(pagerState.currentPage >= gridLayoutParams.lastFullVisibleIndex || pagerState.currentPage <= gridLayoutParams.firstFullVisibleIndex) {
@@ -274,31 +269,13 @@ fun ImageScreen(
         }
         HorizontalPager(
             state = pagerState,
+            beyondBoundsPageCount = 3,
             pageCount = imagesList.size,
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
-                .pointerInput(Unit) {
-                    detectTransformGestures { _, _, zoom, _ ->
-                        when {
-                            scale * zoom < 0.5f -> {}
-                            zoom * scale > 3f -> {}
-                            scale * zoom < 1f -> {
-                                scale *= zoom
-                                onImageScreenEvent(
-                                    ImageScreenEvent.IsAnimatedScaleChanged(
-                                        true
-                                    )
-                                )
-                            }
-                            else -> scale *= zoom
-                        }
-                    }
-                }
-                .combinedClickable(
-                    onClick = onImageClick
-                ),
-            pageSpacing = 12.dp,
+            ,
+            pageSpacing = 16.dp,
             flingBehavior = PagerDefaults.flingBehavior(
                 state = pagerState,
                 pagerSnapDistance = PagerSnapDistance.atMost(0)
@@ -306,21 +283,25 @@ fun ImageScreen(
             contentPadding = PaddingValues(0.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) { index ->
-            LaunchedEffect(key1 = index) {
-                scale = 1f
+            val zoomableState = rememberZoomableState()
+            LaunchedEffect(key1 = pagerState.targetPage) {
+                zoomableState.animateScaleTo(targetScale = 1f)
             }
-            AsyncImage(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        scaleX = animatedScale
-                        scaleY = animatedScale
-                    }
-                ,
-                contentScale = ContentScale.FillBounds,
-                model = imagesList[index].url,
-                contentDescription = null,
-            )
+            Zoomable(
+                state = zoomableState,
+                onTap = {
+                    onImageClick()
+                }
+            ) {
+                AsyncImage(
+                    modifier = Modifier
+                        .fillMaxSize()
+                    ,
+                    contentScale = ContentScale.FillBounds,
+                    model = imagesList[index].url,
+                    contentDescription = null,
+                )
+            }
         }
     }
 }

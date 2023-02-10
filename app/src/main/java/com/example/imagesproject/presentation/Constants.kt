@@ -2,6 +2,5 @@ package com.example.imagesproject.presentation
 
 object Constants {
     const val FILE_URL = "https://it-link.ru/test/images.txt"
-    const val IMAGE_URL_PARAM = "ImageUrl"
-    const val TOP_BAR_VISIBILITY_ANIMATION_TIME = 300
+    const val TOP_BAR_VISIBILITY_ANIMATION_TIME = 200
 }

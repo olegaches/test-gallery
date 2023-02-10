@@ -29,26 +29,6 @@ class ImagesViewModel @Inject constructor(
 
     fun onImageScreenEvent(event: ImageScreenEvent) {
         when(event) {
-            is ImageScreenEvent.IsAnimatedScaleChanged -> {
-                viewModelScope.launch {
-                    delay(700)
-                    _state.update {
-                        it.copy(
-                            imageScreenState = it.imageScreenState.copy(
-                                isAnimatedScale = event.value
-                            )
-                        )
-                    }
-                    delay(700)
-                    _state.update {
-                        it.copy(
-                            imageScreenState = it.imageScreenState.copy(
-                                isAnimatedScale = !event.value
-                            )
-                        )
-                    }
-                }
-            }
             is ImageScreenEvent.OnAnimate -> {
                 viewModelScope.launch {
                     _state.update {
@@ -61,7 +41,7 @@ class ImagesViewModel @Inject constructor(
                             )
                         )
                     }
-                    delay(300)
+                    delay(400)
                     _state.update {
                         it.copy(
                             imageScreenState = it.imageScreenState.copy(
@@ -211,7 +191,7 @@ class ImagesViewModel @Inject constructor(
                     )
                 )
             }
-            delay(300)
+            delay(400)
             _state.update {
                 it.copy(
                     imageScreenState = it.imageScreenState.copy(
