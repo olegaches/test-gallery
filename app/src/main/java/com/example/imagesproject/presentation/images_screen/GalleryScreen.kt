@@ -144,7 +144,7 @@ fun GalleryScreen(
                                             val lastFullVisibleIndex =
                                                 lastElement.index - lastVisibleColumn
                                             val firstFullVisibleIndex =
-                                                visibleItems.first().index + lastVisibleColumn - 1 - lastVisibleColumn
+                                                visibleItems.first().index + lastVisibleColumn - 1// - lastVisibleColumn
                                             val offset =
                                                 state.lazyGridState.layoutInfo.viewportSize.height - lastElement.size.height
                                             val visibleGridSize = lastVisibleRow * lastVisibleColumn
