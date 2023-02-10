@@ -1,7 +1,6 @@
 package com.example.imagesproject.presentation.images_screen
 
 import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.ui.unit.IntSize
 import com.example.imagesproject.core.util.UiText
 import com.example.imagesproject.domain.model.ImageItem
 
@@ -16,5 +15,4 @@ data class ImagesScreenState(
     val gridLayoutParams: GridLayoutParams? = null,
     val indexToScroll: Int? = null,
     val imageScreenState: ImageScreenState = ImageScreenState(),
-    val gridItemSize: IntSize = IntSize.Zero,
 )

@@ -97,11 +97,14 @@ class ImagesViewModel @Inject constructor(
     }
 
     fun saveGridItemSize(size: IntSize) {
-        if(_state.value.gridItemSize == size)
+        val imageState = _state.value.imageScreenState
+        if(imageState.gridItemImageSize == size)
             return
         _state.update {
             it.copy(
-                gridItemSize = size
+                imageScreenState = it.imageScreenState.copy(
+                    gridItemImageSize = size
+                )
             )
         }
     }
@@ -165,14 +168,6 @@ class ImagesViewModel @Inject constructor(
         _state.update {
             it.copy(
                 indexToScroll = index,
-            )
-        }
-    }
-
-    fun onHideImageLayer() {
-        _state.update {
-            it.copy(
-                openedImageLayer = false,
             )
         }
     }
