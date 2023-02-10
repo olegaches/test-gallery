@@ -1,5 +1,6 @@
 package com.example.imagesproject.presentation.images_screen
 
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 
 data class ImageScreenState(
@@ -8,4 +9,5 @@ data class ImageScreenState(
     val imageIndex: Int = 0,
     val isVisible: Boolean = false,
     val gridItemImageSize: IntSize = IntSize.Zero,
+    val gridItemOffset: IntOffset = IntOffset.Zero,
 )

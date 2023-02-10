@@ -163,6 +163,7 @@ fun GalleryScreen(
                                                 size = lastElement.size.toSize()
                                             )
                                             viewModel.saveGridItemSize(intSizeDp)
+                                            viewModel.saveGridItemOffset(visibleItems[index].offset)
                                             viewModel.saveLayoutParams(visibleParams)
                                             viewModel.onImageClicked(index)
                                         }
@@ -170,7 +171,7 @@ fun GalleryScreen(
                                 onSuccess = {
                                     isSuccess = true
                                 },
-                                contentScale = ContentScale.FillBounds,
+                                //contentScale = ContentScale.FillBounds,
                                 error = painterResource(id = R.drawable.image_not_found),
                                 model = imageUrl,
                                 contentDescription = null,
@@ -182,7 +183,6 @@ fun GalleryScreen(
             if(state.gridLayoutParams != null && state.imageScreenState.isVisible) {
                 ImageScreen(
                     paddingValues = savedPaddingValues,
-                    visibleLazyGridItems = remember { derivedStateOf { state.lazyGridState.layoutInfo } }.value.visibleItemsInfo,
                     gridLayoutParams = state.gridLayoutParams,
                     imagesList = state.imagesList,
                     imageScreenState = state.imageScreenState,
@@ -211,13 +211,12 @@ fun convertPixelsToDp(size: Size, context: Context?): IntSize {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ImageScreen(
     imagesList: List<String>,
     gridLayoutParams: GridLayoutParams,
     imageScreenState: ImageScreenState,
-    visibleLazyGridItems:  List<LazyGridItemInfo>,
     paddingValues: PaddingValues,
     onImageClick:() -> Unit,
     onImageScreenEvent: (ImageScreenEvent) -> Unit,
@@ -255,8 +254,11 @@ fun ImageScreen(
         initialPage = imageScreenState.imageIndex
     )
 
+    LaunchedEffect(key1 = pagerState.currentPage) {
+        onImageScreenEvent(ImageScreenEvent.OnGridItemOffsetChange(pagerState.currentPage))
+    }
+
     val imageContent = rememberContentWithOrbitalScope {
-        val gridItem = visibleLazyGridItems[imageScreenState.imageIndex]
         AsyncImage(
             modifier = if (animationType == AnimationType.EXPAND_ANIMATION) {
                 Modifier
@@ -267,7 +269,7 @@ fun ImageScreen(
                         top = paddingValues.calculateTopPadding()
                     )
                     .offset {
-                        gridItem.offset
+                        imageScreenState.gridItemOffset
                     }
                     .size(
                         height = imageScreenState.gridItemImageSize.height.dp,
@@ -279,7 +281,7 @@ fun ImageScreen(
                 SpringSpec(stiffness = 600f)
             ),
             model = imagesList[imageScreenState.imageIndex],
-            contentScale = ContentScale.FillWidth,
+            //contentScale = ContentScale.FillWidth,
             contentDescription = null,
         )
     }

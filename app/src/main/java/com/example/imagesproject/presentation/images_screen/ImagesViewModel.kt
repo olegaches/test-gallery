@@ -1,5 +1,6 @@
 package com.example.imagesproject.presentation.images_screen
 
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -72,6 +73,15 @@ class ImagesViewModel @Inject constructor(
                     )
                 }
             }
+            is ImageScreenEvent.OnGridItemOffsetChange -> {
+                _state.update {
+                    it.copy(
+                        imageScreenState = it.imageScreenState.copy(
+                            gridItemOffset = it.lazyGridState.layoutInfo.visibleItemsInfo[event.value].offset
+                        )
+                    )
+                }
+            }
         }
     }
 
@@ -115,6 +125,16 @@ class ImagesViewModel @Inject constructor(
             )
         }
         onNavigationBarVisibilityChange()
+    }
+
+    fun saveGridItemOffset(offset: IntOffset) {
+        _state.update {
+            it.copy(
+                imageScreenState = it.imageScreenState.copy(
+                    gridItemOffset = offset
+                )
+            )
+        }
     }
 
     private fun onNavigationBarVisibilityChange() {

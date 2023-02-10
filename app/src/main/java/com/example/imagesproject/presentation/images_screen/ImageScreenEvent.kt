@@ -4,4 +4,5 @@ sealed interface ImageScreenEvent {
     data class OnAnimate(val value: AnimationType): ImageScreenEvent
     data class OnVisibleChanged(val value: Boolean): ImageScreenEvent
     data class OnPagerIndexChanged(val value: Int): ImageScreenEvent
+    data class OnGridItemOffsetChange(val value: Int): ImageScreenEvent
 }
