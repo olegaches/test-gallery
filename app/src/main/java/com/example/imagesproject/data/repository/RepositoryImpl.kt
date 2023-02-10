@@ -7,7 +7,6 @@ import android.content.Intent
 import com.example.imagesproject.core.util.Resource
 import com.example.imagesproject.domain.downloader.Downloader
 import com.example.imagesproject.domain.file_provider.FileProvider
-import com.example.imagesproject.domain.model.ImageItem
 import com.example.imagesproject.domain.repository.Repository
 import com.example.imagesproject.presentation.Constants
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -23,7 +22,7 @@ class RepositoryImpl @Inject constructor(
     private val downloader: Downloader,
     @ApplicationContext private val context: Context,
 ): Repository {
-    override fun getImagesUrlList(): Flow<Resource<List<ImageItem>>> {
+    override fun getImagesUrlList(): Flow<Resource<List<String>>> {
         return callbackFlow {
             downloader.downloadFile(Constants.FILE_URL)
             val receiver = object : BroadcastReceiver() {
@@ -31,12 +30,12 @@ class RepositoryImpl @Inject constructor(
                     if (intent?.action == "android.intent.action.DOWNLOAD_COMPLETE") {
                         val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
                         if (id != -1L) {
-                            val urlList = mutableListOf<ImageItem>()
+                            val urlList = mutableListOf<String>()
                             val file = fileProvider.getFile()
                             val lines = file?.readLines()
                             if (lines != null) {
                                 for(line in lines) {
-                                    urlList.add(ImageItem(url = line))
+                                    urlList.add(line)
                                 }
                             }
                             trySend(Resource.Success(urlList.toList()))

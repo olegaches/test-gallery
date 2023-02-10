@@ -1,6 +1,5 @@
 package com.example.imagesproject.presentation.images_screen
 
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -85,24 +84,6 @@ class ImagesViewModel @Inject constructor(
                 imageScreenState = it.imageScreenState.copy(
                     gridItemImageSize = size
                 )
-            )
-        }
-    }
-
-    fun setItemOffset(imageIndex: Int, offset: Offset) {
-        val newList = _state.value.imagesList.mapIndexed { index, imageItem ->
-            if(index == imageIndex) {
-                imageItem.copy(
-                    offset = offset
-                )
-            }
-            else {
-                imageItem
-            }
-        }
-        _state.update {
-            it.copy(
-                imagesList = newList
             )
         }
     }

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Resources
 import android.util.DisplayMetrics
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -11,6 +12,7 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridItemInfo
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.pager.*
 import androidx.compose.material.icons.Icons
@@ -19,7 +21,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.*
@@ -31,7 +32,6 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.imagesproject.R
-import com.example.imagesproject.domain.model.ImageItem
 import com.example.imagesproject.presentation.Constants
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.mxalbert.zoomable.Zoomable
@@ -60,10 +60,10 @@ fun GalleryScreen(
             AnimatedVisibility(
                 visible = state.topBarVisible,
                 enter = fadeIn(
-                    animationSpec = tween(Constants.TOP_BAR_VISIBILITY_ANIMATION_TIME)
+                    animationSpec = tween(Constants.TOP_BAR_VISIBILITY_ENTRY_ANIMATION_TIME)
                 ),
                 exit = fadeOut(
-                    animationSpec = tween(Constants.TOP_BAR_VISIBILITY_ANIMATION_TIME)
+                    animationSpec = tween(Constants.TOP_BAR_VISIBILITY_EXIT_ANIMATION_TIME)
                 )
             ) {
                 CenterAlignedTopAppBar(
@@ -90,9 +90,12 @@ fun GalleryScreen(
     ) {
         Box(
             Modifier
-                .fillMaxSize()
                 .background(Color.Blue)
+                .fillMaxSize()
         ) {
+            var savedPaddingValues by remember {
+                mutableStateOf(PaddingValues(0.dp))
+            }
             BackHandler() {
                 viewModel.onBackClicked()
             }
@@ -108,6 +111,7 @@ fun GalleryScreen(
                     )
                 }
             ) { paddingValues ->
+                savedPaddingValues = paddingValues
                 Box(
                     Modifier
                         .padding(paddingValues)
@@ -122,18 +126,12 @@ fun GalleryScreen(
                         columns = GridCells.Fixed(4),
                     ) {
                         items(state.imagesList.size) { index ->
-                            val imageUrl = state.imagesList[index].url
+                            val imageUrl = state.imagesList[index]
                             AsyncImage(
                                 modifier = Modifier
                                     .padding(1.dp)
                                     .fillMaxWidth()
                                     .height(100.dp)
-                                    .onGloballyPositioned { coordinates ->
-                                        viewModel.setItemOffset(
-                                            index,
-                                            coordinates.boundsInWindow().topLeft
-                                        )
-                                    }
                                     .clickable(
                                         onClick = {
                                             val visibleItems =
@@ -141,6 +139,8 @@ fun GalleryScreen(
                                             val lastVisibleRow = visibleItems.last().row + 1
                                             val lastElement = visibleItems.last()
                                             val lastVisibleColumn = visibleItems.last().column + 1
+                                            val sadfasdf = visibleItems.first().offset // убрать
+                                            Log.e("df", sadfasdf.toString())
                                             val lastFullVisibleIndex =
                                                 lastElement.index - lastVisibleColumn
                                             val firstFullVisibleIndex =
@@ -166,7 +166,7 @@ fun GalleryScreen(
                                         }
                                     )
                                 ,
-                                contentScale = ContentScale.FillBounds,
+                                contentScale = ContentScale.Crop,
                                 model = imageUrl,
                                 contentDescription = null,
                             )
@@ -176,6 +176,8 @@ fun GalleryScreen(
             }
             if(state.gridLayoutParams != null && state.imageScreenState.isVisible) {
                 ImageScreen(
+                    paddingValues = savedPaddingValues,
+                    visibleLazyGridItems = remember { derivedStateOf { state.lazyGridState.layoutInfo } }.value.visibleItemsInfo,
                     gridLayoutParams = state.gridLayoutParams,
                     imagesList = state.imagesList,
                     imageScreenState = state.imageScreenState,
@@ -194,26 +196,44 @@ fun convertPixelsToDp(size: Size, context: Context?): IntSize {
         val metrics = resources.displayMetrics
         val height = size.height / (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
         val width = size.width / (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
-        IntSize(width = width.toInt() - 2, height = height.toInt() - 2) // '-2' is for padding matching
+        IntSize(width = width.toInt() - 2, height = height.toInt()) // '-2' is for padding matching
     }
     else {
         val metrics = Resources.getSystem().displayMetrics
         val height = size.height / (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
         val width = size.width / (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
-        IntSize(width = width.toInt() - 2, height = height.toInt() - 2) // '-2' is for padding matching
+        IntSize(width = width.toInt() - 2, height = height.toInt()) // '-2' is for padding matching
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ImageScreen(
-    imagesList: List<ImageItem>,
+    imagesList: List<String>,
     gridLayoutParams: GridLayoutParams,
     imageScreenState: ImageScreenState,
+    visibleLazyGridItems:  List<LazyGridItemInfo>,
+    paddingValues: PaddingValues,
     onImageClick:() -> Unit,
     onImageScreenEvent: (ImageScreenEvent) -> Unit,
     savePagerIndex: (Int) -> Unit,
 ) {
+//    val gridItem = visibleLazyGridItems[imageScreenState.imageIndex]
+//    AsyncImage(
+//        modifier = Modifier
+//            .padding(
+//                top = paddingValues.calculateTopPadding()
+//            )
+//            .offset { gridItem.offset }
+//            .size(
+//                height = imageScreenState.gridItemImageSize.height.dp,
+//                width = imageScreenState.gridItemImageSize.width.dp,
+//            ),
+//        model = imagesList[imageScreenState.imageIndex],
+//        contentScale = ContentScale.Crop,
+//        contentDescription = null,
+//    )
+
     LaunchedEffect(key1 = true) {
         onImageClick()
         onImageScreenEvent(ImageScreenEvent.OnAnimate(AnimationType.EXPAND_ANIMATION))
@@ -231,14 +251,18 @@ fun ImageScreen(
     )
 
     val imageContent = rememberContentWithOrbitalScope {
-        val imageItem = imagesList[imageScreenState.imageIndex]
+        val gridItem = visibleLazyGridItems[imageScreenState.imageIndex]
         AsyncImage(
             modifier = if (animationType == AnimationType.EXPAND_ANIMATION) {
-                Modifier.fillMaxSize()
+                Modifier
+                    .fillMaxSize()
             } else {
                 Modifier
+                    .padding(
+                        top = paddingValues.calculateTopPadding()
+                    )
                     .offset {
-                        imageItem.offset?.round() ?: Offset.Zero.round()
+                        gridItem.offset
                     }
                     .size(
                         height = imageScreenState.gridItemImageSize.height.dp,
@@ -249,58 +273,69 @@ fun ImageScreen(
                 SpringSpec(stiffness = 600f),
                 SpringSpec(stiffness = 600f)
             ),
-            model = imageItem.url,
-            contentScale = ContentScale.FillBounds,
+            model = imagesList[imageScreenState.imageIndex],
+            contentScale = ContentScale.FillWidth,
             contentDescription = null,
         )
     }
-    if(imageScreenState.animationState.isAnimationInProgress) {
-        Orbital(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            imageContent()
-        }
-    } else {
-        LaunchedEffect(key1 = pagerState.currentPage) {
-            onImageScreenEvent(ImageScreenEvent.OnPagerIndexChanged(pagerState.currentPage))
-            if(pagerState.currentPage >= gridLayoutParams.lastFullVisibleIndex || pagerState.currentPage <= gridLayoutParams.firstFullVisibleIndex) {
-                savePagerIndex(pagerState.currentPage)
-            }
-        }
-        HorizontalPager(
-            state = pagerState,
-            beyondBoundsPageCount = 3,
-            pageCount = imagesList.size,
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black)
-            ,
-            pageSpacing = 16.dp,
-            flingBehavior = PagerDefaults.flingBehavior(
-                state = pagerState,
-                pagerSnapDistance = PagerSnapDistance.atMost(0)
-            ),
-            contentPadding = PaddingValues(0.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) { index ->
-            val zoomableState = rememberZoomableState()
-            LaunchedEffect(key1 = pagerState.targetPage) {
-                zoomableState.animateScaleTo(targetScale = 1f)
-            }
-            Zoomable(
-                state = zoomableState,
-                onTap = {
-                    onImageClick()
-                }
+    val backGroundColor by animateColorAsState(
+        targetValue = if (animationType == AnimationType.EXPAND_ANIMATION) Color.Black else Color.Transparent,
+        animationSpec = tween(durationMillis = 500)
+    )
+    Box(
+        modifier = Modifier
+            .background(backGroundColor)
+            .fillMaxSize()
+    ) {
+        if(imageScreenState.animationState.isAnimationInProgress) {
+            Orbital(
+                modifier = Modifier.fillMaxSize()
             ) {
-                AsyncImage(
-                    modifier = Modifier
-                        .fillMaxSize()
-                    ,
-                    contentScale = ContentScale.FillBounds,
-                    model = imagesList[index].url,
-                    contentDescription = null,
-                )
+                imageContent()
+            }
+        } else {
+            LaunchedEffect(key1 = pagerState.currentPage) {
+                onImageScreenEvent(ImageScreenEvent.OnPagerIndexChanged(pagerState.currentPage))
+                if(pagerState.currentPage >= gridLayoutParams.lastFullVisibleIndex || pagerState.currentPage <= gridLayoutParams.firstFullVisibleIndex) {
+                    savePagerIndex(pagerState.currentPage)
+                }
+            }
+            HorizontalPager(
+                state = pagerState,
+                beyondBoundsPageCount = 3,
+                pageCount = imagesList.size,
+                modifier = Modifier
+                    .fillMaxSize()
+
+                    //.background(Color.Black)
+                ,
+                pageSpacing = 16.dp,
+                flingBehavior = PagerDefaults.flingBehavior(
+                    state = pagerState,
+                    pagerSnapDistance = PagerSnapDistance.atMost(0)
+                ),
+                contentPadding = PaddingValues(0.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) { index ->
+                val zoomableState = rememberZoomableState()
+                LaunchedEffect(key1 = pagerState.targetPage) {
+                    zoomableState.animateScaleTo(targetScale = 1f)
+                }
+                Zoomable(
+                    state = zoomableState,
+                    onTap = {
+                        onImageClick()
+                    }
+                ) {
+                    AsyncImage(
+                        modifier = Modifier
+                            .fillMaxSize()
+                        ,
+                        //contentScale = ContentScale.FillBounds,
+                        model = imagesList[index],
+                        contentDescription = null,
+                    )
+                }
             }
         }
     }
