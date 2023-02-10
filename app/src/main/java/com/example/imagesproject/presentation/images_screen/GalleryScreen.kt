@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Resources
 import android.util.DisplayMetrics
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -26,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.*
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.*
 import androidx.core.view.WindowInsetsControllerCompat
@@ -126,6 +126,9 @@ fun GalleryScreen(
                         columns = GridCells.Fixed(4),
                     ) {
                         items(state.imagesList.size) { index ->
+                            var isSuccess by remember {
+                                mutableStateOf(false)
+                            }
                             val imageUrl = state.imagesList[index]
                             AsyncImage(
                                 modifier = Modifier
@@ -133,14 +136,13 @@ fun GalleryScreen(
                                     .fillMaxWidth()
                                     .height(100.dp)
                                     .clickable(
+                                        enabled = isSuccess,
                                         onClick = {
                                             val visibleItems =
                                                 state.lazyGridState.layoutInfo.visibleItemsInfo
                                             val lastVisibleRow = visibleItems.last().row + 1
                                             val lastElement = visibleItems.last()
                                             val lastVisibleColumn = visibleItems.last().column + 1
-                                            val sadfasdf = visibleItems.first().offset // убрать
-                                            Log.e("df", sadfasdf.toString())
                                             val lastFullVisibleIndex =
                                                 lastElement.index - lastVisibleColumn
                                             val firstFullVisibleIndex =
@@ -164,9 +166,12 @@ fun GalleryScreen(
                                             viewModel.saveLayoutParams(visibleParams)
                                             viewModel.onImageClicked(index)
                                         }
-                                    )
-                                ,
-                                contentScale = ContentScale.Crop,
+                                    ),
+                                onSuccess = {
+                                    isSuccess = true
+                                },
+                                contentScale = ContentScale.FillBounds,
+                                error = painterResource(id = R.drawable.image_not_found),
                                 model = imageUrl,
                                 contentDescription = null,
                             )
@@ -196,13 +201,13 @@ fun convertPixelsToDp(size: Size, context: Context?): IntSize {
         val metrics = resources.displayMetrics
         val height = size.height / (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
         val width = size.width / (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
-        IntSize(width = width.toInt() - 2, height = height.toInt()) // '-2' is for padding matching
+        IntSize(width = width.toInt() - 2, height = height.toInt() - 2) // '-2' is for padding matching
     }
     else {
         val metrics = Resources.getSystem().displayMetrics
         val height = size.height / (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
         val width = size.width / (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
-        IntSize(width = width.toInt() - 2, height = height.toInt()) // '-2' is for padding matching
+        IntSize(width = width.toInt() - 2, height = height.toInt() - 2) // '-2' is for padding matching
     }
 }
 
@@ -306,8 +311,6 @@ fun ImageScreen(
                 pageCount = imagesList.size,
                 modifier = Modifier
                     .fillMaxSize()
-
-                    //.background(Color.Black)
                 ,
                 pageSpacing = 16.dp,
                 flingBehavior = PagerDefaults.flingBehavior(
