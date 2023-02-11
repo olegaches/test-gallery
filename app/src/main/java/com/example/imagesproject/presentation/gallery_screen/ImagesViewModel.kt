@@ -1,11 +1,11 @@
-package com.example.imagesproject.presentation.images_screen
+package com.example.imagesproject.presentation.gallery_screen
 
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.imagesproject.core.util.Resource
 import com.example.imagesproject.domain.use_case.GetImagesUrlListUseCase
+import com.example.imagesproject.presentation.gallery_screen.ui_events.GalleryScreenEvent
+import com.example.imagesproject.presentation.gallery_screen.ui_events.ImageScreenEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -83,39 +83,18 @@ class ImagesViewModel @Inject constructor(
                     )
                 }
             }
-        }
-    }
-
-    fun saveGridItemSize(size: IntSize) {
-        val imageState = _state.value.imageScreenState
-        if(imageState.gridItemImageSize == size)
-            return
-        _state.update {
-            it.copy(
-                imageScreenState = it.imageScreenState.copy(
-                    gridItemImageSize = size
-                )
-            )
-        }
-    }
-
-    fun saveLayoutParams(gridLayoutParams: GridLayoutParams) {
-        _state.update {
-            it.copy(
-                gridLayoutParams = gridLayoutParams,
-            )
-        }
-    }
-
-    fun onImageClicked(index: Int) {
-        _state.update {
-            it.copy(
-                imageScreenState = it.imageScreenState.copy(
-                    imageIndex = index,
-                    isVisible = true,
-                ),
-                openedImageLayer = true,
-            )
+            is ImageScreenEvent.OnGridItemSizeChange -> {
+                _state.update {
+                    val imageState = _state.value.imageScreenState
+                    if(imageState.gridItemImageSize == event.value)
+                        return
+                    it.copy(
+                        imageScreenState = it.imageScreenState.copy(
+                            gridItemImageSize = event.value
+                        )
+                    )
+                }
+            }
         }
     }
 
@@ -126,16 +105,6 @@ class ImagesViewModel @Inject constructor(
             )
         }
         onNavigationBarVisibilityChange()
-    }
-
-    fun saveGridItemOffset(offset: IntOffset) {
-        _state.update {
-            it.copy(
-                imageScreenState = it.imageScreenState.copy(
-                    gridItemOffset = offset
-                )
-            )
-        }
     }
 
     private fun onNavigationBarVisibilityChange() {
@@ -157,14 +126,11 @@ class ImagesViewModel @Inject constructor(
     private fun onScrollToImage(imageIndex: Int) {
         viewModelScope.launch(Dispatchers.Main) {
             val stateValue = _state.value
-            if(stateValue.gridLayoutParams == null) {
-                return@launch
-            }
             stateValue.lazyGridState.scrollToItem(
                 index = imageIndex,
                 scrollOffset =
-                if(stateValue.gridLayoutParams.lastFullVisibleIndex <= imageIndex)
-                    -stateValue.gridLayoutParams.itemOffset else {
+                if(stateValue.imageScreenState.visibleGridInterval.second <= imageIndex)
+                    -stateValue.itemOffsetToScroll else {
                         0
                 }
             )
@@ -173,6 +139,43 @@ class ImagesViewModel @Inject constructor(
                 it.copy(
                     indexToScroll = null,
                 )
+            }
+        }
+    }
+
+    fun onGalleryScreenEvent(event: GalleryScreenEvent) {
+        when(event) {
+            is GalleryScreenEvent.OnSaveGridItemOffsetToScroll -> {
+                _state.update {
+                    it.copy(
+                        itemOffsetToScroll = event.yOffset
+                    )
+                }
+            }
+            is GalleryScreenEvent.OnSaveGridItemSize -> {
+                onImageScreenEvent(ImageScreenEvent.OnGridItemSizeChange(event.intSize))
+            }
+            is GalleryScreenEvent.OnSaveCurrentGridItemOffset -> {
+                onImageScreenEvent(ImageScreenEvent.OnGridItemOffsetChange(event.index))
+            }
+            is GalleryScreenEvent.OnSaveGridVisibleInterval -> {
+                _state.update {
+                    it.copy(
+                        imageScreenState = it.imageScreenState.copy(
+                            visibleGridInterval = Pair(event.startIndex, event.endIndex)
+                        )
+                    )
+                }
+            }
+            is GalleryScreenEvent.OnImageClick -> {
+                _state.update {
+                    it.copy(
+                        imageScreenState = it.imageScreenState.copy(
+                            imageIndex = event.index,
+                            isVisible = true,
+                        ),
+                    )
+                }
             }
         }
     }

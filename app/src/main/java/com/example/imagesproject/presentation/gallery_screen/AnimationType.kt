@@ -1,4 +1,4 @@
-package com.example.imagesproject.presentation.images_screen
+package com.example.imagesproject.presentation.gallery_screen
 
 enum class AnimationType {
     HIDE_ANIMATION,

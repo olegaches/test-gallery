@@ -1,4 +1,4 @@
-package com.example.imagesproject.presentation.images_screen
+package com.example.imagesproject.presentation.gallery_screen
 
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import com.example.imagesproject.core.util.UiText
@@ -9,9 +9,8 @@ data class ImagesScreenState(
     val error: UiText? = null,
     val topBarVisible: Boolean = false,
     val systemNavigationBarVisible: Boolean = true,
-    val openedImageLayer: Boolean = false,
     val lazyGridState: LazyGridState = LazyGridState(firstVisibleItemIndex = 0, firstVisibleItemScrollOffset = 0),
-    val gridLayoutParams: GridLayoutParams? = null,
     val indexToScroll: Int? = null,
+    val itemOffsetToScroll: Int = 0,
     val imageScreenState: ImageScreenState = ImageScreenState(),
 )

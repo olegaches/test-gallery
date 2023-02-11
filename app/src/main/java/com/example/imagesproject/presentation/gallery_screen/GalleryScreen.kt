@@ -1,4 +1,4 @@
-package com.example.imagesproject.presentation.images_screen
+package com.example.imagesproject.presentation.gallery_screen
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -11,10 +11,9 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.pager.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,13 +24,15 @@ import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.*
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.imagesproject.R
-import com.example.imagesproject.presentation.Constants
+import com.example.imagesproject.presentation.gallery_screen.components.GalleryScreenTopBar
+import com.example.imagesproject.presentation.gallery_screen.components.ImageScreenTopBar
+import com.example.imagesproject.presentation.gallery_screen.ui_events.GalleryScreenEvent
+import com.example.imagesproject.presentation.gallery_screen.ui_events.ImageScreenEvent
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.mxalbert.zoomable.Zoomable
 import com.mxalbert.zoomable.rememberZoomableState
@@ -56,35 +57,10 @@ fun GalleryScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            AnimatedVisibility(
-                visible = state.topBarVisible,
-                enter = fadeIn(
-                    animationSpec = tween(Constants.TOP_BAR_VISIBILITY_ENTRY_ANIMATION_TIME)
-                ),
-                exit = fadeOut(
-                    animationSpec = tween(Constants.TOP_BAR_VISIBILITY_EXIT_ANIMATION_TIME)
-                )
-            ) {
-                CenterAlignedTopAppBar(
-                    title = {},
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = Color.Black,
-                        navigationIconContentColor = Color.White,
-                    ),
-                    navigationIcon = {
-                        IconButton(
-                            onClick = {
-                                viewModel.onBackClicked()
-                            }
-                        ) {
-                            Icon(
-                                contentDescription = null,
-                                imageVector = Icons.Default.ArrowBack
-                            )
-                        }
-                    }
-                )
-            }
+            ImageScreenTopBar(
+                isVisible = state.topBarVisible,
+                onBackClicked = viewModel::onBackClicked
+            )
         }
     ) {
         Box(
@@ -95,19 +71,12 @@ fun GalleryScreen(
             var savedPaddingValues by remember {
                 mutableStateOf(PaddingValues(0.dp))
             }
-            BackHandler() {
+            BackHandler {
                 viewModel.onBackClicked()
             }
             Scaffold(
                 topBar = {
-                    CenterAlignedTopAppBar(
-                        title = {
-                            Text(
-                                text = stringResource(R.string.top_bar_title),
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                        },
-                    )
+                    GalleryScreenTopBar()
                 }
             ) { paddingValues ->
                 savedPaddingValues = paddingValues
@@ -116,75 +85,16 @@ fun GalleryScreen(
                         .padding(paddingValues)
                         .fillMaxSize()
                 ) {
-                    val context = LocalContext.current
-                    //val lazyGridState = rememberLazyGridState()
-                    LazyVerticalGrid(
-                        modifier = Modifier
-                            .fillMaxSize()
-                                ,
-                        state = state.lazyGridState,
-                        columns = GridCells.Fixed(4),
-                    ) {
-                        items(state.imagesList.size) { index ->
-                            var isSuccess by remember {
-                                mutableStateOf(false)
-                            }
-                            val imageUrl = state.imagesList[index]
-                            AsyncImage(
-                                modifier = Modifier
-                                    .padding(1.dp)
-                                    .fillMaxWidth()
-                                    .height(100.dp)
-                                    .clickable(
-                                        enabled = isSuccess,
-                                        onClick = {
-                                            val visibleItems =
-                                                state.lazyGridState.layoutInfo.visibleItemsInfo
-                                            val lastVisibleRow = visibleItems.last().row + 1
-                                            val lastElement = visibleItems.last()
-                                            val lastVisibleColumn = visibleItems.last().column + 1
-                                            val lastFullVisibleIndex =
-                                                lastElement.index - lastVisibleColumn
-                                            val firstFullVisibleIndex =
-                                                visibleItems.first().index + lastVisibleColumn - 1// - lastVisibleColumn
-                                            val offset =
-                                                state.lazyGridState.layoutInfo.viewportSize.height - lastElement.size.height
-                                            val visibleGridSize = lastVisibleRow * lastVisibleColumn
-                                            val visibleParams = GridLayoutParams(
-                                                visibleRows = lastVisibleRow,
-                                                visibleColumns = lastVisibleColumn,
-                                                visibleGridSize = visibleGridSize,
-                                                itemOffset = offset,
-                                                lastFullVisibleIndex = if (lastFullVisibleIndex < 0) 0 else lastFullVisibleIndex,
-                                                firstFullVisibleIndex = if (firstFullVisibleIndex < 0) lastVisibleColumn - 1 else firstFullVisibleIndex,
-                                            )
-                                            val intSizeDp = convertPixelsToDp(
-                                                context = context,
-                                                size = lastElement.size.toSize()
-                                            )
-                                            viewModel.saveGridItemSize(intSizeDp)
-                                            visibleItems.find { it.index == index }
-                                                ?.let { it1 -> viewModel.saveGridItemOffset(it1.offset) }
-                                            viewModel.saveLayoutParams(visibleParams)
-                                            viewModel.onImageClicked(index)
-                                        }
-                                    ),
-                                onSuccess = {
-                                    isSuccess = true
-                                },
-                                //contentScale = ContentScale.FillBounds,
-                                error = painterResource(id = R.drawable.image_not_found),
-                                model = imageUrl,
-                                contentDescription = null,
-                            )
-                        }
-                    }
+                    HorizontalLazyGridImages(
+                        lazyGridState = state.lazyGridState,
+                        imagesUrlList = state.imagesList,
+                        onGalleryScreenEvent = viewModel::onGalleryScreenEvent
+                    )
                 }
             }
-            if(state.gridLayoutParams != null && state.imageScreenState.isVisible) {
+            if(state.imageScreenState.isVisible) {
                 ImageScreen(
                     paddingValues = savedPaddingValues,
-                    gridLayoutParams = state.gridLayoutParams,
                     imagesList = state.imagesList,
                     imageScreenState = state.imageScreenState,
                     onImageClick = viewModel::onBarsVisibilityChange,
@@ -196,19 +106,83 @@ fun GalleryScreen(
     }
 }
 
+@Composable
+fun HorizontalLazyGridImages(
+    lazyGridState: LazyGridState,
+    imagesUrlList: List<String>,
+    onGalleryScreenEvent: (GalleryScreenEvent) -> Unit,
+) {
+    val context = LocalContext.current
+    LazyVerticalGrid(
+        modifier = Modifier
+            .fillMaxSize()
+        ,
+        state = lazyGridState,
+        columns = GridCells.Fixed(4),
+    ) {
+        items(imagesUrlList.size) { index ->
+            var isSuccess by remember {
+                mutableStateOf(false)
+            }
+            val imageUrl = imagesUrlList[index]
+            AsyncImage(
+                model = imageUrl,
+                modifier = Modifier
+                    .padding(1.dp)
+                    .fillMaxWidth()
+                    .height(100.dp)
+                    .clickable(
+                        enabled = isSuccess,
+                        onClick = {
+                            val visibleItems =
+                                lazyGridState.layoutInfo.visibleItemsInfo
+                            val lastElement = visibleItems.last()
+                            val lastVisibleColumn = visibleItems.last().column + 1
+                            val lastFullVisibleIndex =
+                                lastElement.index - lastVisibleColumn
+                            val firstFullVisibleIndex =
+                                visibleItems.first().index + lastVisibleColumn - 1// - lastVisibleColumn
+                            val offset =
+                                lazyGridState.layoutInfo.viewportSize.height - lastElement.size.height
+                            val intSizeDp = convertPixelsToDp(
+                                context = context,
+                                size = lastElement.size.toSize()
+                            )
+                            onGalleryScreenEvent(GalleryScreenEvent.OnSaveGridItemOffsetToScroll(offset))
+                            onGalleryScreenEvent(GalleryScreenEvent.OnSaveGridItemSize(intSizeDp))
+                            onGalleryScreenEvent(GalleryScreenEvent.OnSaveCurrentGridItemOffset(index))
+                            onGalleryScreenEvent(GalleryScreenEvent.OnSaveGridVisibleInterval(
+                                startIndex = if (firstFullVisibleIndex < 0) lastVisibleColumn - 1 else firstFullVisibleIndex,
+                                endIndex = if (lastFullVisibleIndex < 0) 0 else lastFullVisibleIndex,
+                            ))
+                            onGalleryScreenEvent(GalleryScreenEvent.OnImageClick(index))
+                        }
+                    ),
+                onSuccess = {
+                    isSuccess = true
+                },
+                contentScale = ContentScale.FillWidth,
+                error = painterResource(id = R.drawable.image_not_found),
+                contentDescription = null,
+            )
+        }
+    }
+}
+
 fun convertPixelsToDp(size: Size, context: Context?): IntSize {
+    val padding = 0
     return if(context != null) {
         val resources = context.resources
         val metrics = resources.displayMetrics
         val height = size.height / (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
         val width = size.width / (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
-        IntSize(width = width.toInt() - 2, height = height.toInt() - 2) // '-2' is for padding matching
+        IntSize(width = width.toInt() - padding, height = height.toInt() - padding) // '-2' is for padding matching
     }
     else {
         val metrics = Resources.getSystem().displayMetrics
         val height = size.height / (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
         val width = size.width / (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
-        IntSize(width = width.toInt() - 2, height = height.toInt() - 2) // '-2' is for padding matching
+        IntSize(width = width.toInt() - padding, height = height.toInt() - padding) // '-2' is for padding matching
     }
 }
 
@@ -216,28 +190,12 @@ fun convertPixelsToDp(size: Size, context: Context?): IntSize {
 @Composable
 fun ImageScreen(
     imagesList: List<String>,
-    gridLayoutParams: GridLayoutParams,
     imageScreenState: ImageScreenState,
     paddingValues: PaddingValues,
     onImageClick:() -> Unit,
     onImageScreenEvent: (ImageScreenEvent) -> Unit,
     savePagerIndex: (Int) -> Unit,
 ) {
-//    val gridItem = visibleLazyGridItems[imageScreenState.imageIndex]
-//    AsyncImage(
-//        modifier = Modifier
-//            .padding(
-//                top = paddingValues.calculateTopPadding()
-//            )
-//            .offset { gridItem.offset }
-//            .size(
-//                height = imageScreenState.gridItemImageSize.height.dp,
-//                width = imageScreenState.gridItemImageSize.width.dp,
-//            ),
-//        model = imagesList[imageScreenState.imageIndex],
-//        contentScale = ContentScale.Crop,
-//        contentDescription = null,
-//    )
 
     LaunchedEffect(key1 = true) {
         onImageClick()
@@ -281,14 +239,15 @@ fun ImageScreen(
                 SpringSpec(stiffness = 600f),
                 SpringSpec(stiffness = 600f)
             ),
-            model = imagesList[imageScreenState.imageIndex],
-            //contentScale = ContentScale.FillWidth,
+            model = imagesList[imageScreenState.imageIndex]
+            ,
+            contentScale = ContentScale.FillWidth,
             contentDescription = null,
         )
     }
     val backGroundColor by animateColorAsState(
         targetValue = if (animationType == AnimationType.EXPAND_ANIMATION) Color.Black else Color.Transparent,
-        animationSpec = tween(durationMillis = 500)
+        animationSpec = tween(durationMillis = 300)
     )
     Box(
         modifier = Modifier
@@ -304,7 +263,7 @@ fun ImageScreen(
         } else {
             LaunchedEffect(key1 = pagerState.currentPage) {
                 onImageScreenEvent(ImageScreenEvent.OnPagerIndexChanged(pagerState.currentPage))
-                if(pagerState.currentPage >= gridLayoutParams.lastFullVisibleIndex || pagerState.currentPage <= gridLayoutParams.firstFullVisibleIndex) {
+                if(pagerState.currentPage >= imageScreenState.visibleGridInterval.second || pagerState.currentPage <= imageScreenState.visibleGridInterval.first) {
                     savePagerIndex(pagerState.currentPage)
                 }
             }
@@ -335,10 +294,9 @@ fun ImageScreen(
                 ) {
                     AsyncImage(
                         modifier = Modifier
-                            .fillMaxSize()
-                        ,
-                        //contentScale = ContentScale.FillBounds,
-                        model = imagesList[index],
+                            .fillMaxSize(),
+                        error = painterResource(id = R.drawable.image_not_found),
+                        model = imagesList [index],
                         contentDescription = null,
                     )
                 }
