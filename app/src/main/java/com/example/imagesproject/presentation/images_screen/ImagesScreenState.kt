@@ -10,7 +10,7 @@ data class ImagesScreenState(
     val topBarVisible: Boolean = false,
     val systemNavigationBarVisible: Boolean = true,
     val openedImageLayer: Boolean = false,
-    val lazyGridState: LazyGridState = LazyGridState(),
+    val lazyGridState: LazyGridState = LazyGridState(firstVisibleItemIndex = 0, firstVisibleItemScrollOffset = 0),
     val gridLayoutParams: GridLayoutParams? = null,
     val indexToScroll: Int? = null,
     val imageScreenState: ImageScreenState = ImageScreenState(),

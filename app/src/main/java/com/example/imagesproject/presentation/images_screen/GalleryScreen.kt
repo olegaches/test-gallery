@@ -11,7 +11,6 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyGridItemInfo
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.pager.*
 import androidx.compose.material.icons.Icons
@@ -118,6 +117,7 @@ fun GalleryScreen(
                         .fillMaxSize()
                 ) {
                     val context = LocalContext.current
+                    //val lazyGridState = rememberLazyGridState()
                     LazyVerticalGrid(
                         modifier = Modifier
                             .fillMaxSize()
@@ -163,7 +163,8 @@ fun GalleryScreen(
                                                 size = lastElement.size.toSize()
                                             )
                                             viewModel.saveGridItemSize(intSizeDp)
-                                            viewModel.saveGridItemOffset(visibleItems[index].offset)
+                                            visibleItems.find { it.index == index }
+                                                ?.let { it1 -> viewModel.saveGridItemOffset(it1.offset) }
                                             viewModel.saveLayoutParams(visibleParams)
                                             viewModel.onImageClicked(index)
                                         }

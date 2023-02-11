@@ -74,10 +74,11 @@ class ImagesViewModel @Inject constructor(
                 }
             }
             is ImageScreenEvent.OnGridItemOffsetChange -> {
-                _state.update {
-                    it.copy(
-                        imageScreenState = it.imageScreenState.copy(
-                            gridItemOffset = it.lazyGridState.layoutInfo.visibleItemsInfo[event.value].offset
+                _state.update { imagesScreenState ->
+                    imagesScreenState.copy(
+                        imageScreenState = imagesScreenState.imageScreenState.copy(
+                            gridItemOffset = imagesScreenState.lazyGridState.layoutInfo.visibleItemsInfo
+                                .find { it.index ==  event.value }?.offset ?: imagesScreenState.imageScreenState.gridItemOffset
                         )
                     )
                 }
@@ -167,6 +168,7 @@ class ImagesViewModel @Inject constructor(
                         0
                 }
             )
+            onImageScreenEvent(ImageScreenEvent.OnGridItemOffsetChange(imageIndex))
             _state.update {
                 it.copy(
                     indexToScroll = null,
