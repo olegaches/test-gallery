@@ -8,4 +8,5 @@ sealed interface ImageScreenEvent {
     data class OnPagerIndexChanged(val value: Int): ImageScreenEvent
     data class OnGridItemOffsetChange(val value: Int): ImageScreenEvent
     data class OnGridItemSizeChange(val value: IntSize): ImageScreenEvent
+    object OnBarsVisibilityChange: ImageScreenEvent
 }

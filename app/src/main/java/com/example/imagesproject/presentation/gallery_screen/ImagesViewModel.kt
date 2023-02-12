@@ -95,10 +95,13 @@ class ImagesViewModel @Inject constructor(
                     )
                 }
             }
+            is ImageScreenEvent.OnBarsVisibilityChange -> {
+                onBarsVisibilityChange()
+            }
         }
     }
 
-    fun onBarsVisibilityChange() {
+    private fun onBarsVisibilityChange() {
         _state.update {
             it.copy(
                 topBarVisible = !it.topBarVisible,
@@ -115,13 +118,13 @@ class ImagesViewModel @Inject constructor(
         }
     }
 
-    fun savePagerIndex(index: Int) {
-        _state.update {
-            it.copy(
-                indexToScroll = index,
-            )
-        }
-    }
+//    private fun savePagerIndex(index: Int) {
+//        _state.update {
+//            it.copy(
+//                indexToScroll = index,
+//            )
+//        }
+//    }
 
     private fun onScrollToImage(imageIndex: Int) {
         viewModelScope.launch(Dispatchers.Main) {
@@ -181,9 +184,10 @@ class ImagesViewModel @Inject constructor(
     }
 
     fun onBackClicked() {
-        val stateValue = state.value
-        stateValue.indexToScroll?.let {
-            onScrollToImage(it)
+        val stateValue = state.value.imageScreenState
+        val visibleInterval = stateValue.visibleGridInterval
+        if(stateValue.imageIndex > visibleInterval.second || stateValue.imageIndex <= visibleInterval.first) {
+            onScrollToImage(stateValue.imageIndex)
         }
         viewModelScope.launch {
             _state.update {
