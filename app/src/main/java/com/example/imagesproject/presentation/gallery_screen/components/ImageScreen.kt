@@ -83,6 +83,7 @@ fun ImageScreen(
             ,
             contentScale = ContentScale.FillWidth,
             contentDescription = null,
+            error = painterResource(id = R.drawable.image_not_found),
         )
     }
     val backGroundColor by animateColorAsState(
@@ -133,7 +134,7 @@ fun ImageScreen(
                         modifier = Modifier
                             .fillMaxSize(),
                         error = painterResource(id = R.drawable.image_not_found),
-                        model = imagesList [index],
+                        model = imagesList[index],
                         contentDescription = null,
                     )
                 }
