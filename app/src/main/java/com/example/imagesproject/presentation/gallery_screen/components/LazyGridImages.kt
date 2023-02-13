@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
@@ -29,6 +30,7 @@ fun LazyGridImages(
     imagesUrlList: ImmutableList<String>,
     onGalleryScreenEvent: (GalleryScreenEvent) -> Unit,
 ) {
+    val notValidImageIndexes = mutableListOf<Int>()
     val context = LocalContext.current
     val gridItemModifier = Modifier
         .padding(1.dp)
@@ -44,13 +46,8 @@ fun LazyGridImages(
     ) {
         items(imagesUrlList.size) { index ->
             val imageUrl = imagesUrlList[index]
-            var isSuccess by remember {
+            var isSuccess by rememberSaveable() {
                 mutableStateOf(true)
-            }
-            LaunchedEffect(key1 = isSuccess) {
-                if(!isSuccess) {
-                    onGalleryScreenEvent(GalleryScreenEvent.OnSaveNotValidImageIndex(index))
-                }
             }
             AsyncImage(
                 model = imageUrl,
@@ -80,14 +77,22 @@ fun LazyGridImages(
                                 startIndex = if (firstFullVisibleIndex < 0) lastColumn - 1 else firstFullVisibleIndex,
                                 endIndex = if (lastFullVisibleIndex < 0) 0 else lastFullVisibleIndex,
                             ))
+                            for(i in notValidImageIndexes) {
+                                onGalleryScreenEvent(GalleryScreenEvent.OnSaveNotValidImageIndex(i))
+                            }
                             onGalleryScreenEvent(GalleryScreenEvent.OnImageClick(index))
                         }
                     ),
                 filterQuality = FilterQuality.None,
                 contentScale = ContentScale.FillWidth,
                 error = painterResource(id = R.drawable.image_not_found),
-                placeholder = painterResource(id = R.drawable.placeholder),
+                placeholder = if(!isSuccess)
+                    painterResource(id = R.drawable.image_not_found)
+                else
+                    painterResource(id = R.drawable.placeholder),
                 onError = {
+                    //notValidImageIndexes.add(index)
+                    onGalleryScreenEvent(GalleryScreenEvent.OnSaveNotValidImageIndex(index))
                     isSuccess = false
                 },
                 contentDescription = null,

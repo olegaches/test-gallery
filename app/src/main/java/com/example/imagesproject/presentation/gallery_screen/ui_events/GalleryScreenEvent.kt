@@ -1,7 +1,9 @@
 package com.example.imagesproject.presentation.gallery_screen.ui_events
 
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.unit.IntSize
 
+@Stable
 sealed interface GalleryScreenEvent {
     data class OnSaveGridItemSize(val intSize: IntSize): GalleryScreenEvent
     data class OnSaveGridItemOffsetToScroll(val yOffset: Int): GalleryScreenEvent

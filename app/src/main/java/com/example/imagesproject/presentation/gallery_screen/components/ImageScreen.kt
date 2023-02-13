@@ -59,7 +59,6 @@ fun ImageScreen(
 
     LaunchedEffect(key1 = pagerState.currentPage) {
         val index = imageIndexesList[pagerState.currentPage]
-        //val index = pagerState.currentPage
         onImageScreenEvent(ImageScreenEvent.OnTopBarTitleTextChange(imagesList[index]))
         onImageScreenEvent(ImageScreenEvent.OnGridItemOffsetChange(index))
     }
