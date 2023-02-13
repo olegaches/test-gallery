@@ -70,7 +70,8 @@ fun Navigation(navHostController: NavHostController) {
         composable(
             route = Screen.ImagesScreen.route
         ) {
-            GalleryScreen()
+            GalleryScreen(
+            )
         }
     }
 }

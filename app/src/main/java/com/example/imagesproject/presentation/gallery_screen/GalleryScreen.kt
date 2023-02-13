@@ -59,7 +59,7 @@ fun GalleryScreen(
             var savedPaddingValues by remember {
                 mutableStateOf(PaddingValues(0.dp))
             }
-            BackHandler {
+            BackHandler(enabled = state.topBarVisible) {
                 viewModel.onBackClicked()
             }
             Scaffold(
