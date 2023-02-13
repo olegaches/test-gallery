@@ -15,6 +15,7 @@ import com.example.imagesproject.presentation.Constants
 @Composable
 fun ImageScreenTopBar(
     isVisible: Boolean,
+    title: String,
     onBackClicked: () -> Unit,
 ) {
     AnimatedVisibility(
@@ -26,9 +27,15 @@ fun ImageScreenTopBar(
             animationSpec = tween(Constants.TOP_BAR_VISIBILITY_EXIT_ANIMATION_TIME)
         )
     ) {
-        CenterAlignedTopAppBar(
-            title = {},
+        TopAppBar(
+            title = {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+            },
             colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                titleContentColor = Color.White,
                 containerColor = Color.Black,
                 navigationIconContentColor = Color.White,
             ),

@@ -27,20 +27,24 @@ import com.mxalbert.zoomable.rememberZoomableState
 import com.skydoves.orbital.Orbital
 import com.skydoves.orbital.animateSharedElementTransition
 import com.skydoves.orbital.rememberContentWithOrbitalScope
+import kotlinx.collections.immutable.ImmutableList
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ImageScreen(
-    imagesList: List<String>,
+    imagesList: ImmutableList<String>,
     imageScreenState: ImageScreenState,
     paddingValues: PaddingValues,
     onImageScreenEvent: (ImageScreenEvent) -> Unit,
 ) {
-
     LaunchedEffect(key1 = true) {
-        onImageScreenEvent(ImageScreenEvent.OnBarsVisibilityChange)
-        onImageScreenEvent(ImageScreenEvent.OnAnimate(AnimationType.EXPAND_ANIMATION))
+        if(imageScreenState.animationState.animationType != AnimationType.EXPAND_ANIMATION) {
+            onImageScreenEvent(ImageScreenEvent.OnBarsVisibilityChange)
+            onImageScreenEvent(ImageScreenEvent.OnAnimate(AnimationType.EXPAND_ANIMATION))
+        }
     }
+
+    val imageIndexesList = imageScreenState.imageIndexesList
 
     var animationType by remember {
         mutableStateOf(imageScreenState.animationState.animationType)
@@ -50,13 +54,15 @@ fun ImageScreen(
     }
 
     val pagerState = rememberPagerState(
-        initialPage = imageScreenState.imageIndex
+        initialPage = imageScreenState.pagerIndex
     )
 
     LaunchedEffect(key1 = pagerState.currentPage) {
-        onImageScreenEvent(ImageScreenEvent.OnGridItemOffsetChange(pagerState.currentPage))
+        val index = imageIndexesList[pagerState.currentPage]
+        //val index = pagerState.currentPage
+        onImageScreenEvent(ImageScreenEvent.OnTopBarTitleTextChange(imagesList[index]))
+        onImageScreenEvent(ImageScreenEvent.OnGridItemOffsetChange(index))
     }
-
     val imageContent = rememberContentWithOrbitalScope {
         AsyncImage(
             modifier = if (animationType == AnimationType.EXPAND_ANIMATION) {
@@ -79,7 +85,7 @@ fun ImageScreen(
                 SpringSpec(stiffness = 600f),
                 SpringSpec(stiffness = 600f)
             ),
-            model = imagesList[imageScreenState.imageIndex]
+            model = imagesList[imageIndexesList[imageScreenState.pagerIndex]]
             ,
             contentScale = ContentScale.FillWidth,
             contentDescription = null,
@@ -103,12 +109,14 @@ fun ImageScreen(
             }
         } else {
             LaunchedEffect(key1 = pagerState.currentPage) {
-                onImageScreenEvent(ImageScreenEvent.OnPagerIndexChanged(pagerState.currentPage))
+                onImageScreenEvent(ImageScreenEvent.OnPagerIndexChanged(
+                    pagerState.currentPage
+                ))
             }
             HorizontalPager(
                 state = pagerState,
                 beyondBoundsPageCount = 3,
-                pageCount = imagesList.size,
+                pageCount = imageIndexesList.size,
                 modifier = Modifier
                     .fillMaxSize()
                 ,
@@ -120,6 +128,7 @@ fun ImageScreen(
                 contentPadding = PaddingValues(0.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) { index ->
+                val imageIndex = imageIndexesList[index]
                 val zoomableState = rememberZoomableState()
                 LaunchedEffect(key1 = pagerState.targetPage) {
                     zoomableState.animateScaleTo(targetScale = 1f)
@@ -134,7 +143,7 @@ fun ImageScreen(
                         modifier = Modifier
                             .fillMaxSize(),
                         error = painterResource(id = R.drawable.image_not_found),
-                        model = imagesList[index],
+                        model = imagesList[imageIndex],
                         contentDescription = null,
                     )
                 }

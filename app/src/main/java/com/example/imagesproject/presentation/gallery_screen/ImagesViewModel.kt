@@ -7,6 +7,7 @@ import com.example.imagesproject.domain.use_case.GetImagesUrlListUseCase
 import com.example.imagesproject.presentation.gallery_screen.ui_events.GalleryScreenEvent
 import com.example.imagesproject.presentation.gallery_screen.ui_events.ImageScreenEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,12 +64,12 @@ class ImagesViewModel @Inject constructor(
                 }
             }
             is ImageScreenEvent.OnPagerIndexChanged -> {
-                if(_state.value.imageScreenState.imageIndex == event.value)
+                if(_state.value.imageScreenState.pagerIndex == event.value)
                     return
                 _state.update {
                     it.copy(
                         imageScreenState = it.imageScreenState.copy(
-                            imageIndex = event.value
+                            pagerIndex = event.value
                         )
                     )
                 }
@@ -78,7 +79,7 @@ class ImagesViewModel @Inject constructor(
                     imagesScreenState.copy(
                         imageScreenState = imagesScreenState.imageScreenState.copy(
                             gridItemOffset = imagesScreenState.lazyGridState.layoutInfo.visibleItemsInfo
-                                .find { it.index ==  event.value }?.offset ?: imagesScreenState.imageScreenState.gridItemOffset
+                                .find { it.index == event.value }?.offset ?: imagesScreenState.imageScreenState.gridItemOffset
                         )
                     )
                 }
@@ -97,6 +98,13 @@ class ImagesViewModel @Inject constructor(
             }
             is ImageScreenEvent.OnBarsVisibilityChange -> {
                 onBarsVisibilityChange()
+            }
+            is ImageScreenEvent.OnTopBarTitleTextChange -> {
+                _state.update {
+                    it.copy(
+                        topBarTitleText = event.titleText
+                    )
+                }
             }
         }
     }
@@ -117,14 +125,6 @@ class ImagesViewModel @Inject constructor(
             )
         }
     }
-
-//    private fun savePagerIndex(index: Int) {
-//        _state.update {
-//            it.copy(
-//                indexToScroll = index,
-//            )
-//        }
-//    }
 
     private fun onScrollToImage(imageIndex: Int) {
         viewModelScope.launch(Dispatchers.Main) {
@@ -171,12 +171,29 @@ class ImagesViewModel @Inject constructor(
                 }
             }
             is GalleryScreenEvent.OnImageClick -> {
+                val newList = mutableListOf<Int>()
+                val stateValue = _state.value
+                for(i in 0 until stateValue.imagesList.size) {
+                    if(!stateValue.notValidImagesIndexes.contains(i)) {
+                        newList.add(i)
+                    }
+                }
                 _state.update {
                     it.copy(
                         imageScreenState = it.imageScreenState.copy(
-                            imageIndex = event.index,
+                            pagerIndex = newList.indexOf(event.index),
                             isVisible = true,
+                            imageIndexesList = newList.toImmutableList()
                         ),
+                    )
+                }
+            }
+            is GalleryScreenEvent.OnSaveNotValidImageIndex -> {
+                val imageState = _state.value
+                val newList = imageState.notValidImagesIndexes + event.index
+                _state.update {
+                    it.copy(
+                        notValidImagesIndexes = newList.toImmutableList()
                     )
                 }
             }
@@ -186,8 +203,9 @@ class ImagesViewModel @Inject constructor(
     fun onBackClicked() {
         val stateValue = state.value.imageScreenState
         val visibleInterval = stateValue.visibleGridInterval
-        if(stateValue.imageIndex > visibleInterval.second || stateValue.imageIndex <= visibleInterval.first) {
-            onScrollToImage(stateValue.imageIndex)
+        val imageIndex = stateValue.imageIndexesList[stateValue.pagerIndex]
+        if(imageIndex > visibleInterval.second || imageIndex <= visibleInterval.first) {
+            onScrollToImage(imageIndex)
         }
         viewModelScope.launch {
             _state.update {
@@ -228,7 +246,7 @@ class ImagesViewModel @Inject constructor(
                     is Resource.Success -> {
                         _state.update {
                             it.copy(
-                                imagesList = result.data,
+                                imagesList = result.data.toImmutableList(),
                             )
                         }
                     }

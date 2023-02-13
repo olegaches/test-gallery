@@ -46,6 +46,7 @@ fun GalleryScreen(
         topBar = {
             ImageScreenTopBar(
                 isVisible = state.topBarVisible,
+                title = state.topBarTitleText,
                 onBackClicked = viewModel::onBackClicked
             )
         }

@@ -62,9 +62,14 @@ dependencies {
     implementation "com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.3"
     implementation 'com.squareup.retrofit2:converter-moshi:2.9.0'
 
-    //эх, щас бы щас бы
+    //shared element transition
     implementation "com.github.skydoves:orbital:0.2.4"
+
+    //zoomable
     implementation "com.mxalbert.zoomable:zoomable:1.5.1"
+
+    // immutable lists for optimization
+    implementation "org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.5"
 
     //Coil compose
     implementation "io.coil-kt:coil-compose:2.2.2"

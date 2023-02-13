@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -20,14 +21,20 @@ import com.example.imagesproject.R
 import com.example.imagesproject.presentation.Constants
 import com.example.imagesproject.presentation.gallery_screen.convertPixelsToDp
 import com.example.imagesproject.presentation.gallery_screen.ui_events.GalleryScreenEvent
+import kotlinx.collections.immutable.ImmutableList
 
 @Composable
 fun LazyGridImages(
     lazyGridState: LazyGridState,
-    imagesUrlList: List<String>,
+    imagesUrlList: ImmutableList<String>,
     onGalleryScreenEvent: (GalleryScreenEvent) -> Unit,
 ) {
     val context = LocalContext.current
+    val gridItemModifier = Modifier
+        .padding(1.dp)
+        .fillMaxWidth()
+        .height(100.dp)
+
     LazyVerticalGrid(
         modifier = Modifier
             .fillMaxSize()
@@ -36,16 +43,18 @@ fun LazyGridImages(
         columns = GridCells.Fixed(Constants.IMAGES_GRID_COLUMNS_COUNT),
     ) {
         items(imagesUrlList.size) { index ->
-            var isSuccess by remember {
-                mutableStateOf(false)
-            }
             val imageUrl = imagesUrlList[index]
+            var isSuccess by remember {
+                mutableStateOf(true)
+            }
+            LaunchedEffect(key1 = isSuccess) {
+                if(!isSuccess) {
+                    onGalleryScreenEvent(GalleryScreenEvent.OnSaveNotValidImageIndex(index))
+                }
+            }
             AsyncImage(
                 model = imageUrl,
-                modifier = Modifier
-                    .padding(1.dp)
-                    .fillMaxWidth()
-                    .height(100.dp)
+                modifier = gridItemModifier
                     .clickable(
                         enabled = isSuccess,
                         onClick = {
@@ -74,11 +83,13 @@ fun LazyGridImages(
                             onGalleryScreenEvent(GalleryScreenEvent.OnImageClick(index))
                         }
                     ),
-                onSuccess = {
-                    isSuccess = true
-                },
+                filterQuality = FilterQuality.None,
                 contentScale = ContentScale.FillWidth,
                 error = painterResource(id = R.drawable.image_not_found),
+                placeholder = painterResource(id = R.drawable.placeholder),
+                onError = {
+                    isSuccess = false
+                },
                 contentDescription = null,
             )
         }
