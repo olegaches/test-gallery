@@ -106,6 +106,9 @@ class ImagesViewModel @Inject constructor(
                     )
                 }
             }
+            is ImageScreenEvent.OnBackToGallery -> {
+                onBackClicked()
+            }
         }
     }
 

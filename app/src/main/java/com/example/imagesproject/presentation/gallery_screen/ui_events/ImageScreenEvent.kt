@@ -9,5 +9,6 @@ sealed interface ImageScreenEvent {
     data class OnGridItemOffsetChange(val value: Int): ImageScreenEvent
     data class OnGridItemSizeChange(val value: IntSize): ImageScreenEvent
     data class OnTopBarTitleTextChange(val titleText: String): ImageScreenEvent
+    object OnBackToGallery: ImageScreenEvent
     object OnBarsVisibilityChange: ImageScreenEvent
 }

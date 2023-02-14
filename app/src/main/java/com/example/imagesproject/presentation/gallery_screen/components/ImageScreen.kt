@@ -129,22 +129,34 @@ fun ImageScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) { index ->
                 val imageIndex = imageIndexesList[index]
-                val f = OverZoomConfig(
+                val overZoomConfig = OverZoomConfig(
                     minSnapScale = 1f,
                     maxSnapScale = 1.7f
                 )
                 val zoomableState = rememberZoomableState(
                     initialScale = 1f, // можно юзать для анимации?
                     minScale = 0.1f,
-                    overZoomConfig = f,
+                    overZoomConfig = overZoomConfig,
                 )
                 LaunchedEffect(key1 = pagerState.targetPage) {
                     zoomableState.animateScaleTo(targetScale = 1f)
+                }
+                LaunchedEffect(key1 = zoomableState.scale) {
+                    if(zoomableState.scale <= 0.5) {
+                        onImageScreenEvent(ImageScreenEvent.OnBackToGallery)
+                    }
                 }
                 Zoomable(
                     state = zoomableState,
                     onTap = {
                         onImageScreenEvent(ImageScreenEvent.OnBarsVisibilityChange)
+                    },
+                    dismissGestureEnabled = true,
+                    onDismiss = {
+                        if(zoomableState.scale <= 0.5) {
+                            onImageScreenEvent(ImageScreenEvent.OnBackToGallery)
+                        }
+                        true
                     }
                 ) {
                     AsyncImage(
