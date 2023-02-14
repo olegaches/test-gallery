@@ -1,14 +1,12 @@
 package com.example.imagesproject.presentation
 
 import android.os.Bundle
-import com.example.imagesproject.R
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
@@ -16,9 +14,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -27,6 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.imagesproject.core.util.shouldUseDarkTheme
 import com.example.imagesproject.domain.type.Screen
+import com.example.imagesproject.domain.type.ThemeStyleType
 import com.example.imagesproject.presentation.gallery_screen.GalleryScreen
 import com.example.imagesproject.presentation.theme_settings.ThemeSettingsScreen
 import com.example.imagesproject.ui.theme.ImagesProjectTheme
@@ -42,26 +38,12 @@ class MainActivity : ComponentActivity() {
             val viewModel: MainViewModel = hiltViewModel()
             val activityState by viewModel.activityState.collectAsState()
             val navController = rememberNavController()
-            TransparentSystemBars()
+            TransparentSystemBars(activityState.themeStyle)
             when (activityState.isLoading) {
                 true -> ImagesProjectTheme {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            //.windowInsetsPadding(insets = windowsInsets)
-                                ,
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    Box(
                     ) {
-                        //AppLoadingAnimation()
-
-                        Spacer(modifier = Modifier.height(height = 16.dp))
-
-                        Text(
-                            text = stringResource(id = R.string.app_name),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.displayMedium
-                        )
+                        CircularProgressIndicator(Modifier.align(Alignment.Center))
                     }
                 }
                 false -> ImagesProjectTheme(
@@ -83,9 +65,10 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun TransparentSystemBars() {
+fun TransparentSystemBars(currentThemeStyleType: ThemeStyleType) {
     val systemUiController = rememberSystemUiController()
-    val isDarkTheme = isSystemInDarkTheme()
+    val isDarkTheme = shouldUseDarkTheme(themeStyle = currentThemeStyleType)
+
     SideEffect {
         systemUiController.setSystemBarsColor(Color.Transparent)
         systemUiController.setNavigationBarColor(

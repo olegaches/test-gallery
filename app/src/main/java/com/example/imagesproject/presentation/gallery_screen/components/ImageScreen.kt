@@ -22,6 +22,7 @@ import com.example.imagesproject.R
 import com.example.imagesproject.presentation.gallery_screen.AnimationType
 import com.example.imagesproject.presentation.gallery_screen.ImageScreenState
 import com.example.imagesproject.presentation.gallery_screen.ui_events.ImageScreenEvent
+import com.mxalbert.zoomable.OverZoomConfig
 import com.mxalbert.zoomable.Zoomable
 import com.mxalbert.zoomable.rememberZoomableState
 import com.skydoves.orbital.Orbital
@@ -128,7 +129,15 @@ fun ImageScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) { index ->
                 val imageIndex = imageIndexesList[index]
-                val zoomableState = rememberZoomableState()
+                val f = OverZoomConfig(
+                    minSnapScale = 1f,
+                    maxSnapScale = 1.7f
+                )
+                val zoomableState = rememberZoomableState(
+                    initialScale = 1f, // можно юзать для анимации?
+                    minScale = 0.1f,
+                    overZoomConfig = f,
+                )
                 LaunchedEffect(key1 = pagerState.targetPage) {
                     zoomableState.animateScaleTo(targetScale = 1f)
                 }
