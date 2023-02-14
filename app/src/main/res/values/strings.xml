@@ -3,4 +3,8 @@
     <string name="top_bar_title">Галерея</string>
     <string name="image_loading_error_text">Не удалось загрузить изображение</string>
     <string name="theme_label_text">Тема</string>
+    <string name="theme_settings_title_text">Тема</string>
+    <string name="light_theme_text">Светлая тема</string>
+    <string name="dark_theme_text">Темная тема</string>
+    <string name="android_theme_text">Тема устройства</string>
 </resources>

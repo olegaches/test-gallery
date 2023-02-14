@@ -21,6 +21,8 @@ import androidx.compose.ui.layout.*
 import androidx.compose.ui.unit.*
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.example.imagesproject.domain.type.Screen
 import com.example.imagesproject.presentation.gallery_screen.components.GalleryScreenTopBar
 import com.example.imagesproject.presentation.gallery_screen.components.ImageScreen
 import com.example.imagesproject.presentation.gallery_screen.components.ImageScreenTopBar
@@ -30,6 +32,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GalleryScreen(
+    navController: NavController,
     viewModel: ImagesViewModel = hiltViewModel(),
 ) {
     val state = viewModel.state.collectAsState().value
@@ -64,7 +67,9 @@ fun GalleryScreen(
             }
             Scaffold(
                 topBar = {
-                    GalleryScreenTopBar()
+                    GalleryScreenTopBar(
+                        onThemeSettingsClick = { navController.navigate(Screen.ThemeSettingsScreen.route) }
+                    )
                 }
             ) { paddingValues ->
                 savedPaddingValues = paddingValues

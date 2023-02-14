@@ -10,12 +10,13 @@ import com.example.imagesproject.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GalleryScreenTopBar() {
-    CenterAlignedTopAppBar(
+fun GalleryScreenTopBar(
+    onThemeSettingsClick: () -> Unit
+) {
+    TopAppBar(
         title = {
             Text(
                 text = stringResource(R.string.top_bar_title),
-                style = MaterialTheme.typography.titleMedium,
             )
         },
         actions = {
@@ -45,7 +46,7 @@ fun GalleryScreenTopBar() {
                                 text = stringResource(R.string.theme_label_text)
                             )
                         },
-                        onClick = { /*TODO*/ }
+                        onClick = onThemeSettingsClick
                     )
                 }
             }
