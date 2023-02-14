@@ -7,4 +7,6 @@
     <string name="light_theme_text">Светлая тема</string>
     <string name="dark_theme_text">Темная тема</string>
     <string name="android_theme_text">Тема устройства</string>
+    <string name="use_dynamic_colors_text">Использовать динамические цвета</string>
+    <string name="app_theme_title_text">Тема приложения:</string>
 </resources>

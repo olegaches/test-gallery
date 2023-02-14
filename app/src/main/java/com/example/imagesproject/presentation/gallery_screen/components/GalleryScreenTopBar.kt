@@ -1,10 +1,12 @@
 package com.example.imagesproject.presentation.gallery_screen.components
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.example.imagesproject.R
 
@@ -41,6 +43,8 @@ fun GalleryScreenTopBar(
                     }
                 ) {
                     DropdownMenuItem(
+                        modifier = Modifier.fillMaxSize()
+                        ,
                         text = {
                             Text(
                                 text = stringResource(R.string.theme_label_text)

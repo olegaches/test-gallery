@@ -1,20 +1,20 @@
 package com.example.imagesproject.presentation.theme_settings
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.imagesproject.R
+import com.example.imagesproject.core.util.isCompatibleWithDynamicColors
 import com.example.imagesproject.presentation.theme_settings.components.ThemeStyleSection
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,12 +47,37 @@ fun ThemeSettingsScreen(
             )
         }
     ) { innerPadding ->
-        Box(
+        Column(
             modifier = Modifier
-                .padding(innerPadding)
                 .fillMaxSize()
-                ,
+                .padding(paddingValues = innerPadding)
         ) {
+            if (isCompatibleWithDynamicColors()) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.use_dynamic_colors_text),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+
+                    Switch(
+                        checked = screenState.useDynamicColors,
+                        onCheckedChange = { viewModel.toggleDynamicColors() }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(height = 8.dp))
+            }
+
+            Text(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                text = stringResource(R.string.app_theme_title_text),
+                style = MaterialTheme.typography.bodyLarge
+            )
+
             ThemeStyleSection(
                 modifier = Modifier.padding(horizontal = 32.dp),
                 themeStyle = screenState.themeStyle,
