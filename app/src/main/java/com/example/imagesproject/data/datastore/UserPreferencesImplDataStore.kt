@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
+
 class UserPreferencesImplDataStore @Inject constructor(
     private val dataStorePreferences: DataStore<Preferences>
 ) : UserPreferences {

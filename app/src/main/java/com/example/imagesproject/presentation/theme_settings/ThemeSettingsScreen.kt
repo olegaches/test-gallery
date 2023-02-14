@@ -7,7 +7,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -53,22 +52,20 @@ fun ThemeSettingsScreen(
                 .padding(paddingValues = innerPadding)
         ) {
             if (isCompatibleWithDynamicColors()) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.use_dynamic_colors_text),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-
-                    Switch(
-                        checked = screenState.useDynamicColors,
-                        onCheckedChange = { viewModel.toggleDynamicColors() }
-                    )
-                }
-
+                ListItem(
+                    headlineText = {
+                        Text(
+                            text = stringResource(R.string.use_dynamic_colors_text),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = screenState.useDynamicColors,
+                            onCheckedChange = { viewModel.toggleDynamicColors() }
+                        )
+                    }
+                )
                 Spacer(modifier = Modifier.height(height = 8.dp))
             }
 

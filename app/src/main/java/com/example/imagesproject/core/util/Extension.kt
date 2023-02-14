@@ -15,6 +15,14 @@ import com.example.imagesproject.domain.type.ThemeStyleType
 fun isCompatibleWithDynamicColors(): Boolean =
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
+@ChecksSdkIntAtLeast(api = Build.VERSION_CODES.P)
+fun isCompatibleWithApi27(): Boolean =
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+
+@ChecksSdkIntAtLeast(api = Build.VERSION_CODES.Q)
+fun isCompatibleWithApi29(): Boolean =
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+
 /**
  * Map a ThemeStyleType into a [Boolean].
  *
