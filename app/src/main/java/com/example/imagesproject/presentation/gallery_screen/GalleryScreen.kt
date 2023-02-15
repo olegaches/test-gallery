@@ -96,20 +96,3 @@ fun GalleryScreen(
         }
     }
 }
-
-fun convertPixelsToDp(size: Size, context: Context?): IntSize {
-    val padding = 0
-    return if(context != null) {
-        val resources = context.resources
-        val metrics = resources.displayMetrics
-        val height = size.height / (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
-        val width = size.width / (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
-        IntSize(width = width.toInt() - padding, height = height.toInt() - padding) // '-2' is for padding matching
-    }
-    else {
-        val metrics = Resources.getSystem().displayMetrics
-        val height = size.height / (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
-        val width = size.width / (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
-        IntSize(width = width.toInt() - padding, height = height.toInt() - padding) // '-2' is for padding matching
-    }
-}
