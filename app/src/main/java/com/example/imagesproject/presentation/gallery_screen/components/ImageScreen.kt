@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.imagesproject.R
@@ -49,69 +50,100 @@ fun ImageScreen(
     paddingValues: PaddingValues,
     onImageScreenEvent: (ImageScreenEvent) -> Unit,
 ) {
-//    val orientation = LocalConfiguration.current.orientation
-//    LaunchedEffect(key1 = true) {
-//        if(imageScreenState.animationState.animationType != AnimationType.EXPAND_ANIMATION) {
-//            onImageScreenEvent(ImageScreenEvent.OnBarsVisibilityChange)
-//            onImageScreenEvent(ImageScreenEvent.OnAnimate(AnimationType.EXPAND_ANIMATION))
-//        }
+//    val imageIndexesList = imageScreenState.imageIndexesList
+//    Box(
+//        modifier = Modifier
+//            .padding(
+//                top = paddingValues.calculateTopPadding(),
+//            )
+//            .offset {
+//                imageScreenState.gridItemOffset.copy(
+//                    x = imageScreenState.gridItemOffset.x, // из px в dp делить на 2
+//                    y = imageScreenState.gridItemOffset.y
+//                )
+//            }
+//            //.size(222.dp, 102.dp)
+//            .size(imageScreenState.gridItemImageSize.width - 34.dp, imageScreenState.gridItemImageSize.height)
+//        ,
+//    ) {
+//        AsyncImage(
+//            modifier = Modifier.fillMaxWidth().size(imageScreenState.gridItemImageSize),
+//            model = imagesList[imageIndexesList[imageScreenState.pagerIndex]],
+//            contentDescription = null,
+//            contentScale = ContentScale.Fit,
+//        )
 //    }
-//    var currentAnimationContentScale by remember {
-//        mutableStateOf(ContentScale.FillBounds)
-//    }
+
+    LaunchedEffect(key1 = true) {
+        if(imageScreenState.animationState.animationType != AnimationType.EXPAND_ANIMATION) {
+            onImageScreenEvent(ImageScreenEvent.OnBarsVisibilityChange)
+            onImageScreenEvent(ImageScreenEvent.OnAnimate(AnimationType.EXPAND_ANIMATION))
+        }
+    }
     val imageIndexesList = imageScreenState.imageIndexesList
-    AsyncImage(
-        model = imagesList[imageIndexesList[imageScreenState.pagerIndex]],
-        contentDescription = null,
-        Modifier
-            .padding(
-                top = paddingValues.calculateTopPadding()
-            )
-            .offset {
-                imageScreenState.gridItemOffset.copy(
-                    x = imageScreenState.gridItemOffset.x - 70, // из px в dp делить на 2
-                    y = imageScreenState.gridItemOffset.y
-                )
-            }
-            .size(
-                height = imageScreenState.gridItemImageSize.height.dp,
-                width = imageScreenState.gridItemImageSize.width.dp +28.dp, // как правильно найти delta 34.dp для 3 картинки?
-            ),
-        contentScale = ContentScale.Fit,
+    var currentAnimationContentScale by remember {
+        mutableStateOf(ContentScale.FillBounds)
+    }
+    var currentScale by remember {
+        mutableStateOf(1f)
+    }
+
+    var animationType by remember {
+        mutableStateOf(imageScreenState.animationState.animationType)
+    }
+    LaunchedEffect(key1 = imageScreenState.animationState.animationType) {
+        animationType = imageScreenState.animationState.animationType
+        if (animationType == AnimationType.EXPAND_ANIMATION) {
+            currentAnimationContentScale = ContentScale.FillBounds
+        } else {
+            currentAnimationContentScale = ContentScale.FillWidth
+        }
+    }
+
+    val pagerState = rememberPagerState(
+        initialPage = imageScreenState.pagerIndex
     )
-//    var currentScale by remember {
-//        mutableStateOf(1f)
-//    }
-//
-//    var animationType by remember {
-//        mutableStateOf(imageScreenState.animationState.animationType)
-//    }
-//    LaunchedEffect(key1 = imageScreenState.animationState.animationType) {
-//        animationType = imageScreenState.animationState.animationType
-//        if (animationType == AnimationType.EXPAND_ANIMATION) {
-//            currentAnimationContentScale = ContentScale.FillBounds
-//        } else {
-//            currentAnimationContentScale = ContentScale.FillWidth
-//        }
-//    }
-//
-//    val pagerState = rememberPagerState(
-//        initialPage = imageScreenState.pagerIndex
-//    )
-//
-//    LaunchedEffect(key1 = pagerState.currentPage) {
-//        val index = imageIndexesList[pagerState.currentPage]
-//        onImageScreenEvent(ImageScreenEvent.OnTopBarTitleTextChange(imagesList[index]))
-//        onImageScreenEvent(ImageScreenEvent.OnGridItemOffsetChange(index))
-//    }
-//    val imageContent = rememberContentWithOrbitalScope {
-//        val orbitalScope = this
-//        Box(
-//            modifier = Modifier
-//                .fillMaxSize()
-//        ) {
+    val contentScaleForAnimation = ContentScale.Fit
+    val painterForAnimation = rememberAsyncImagePainter(
+        model = imagesList[imageIndexesList[imageScreenState.pagerIndex]],
+        contentScale = contentScaleForAnimation,
+    )
+    LaunchedEffect(key1 = pagerState.currentPage) {
+        val index = imageIndexesList[pagerState.currentPage]
+        onImageScreenEvent(ImageScreenEvent.OnTopBarTitleTextChange(imagesList[index]))
+        //onImageScreenEvent(ImageScreenEvent.OnGridItemOffsetChange(index, painterForAnimation.intrinsicSize))
+    }
+    val imageContent = rememberContentWithOrbitalScope {
+        val orbitalScope = this
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            Image(
+                modifier = if (animationType == AnimationType.EXPAND_ANIMATION) {
+                    Modifier
+                        .fillMaxSize(currentScale)
+                        .align(Alignment.Center)
+                } else {
+                    Modifier
+                        .padding(
+                            top = paddingValues.calculateTopPadding()
+                        )
+                        .offset {
+                            imageScreenState.gridItemOffset
+                        }
+                        .size(imageScreenState.gridItemImageSize)
+                }.animateSharedElementTransition(
+                    orbitalScope,
+                    SpringSpec(stiffness = 600f),
+                    SpringSpec(stiffness = 600f)
+                ),
+                painter = painterForAnimation,
+                contentScale = contentScaleForAnimation,
+                contentDescription = null,
+            )
 //            AsyncImage(
-//                modifier = if (false) {
+//                modifier = if (animationType == AnimationType.EXPAND_ANIMATION) {
 //                    Modifier
 //                        .fillMaxSize(currentScale)
 //                        .align(Alignment.Center)
@@ -121,15 +153,9 @@ fun ImageScreen(
 //                            top = paddingValues.calculateTopPadding()
 //                        )
 //                        .offset {
-//                            imageScreenState.gridItemOffset.copy(
-//                                x = imageScreenState.gridItemOffset.x - 24,
-//                                y = imageScreenState.gridItemOffset.y
-//                            )
+//                            imageScreenState.gridItemOffset
 //                        }
-//                        .size(
-//                            height = imageScreenState.gridItemImageSize.height.dp,
-//                            width = imageScreenState.gridItemImageSize.width.dp + 24.dp, // как правильно найти delta?
-//                        )
+//                        .size(imageScreenState.gridItemImageSize)
 //                }.animateSharedElementTransition(
 //                    orbitalScope,
 //                    SpringSpec(stiffness = 600f),
@@ -137,86 +163,105 @@ fun ImageScreen(
 //                ),
 //                model = imagesList[imageIndexesList[imageScreenState.pagerIndex]]
 //                ,
-//                contentScale = if(orientation == Configuration.ORIENTATION_LANDSCAPE)
-//                    ContentScale.FillWidth else {
-//                    ContentScale.FillWidth
-//                },
+//                contentScale = ContentScale.Fit,
 //                contentDescription = null,
-//                error = painterResource(id = R.drawable.image_not_found),
 //            )
-//        }
-//    }
-//    val backGroundColor by animateColorAsState(
-//        targetValue = if (animationType == AnimationType.EXPAND_ANIMATION) Color.Black else Color.Transparent,
-//        animationSpec = tween(durationMillis = 300)
-//    )
-//    Box(
-//        modifier = Modifier
-//            .background(backGroundColor)
-//            .fillMaxSize()
-//    ) {
-//        if(imageScreenState.animationState.isAnimationInProgress) {
-//            Orbital(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//            ) {
-//                imageContent()
-//            }
-//        } else {
-//            LaunchedEffect(key1 = pagerState.currentPage) {
-//                onImageScreenEvent(ImageScreenEvent.OnPagerIndexChanged(
-//                    pagerState.currentPage
-//                ))
-//            }
-//            HorizontalPager(
-//                state = pagerState,
-//                beyondBoundsPageCount = 1,
-//                pageCount = imageIndexesList.size,
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                ,
-//                pageSpacing = 16.dp,
-//                flingBehavior = PagerDefaults.flingBehavior(
-//                    state = pagerState,
-//                    pagerSnapDistance = PagerSnapDistance.atMost(0)
-//                ),
-//                contentPadding = PaddingValues(0.dp),
-//                verticalAlignment = Alignment.CenterVertically,
-//            ) { index ->
-//                val imageIndex = imageIndexesList[index]
-//                val overZoomConfig = OverZoomConfig(
-//                    minSnapScale = 1f,
-//                    maxSnapScale = 1.7f
-//                )
-//                val zoomableState = rememberZoomableState(
-//                    initialScale = 1f, // можно юзать для анимации?
-//                    minScale = 0.1f,
-//                    overZoomConfig = overZoomConfig,
-//                )
-//                LaunchedEffect(key1 = pagerState.targetPage) {
-//                    zoomableState.animateScaleTo(targetScale = 1f)
-//                }
-//                LaunchedEffect(key1 = zoomableState.scale) {
-//                    if(zoomableState.scale <= 0.5) {
-//                        currentScale = zoomableState.scale
-//                        onImageScreenEvent(ImageScreenEvent.OnBackToGallery)
-//                    }
-//                }
-//                Zoomable(
-//                    state = zoomableState,
-//                    onTap = {
-//                        onImageScreenEvent(ImageScreenEvent.OnBarsVisibilityChange)
-//                    },
-//                ) {
+        }
+    }
+    val backGroundColor by animateColorAsState(
+        targetValue = if (animationType == AnimationType.EXPAND_ANIMATION) Color.Black else Color.Transparent,
+        animationSpec = tween(durationMillis = 300)
+    )
+    Box(
+        modifier = Modifier
+            .background(backGroundColor)
+            .fillMaxSize()
+    ) {
+        if(imageScreenState.animationState.isAnimationInProgress) {
+            Orbital(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                imageContent()
+            }
+        } else {
+            var imageSize = Size.Zero
+            LaunchedEffect(key1 = pagerState.currentPage) {
+                onImageScreenEvent(ImageScreenEvent.OnPagerIndexChanged(
+                    pagerState.currentPage
+                ))
+                onImageScreenEvent(ImageScreenEvent.OnGridItemOffsetChange(
+                    imageIndexesList[pagerState.currentPage],
+                    imageSize
+                ))
+            }
+            HorizontalPager(
+                state = pagerState,
+                beyondBoundsPageCount = 1,
+                pageCount = imageIndexesList.size,
+                modifier = Modifier
+                    .fillMaxSize()
+                ,
+                pageSpacing = 16.dp,
+                flingBehavior = PagerDefaults.flingBehavior(
+                    state = pagerState,
+                    pagerSnapDistance = PagerSnapDistance.atMost(0)
+                ),
+                contentPadding = PaddingValues(0.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) { index ->
+                val imageIndex = imageIndexesList[index]
+                val contentScale = ContentScale.Fit
+                val painter = rememberAsyncImagePainter(
+                    model = imagesList[imageIndex],
+                    contentScale = contentScale
+                )
+                val overZoomConfig = OverZoomConfig(
+                    minSnapScale = 1f,
+                    maxSnapScale = 1.7f
+                )
+                val zoomableState = rememberZoomableState(
+                    initialScale = 1f,
+                    minScale = 0.1f,
+                    overZoomConfig = overZoomConfig,
+                )
+                if(index == pagerState.currentPage && painter.intrinsicSize != Size.Unspecified) {
+                    imageSize = painter.intrinsicSize
+                }
+                LaunchedEffect(key1 = pagerState.targetPage) {
+                    zoomableState.animateScaleTo(targetScale = 1f)
+                } // убрать потом? это плохо
+                LaunchedEffect(key1 = zoomableState.scale) {
+                    if(zoomableState.scale <= 0.5) {
+                        currentScale = zoomableState.scale
+                        onImageScreenEvent(ImageScreenEvent.OnBackToGallery)
+                    }
+                }
+                Zoomable(
+                    state = zoomableState,
+                    onTap = {
+                        onImageScreenEvent(ImageScreenEvent.OnBarsVisibilityChange)
+                    },
+                ) {
+                    Image(
+                        modifier = Modifier
+                            .fillMaxSize()
+                                ,
+                        painter = painter,
+                        contentScale = contentScale,
+                        contentDescription = null,
+                    )
 //                    AsyncImage(
 //                        modifier = Modifier
-//                            .fillMaxSize(),
+//                            .fillMaxSize()
+//                                ,
 //                        error = painterResource(id = R.drawable.image_not_found),
 //                        model = imagesList[imageIndex],
+//                        contentScale = ContentScale.Fit,
 //                        contentDescription = null,
 //                    )
-//                }
-//            }
-        //}
-    //}
+                }
+            }
+        }
+    }
 }
