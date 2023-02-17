@@ -1,10 +1,7 @@
 package com.example.imagesproject.presentation.gallery_screen
 
-import android.content.Context
-import android.content.res.Resources
-import android.util.DisplayMetrics
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.lifecycle.ViewModel
@@ -13,16 +10,20 @@ import com.example.imagesproject.core.util.Resource
 import com.example.imagesproject.domain.use_case.GetImagesUrlListUseCase
 import com.example.imagesproject.presentation.gallery_screen.ui_events.GalleryScreenEvent
 import com.example.imagesproject.presentation.gallery_screen.ui_events.ImageScreenEvent
+import com.example.imagesproject.presentation.util.convertPixelsToDp
+import com.example.imagesproject.presentation.util.findCropScale
+import com.example.imagesproject.presentation.util.findFinalHeight
+import com.example.imagesproject.presentation.util.findFinalWidth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.math.max
 
 @HiltViewModel
 class ImagesViewModel @Inject constructor(
@@ -82,70 +83,55 @@ class ImagesViewModel @Inject constructor(
                     )
                 }
             }
-            is ImageScreenEvent.OnGridItemOffsetChange -> {
-                val stateValue = _state.value
-                val currentElement = stateValue.lazyGridState.layoutInfo.visibleItemsInfo.find { it.index == event.index }!!
-                val cropScale = findCropScale(
-                        event.imageSize,
+            is ImageScreenEvent.OnPagerCurrentImageChange -> {
+                viewModelScope.launch {
+                    val stateValue = _state.value
+                    val visibleInterval = stateValue.imageScreenState.visibleGridInterval
+                    if(event.index > visibleInterval.second || event.index <= visibleInterval.first) {
+                        onScrollToImage(event.index).join()
+                    }
+                    val currentElement = stateValue.lazyGridState.layoutInfo.visibleItemsInfo.find { it.index == event.index }
+                        ?: stateValue.lazyGridState.layoutInfo.visibleItemsInfo.last()
+                    val cropScale = findCropScale(
+                        event.painterIntrinsicSize,
                         currentElement.size.toSize()
                     )
-                val imageHeight = event.imageSize.height * cropScale
-                val imageWidth = event.imageSize.width * cropScale
-                val currentGridItemOffset = currentElement.offset
-                if(imageHeight > imageWidth) {
-                    val height =
-                        findFinalHeight(
+                    val imageHeight = event.painterIntrinsicSize.height * cropScale
+                    val imageWidth = event.painterIntrinsicSize.width * cropScale
+                    val currentGridItemOffset = currentElement.offset
+                    val height: Float
+                    val width: Float
+                    val imageOffset: IntOffset
+                    if(imageHeight > imageWidth) {
+                        height = findFinalHeight(
                             imageWidth,
                             imageHeight,
                             null
                         )
-                    val width =
-                        convertPixelsToDp(
+                        width = convertPixelsToDp(
                             currentElement.size.toSize().width,
                             null
                         )
-                    val itemOffset = currentGridItemOffset.copy(
-                        y = currentGridItemOffset.y - (imageHeight - imageWidth).toInt() / 2
-                    )
-                    onGalleryScreenEvent(GalleryScreenEvent.OnSaveCurrentGridItemOffset(itemOffset))
-                    onImageScreenEvent(ImageScreenEvent.OnGridItemSizeChange(DpSize(height = height.dp, width = width.dp)))
-                } else {
-                    val width =
-                        findFinalWidth(
+                        imageOffset = currentGridItemOffset.copy(
+                            y = currentGridItemOffset.y - (imageHeight - imageWidth).toInt() / 2
+                        )
+                    } else {
+                        width = findFinalWidth(
                             imageHeight,
                             imageWidth,
                             null
                         )
-                    val height =
-                        convertPixelsToDp(
+                        height = convertPixelsToDp(
                             currentElement.size.toSize().height,
                             null
                         )
-                    val itemOffset = currentGridItemOffset.copy(
-                        x = currentGridItemOffset.x - (imageWidth - imageHeight).toInt() / 2
-                    )
-                    onGalleryScreenEvent(GalleryScreenEvent.OnSaveCurrentGridItemOffset(itemOffset))
-                    onImageScreenEvent(ImageScreenEvent.OnGridItemSizeChange(DpSize(height = height.dp, width = width.dp)))
-                }
-//                _state.update { imagesScreenState ->
-//                    imagesScreenState.copy(
-//                        imageScreenState = imagesScreenState.imageScreenState.copy(
-//                            gridItemOffset = imagesScreenState.lazyGridState.layoutInfo.visibleItemsInfo
-//                                .find { it.index == event.value }?.offset ?: imagesScreenState.imageScreenState.gridItemOffset
-//                        )
-//                    )
-//                }
-            }
-            is ImageScreenEvent.OnGridItemSizeChange -> {
-                _state.update {
-                    val imageState = _state.value.imageScreenState
-                    if(imageState.gridItemImageSize == event.value)
-                        return
-                    it.copy(
-                        imageScreenState = it.imageScreenState.copy(
-                            gridItemImageSize = event.value
+                        imageOffset = currentGridItemOffset.copy(
+                            x = currentGridItemOffset.x - (imageWidth - imageHeight).toInt() / 2
                         )
-                    )
+                    }
+                    val imageDpSize = DpSize(height = height.dp, width = width.dp)
+                    changeCurrentGridItemOffset(imageOffset)
+                    changeImageSize(imageDpSize)
                 }
             }
             is ImageScreenEvent.OnBarsVisibilityChange -> {
@@ -161,6 +147,19 @@ class ImagesViewModel @Inject constructor(
             is ImageScreenEvent.OnBackToGallery -> {
                 onBackClicked()
             }
+        }
+    }
+
+    private fun changeImageSize(dpSize: DpSize) {
+        _state.update {
+            val imageState = _state.value.imageScreenState
+            if(imageState.imageSize == dpSize)
+                return
+            it.copy(
+                imageScreenState = it.imageScreenState.copy(
+                    imageSize = dpSize
+                )
+            )
         }
     }
 
@@ -181,9 +180,12 @@ class ImagesViewModel @Inject constructor(
         }
     }
 
-    private fun onScrollToImage(imageIndex: Int) {
-        viewModelScope.launch(Dispatchers.Main) {
+    private fun onScrollToImage(imageIndex: Int): Job {
+        return viewModelScope.launch(Dispatchers.Main) {
             val stateValue = _state.value
+            val prevGridItemOffset = stateValue.lazyGridState.layoutInfo.visibleItemsInfo.find { it.index == imageIndex }?.offset ?: stateValue.imageScreenState.imageOffset
+            val prevImageOffset = stateValue.imageScreenState.imageOffset
+            val deltaOffsetY = (prevGridItemOffset.y - prevImageOffset.y)
             stateValue.lazyGridState.scrollToItem(
                 index = imageIndex,
                 scrollOffset =
@@ -192,12 +194,24 @@ class ImagesViewModel @Inject constructor(
                         0
                 }
             )
-            //onImageScreenEvent(ImageScreenEvent.OnGridItemOffsetChange(imageIndex)) // после скролла нужен новый оффсет,
-                                    // как его взять и ширину картинки? вроде бы размер картинки сохраняется, так что это необязвтельный аргумент тут.
-            // Переделать оффсет на onIndexChange, SaveIndex и SaveOffset и SaveSize отдельно сделать в приватные методы или ивенты
+            val currentGridItem = stateValue.lazyGridState.layoutInfo.visibleItemsInfo.find { it.index == imageIndex }!!
+            val imageSize = stateValue.imageScreenState.imageSize
+            val newOffset: IntOffset = if(imageSize.height > imageSize.width) {
+                prevImageOffset.copy(y = currentGridItem.offset.y - deltaOffsetY)
+            } else {
+                prevImageOffset.copy(y = currentGridItem.offset.y)
+            }
+            changeCurrentGridItemOffset(newOffset)
+        }
+    }
+
+    private fun changeCurrentGridItemOffset(intOffset: IntOffset) {
+        viewModelScope.launch {
             _state.update {
                 it.copy(
-                    indexToScroll = null,
+                    imageScreenState = it.imageScreenState.copy(
+                        imageOffset = intOffset
+                    )
                 )
             }
         }
@@ -213,16 +227,10 @@ class ImagesViewModel @Inject constructor(
                 }
             }
             is GalleryScreenEvent.OnSaveGridItemSize -> {
-                onImageScreenEvent(ImageScreenEvent.OnGridItemSizeChange(event.dpSize))
+                changeImageSize(event.dpSize)
             }
             is GalleryScreenEvent.OnSaveCurrentGridItemOffset -> {
-                _state.update {
-                    it.copy(
-                        imageScreenState = it.imageScreenState.copy(
-                            gridItemOffset = event.intOffset
-                        )
-                    )
-                }
+                changeCurrentGridItemOffset(event.intOffset)
             }
             is GalleryScreenEvent.OnSaveGridVisibleInterval -> {
                 _state.update {
@@ -282,9 +290,10 @@ class ImagesViewModel @Inject constructor(
                     )
                 )
             }
-            delay(400)
+            delay(250)
             _state.update {
                 it.copy(
+                    topBarTitleText = "",
                     imageScreenState = it.imageScreenState.copy(
                         isVisible = false,
                         animationState = it.imageScreenState.animationState.copy(
@@ -328,38 +337,5 @@ class ImagesViewModel @Inject constructor(
                 }
             }
         }
-    }
-}
-
-private fun findCropScale(srcSize: Size, dstSize: Size): Float {
-    val widthScale = computeFillWidth(srcSize, dstSize)
-    val heightScale = computeFillHeight(srcSize, dstSize)
-    return max(widthScale, heightScale)
-}
-
-private fun computeFillWidth(srcSize: Size, dstSize: Size): Float =
-    dstSize.width / srcSize.width
-
-private fun computeFillHeight(srcSize: Size, dstSize: Size): Float =
-    dstSize.height / srcSize.height
-
-private fun findFinalHeight(imageWidth: Float, imageHeight: Float, context: Context?): Float  {
-    val deltaHeight = convertPixelsToDp(imageHeight - imageWidth, context)
-    val convertedGridHeight = convertPixelsToDp(imageWidth, context)
-    return deltaHeight + convertedGridHeight
-}
-
-private fun findFinalWidth(imageHeight: Float, imageWidth: Float, context: Context?): Float {
-    return findFinalHeight(imageHeight, imageWidth, context)
-}
-
-private fun convertPixelsToDp(pixels: Float, context: Context?): Float {
-    return if(context != null) {
-        val resources = context.resources
-        val metrics = resources.displayMetrics
-        (pixels / (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT))
-    } else {
-        val metrics = Resources.getSystem().displayMetrics
-        (pixels / (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT))
     }
 }

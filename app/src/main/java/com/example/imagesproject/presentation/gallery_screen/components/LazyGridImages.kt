@@ -1,9 +1,6 @@
 package com.example.imagesproject.presentation.gallery_screen.components
 
-import android.content.Context
 import com.example.imagesproject.R
-import android.content.res.Resources
-import android.util.DisplayMetrics
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,7 +8,6 @@ import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -19,10 +15,12 @@ import androidx.compose.ui.unit.*
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import com.example.imagesproject.presentation.Constants
 import com.example.imagesproject.presentation.gallery_screen.ui_events.GalleryScreenEvent
+import com.example.imagesproject.presentation.util.convertPixelsToDp
+import com.example.imagesproject.presentation.util.findCropScale
+import com.example.imagesproject.presentation.util.findFinalHeight
+import com.example.imagesproject.presentation.util.findFinalWidth
 import kotlinx.collections.immutable.ImmutableList
-import kotlin.math.max
 
 @Composable
 fun LazyGridImages(
@@ -42,7 +40,7 @@ fun LazyGridImages(
             .fillMaxSize()
         ,
         state = lazyGridState,
-        columns = GridCells.Adaptive(100.dp)
+        columns = GridCells.Adaptive(90.dp)
     ) {
         items(imagesUrlList.size) { index ->
             val imageUrl = imagesUrlList[index]
@@ -108,7 +106,7 @@ fun LazyGridImages(
                                 onGalleryScreenEvent(GalleryScreenEvent.OnSaveCurrentGridItemOffset(itemOffset))
                                 onGalleryScreenEvent(GalleryScreenEvent.OnSaveGridItemSize(DpSize(height = height.dp, width = width.dp)))
                             }
-                            val lastColumn = lastElement.column + 1 // Constants.IMAGES_GRID_COLUMNS_COUNT тут баг, если последний элемент в первой колонке.
+                            val lastColumn = lastElement.column + 1 // если последний элемент в первой колонке?.
                             // По другому пока никак, нам неизвестно кол-во колонок или столбцов.
                             val lastFullVisibleIndex =
                                 lastElement.index - lastElement.column - 1
@@ -133,38 +131,5 @@ fun LazyGridImages(
                 contentDescription = null,
             )
         }
-    }
-}
-
-private fun findCropScale(srcSize: Size, dstSize: Size): Float {
-    val widthScale = computeFillWidth(srcSize, dstSize)
-    val heightScale = computeFillHeight(srcSize, dstSize)
-    return max(widthScale, heightScale)
-}
-
-private fun computeFillWidth(srcSize: Size, dstSize: Size): Float =
-    dstSize.width / srcSize.width
-
-private fun computeFillHeight(srcSize: Size, dstSize: Size): Float =
-    dstSize.height / srcSize.height
-
-fun findFinalHeight(imageWidth: Float, imageHeight: Float, context: Context?): Float  {
-    val deltaHeight = convertPixelsToDp(imageHeight - imageWidth, context)
-    val convertedGridHeight = convertPixelsToDp(imageWidth, context)
-    return deltaHeight + convertedGridHeight
-}
-
-fun findFinalWidth(imageHeight: Float, imageWidth: Float, context: Context?): Float {
-    return findFinalHeight(imageHeight, imageWidth, context)
-}
-
-fun convertPixelsToDp(pixels: Float, context: Context?): Float {
-    return if(context != null) {
-        val resources = context.resources
-        val metrics = resources.displayMetrics
-        (pixels / (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT))
-    } else {
-        val metrics = Resources.getSystem().displayMetrics
-        (pixels / (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT))
     }
 }

@@ -13,7 +13,6 @@ data class ImagesScreenState(
     val topBarTitleText: String = "",
     val systemNavigationBarVisible: Boolean = true,
     val lazyGridState: LazyGridState = LazyGridState(firstVisibleItemIndex = 0, firstVisibleItemScrollOffset = 0),
-    val indexToScroll: Int? = null,
     val itemOffsetToScroll: Int = 0,
     val imageScreenState: ImageScreenState = ImageScreenState(),
     val notValidImagesIndexes: ImmutableList<Int> = persistentListOf(),
