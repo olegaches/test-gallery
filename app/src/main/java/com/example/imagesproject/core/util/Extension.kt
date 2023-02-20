@@ -1,10 +1,14 @@
 package com.example.imagesproject.core.util
 
+import android.content.Context
 import android.os.Build
+import android.os.PowerManager
 import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import androidx.core.content.ContextCompat.getSystemService
 import com.example.imagesproject.domain.type.ThemeStyleType
+
 
 /**
  * Check if this device is compatible with Dynamic Colors for Material 3.
@@ -32,9 +36,22 @@ fun isCompatibleWithApi29(): Boolean =
  */
 @Composable
 fun shouldUseDarkTheme(
-    themeStyle: ThemeStyleType
-): Boolean = when (themeStyle) {
-    ThemeStyleType.FollowAndroidSystem -> isSystemInDarkTheme()
-    ThemeStyleType.LightMode -> false
-    ThemeStyleType.DarkMode -> true
+    themeStyle: ThemeStyleType,
+    context: Context
+): Boolean {
+    val systemTheme = if(!isCompatibleWithApi27()) {
+        isPowerSavingMode(context)
+    } else {
+        isSystemInDarkTheme()
+    }
+    return when (themeStyle) {
+        ThemeStyleType.FollowAndroidSystem -> systemTheme
+        ThemeStyleType.LightMode -> false
+        ThemeStyleType.DarkMode -> true
+    }
+}
+
+fun isPowerSavingMode(context: Context): Boolean {
+    val powerManager = getSystemService(context, PowerManager::class.java) as PowerManager
+    return powerManager.isPowerSaveMode
 }

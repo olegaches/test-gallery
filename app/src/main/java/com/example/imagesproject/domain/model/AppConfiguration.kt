@@ -5,5 +5,6 @@ import com.example.imagesproject.domain.type.ThemeStyleType
 
 data class AppConfiguration(
     val useDynamicColors: Boolean,
-    val themeStyle: ThemeStyleType
+    val themeStyle: ThemeStyleType,
+    val usePowerSavingMode: Boolean,
 )

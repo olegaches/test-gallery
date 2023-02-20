@@ -1,5 +1,6 @@
 package com.example.imagesproject.presentation
 
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -31,6 +33,10 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -42,12 +48,13 @@ class MainActivity : ComponentActivity() {
             when (activityState.isLoading) {
                 true -> ImagesProjectTheme {
                     Box(
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         CircularProgressIndicator(Modifier.align(Alignment.Center))
                     }
                 }
                 false -> ImagesProjectTheme(
-                    darkTheme = shouldUseDarkTheme(themeStyle = activityState.themeStyle),
+                    darkTheme = shouldUseDarkTheme(themeStyle = activityState.themeStyle, LocalContext.current),
                     dynamicColor = activityState.useDynamicColors
                 ) {
                     Surface(
@@ -67,7 +74,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun TransparentSystemBars(currentThemeStyleType: ThemeStyleType) {
     val systemUiController = rememberSystemUiController()
-    val isDarkTheme = shouldUseDarkTheme(themeStyle = currentThemeStyleType)
+    val isDarkTheme = shouldUseDarkTheme(themeStyle = currentThemeStyleType, LocalContext.current)
 
     SideEffect {
         systemUiController.setSystemBarsColor(Color.Transparent)
