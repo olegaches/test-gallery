@@ -1,5 +1,6 @@
 package com.example.imagesproject.presentation.gallery_screen.components
 
+import android.content.res.Configuration
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.tween
@@ -19,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.imagesproject.presentation.gallery_screen.AnimationType
@@ -40,6 +42,7 @@ fun ImageScreen(
     paddingValues: PaddingValues,
     onImageScreenEvent: (ImageScreenEvent) -> Unit,
 ) {
+    val isHorizontalOrientation = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     LaunchedEffect(key1 = true) {
         if(imageScreenState.animationState.animationType != AnimationType.EXPAND_ANIMATION) {
             onImageScreenEvent(ImageScreenEvent.OnBarsVisibilityChange)
@@ -47,9 +50,6 @@ fun ImageScreen(
         }
     }
     val imageIndexesList = imageScreenState.imageIndexesList
-    var currentAnimationContentScale by remember {
-        mutableStateOf(ContentScale.FillBounds)
-    }
     var currentScale by remember {
         mutableStateOf(1f)
     }
@@ -59,11 +59,6 @@ fun ImageScreen(
     }
     LaunchedEffect(key1 = imageScreenState.animationState.animationType) {
         animationType = imageScreenState.animationState.animationType
-        currentAnimationContentScale = if (animationType == AnimationType.EXPAND_ANIMATION) {
-            ContentScale.FillBounds
-        } else {
-            ContentScale.FillWidth
-        }
     }
 
     val pagerState = rememberPagerState(
@@ -82,10 +77,12 @@ fun ImageScreen(
             modifier = Modifier
                 .fillMaxSize()
         ) {
+            val ratio = imageScreenState.painterIntrinsicSize.width/imageScreenState.painterIntrinsicSize.height
             AsyncImage(
                 modifier = if (animationType == AnimationType.EXPAND_ANIMATION) {
                     Modifier
                         .fillMaxSize(currentScale)
+                        .aspectRatio(ratio, isHorizontalOrientation)
                         .align(Alignment.Center)
                 } else {
                     Modifier
@@ -95,7 +92,7 @@ fun ImageScreen(
                         .offset {
                             imageScreenState.imageOffset
                         }
-                        .size(imageScreenState.imageSize)
+                        .size(imageScreenState.gridItemSize)
                 }.animateSharedElementTransition(
                     orbitalScope,
                     SpringSpec(stiffness = 1200f),
@@ -103,7 +100,7 @@ fun ImageScreen(
                 ),
                 model = imagesList[imageIndexesList[imageScreenState.pagerIndex]]
                 ,
-                contentScale = ContentScale.Fit,
+                contentScale = ContentScale.Crop,
                 contentDescription = null,
             )
         }
@@ -128,9 +125,11 @@ fun ImageScreen(
             var isTouching by remember {
                 mutableStateOf(false)
             }
+            var prevPagerIndex by remember {
+                mutableStateOf(pagerState.currentPage)
+            }
             HorizontalPager(
                 state = pagerState,
-                beyondBoundsPageCount = 1,
                 pageCount = imageIndexesList.size,
                 modifier = Modifier
                     .fillMaxSize()
@@ -156,15 +155,20 @@ fun ImageScreen(
                 var imageSize by remember {
                     mutableStateOf<Size?>(null)
                 }
-                LaunchedEffect(key1 = pagerState.currentPage) {
-                    if(imageSize != null && pagerState.currentPage == index)
-                        onImageScreenEvent(ImageScreenEvent.OnPagerCurrentImageChange(
-                            imageIndex,
-                            imageSize!!
-                        ))
+                LaunchedEffect(key1 = isTouching) {
+                    if(prevPagerIndex != pagerState.currentPage && !isTouching) {
+                        zoomableState.animateScaleTo(1f)
+                        prevPagerIndex = pagerState.currentPage
+                    }
                 }
-                LaunchedEffect(key1 = pagerState.settledPage) {
-                    zoomableState.animateScaleTo(targetScale = 1f)
+                LaunchedEffect(pagerState) {
+                    snapshotFlow { pagerState.currentPage }.collect { page ->
+                        if(imageSize != null && pagerState.currentPage == index)
+                            onImageScreenEvent(ImageScreenEvent.OnPagerCurrentImageChange(
+                                imageIndex,
+                                imageSize!!
+                            ))
+                    }
                 }
                 LaunchedEffect(key1 = zoomableState.scale) {
                     if(zoomableState.scale <= 0.5) {
@@ -198,7 +202,7 @@ fun ImageScreen(
                         modifier = Modifier
                             .then(
                                 if(imageSize != null) {
-                                    Modifier.aspectRatio(imageSize!!.width / imageSize!!.height)
+                                    Modifier.aspectRatio(imageSize!!.width / imageSize!!.height, isHorizontalOrientation)
                                 } else
                                     Modifier.fillMaxSize()
                             )

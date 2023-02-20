@@ -16,10 +16,6 @@ import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.imagesproject.presentation.gallery_screen.ui_events.GalleryScreenEvent
-import com.example.imagesproject.presentation.util.convertPixelsToDp
-import com.example.imagesproject.presentation.util.findCropScale
-import com.example.imagesproject.presentation.util.findFinalHeight
-import com.example.imagesproject.presentation.util.findFinalWidth
 import kotlinx.collections.immutable.ImmutableList
 
 @Composable
@@ -85,41 +81,12 @@ fun LazyGridImages(
                             val visibleItems =
                                 lazyGridState.layoutInfo.visibleItemsInfo
                             val lastElement = visibleItems.last()
-                            val cropScale = findCropScale(size, lastElement.size.toSize())
-                            val imageHeight = size.height * cropScale
-                            val imageWidth = size.width * cropScale
                             val currentGridItemOffset = visibleItems.find { it.index == index }?.offset ?: IntOffset.Zero
-                            if(imageHeight > imageWidth) {
-                                val height = findFinalHeight(imageWidth, imageHeight, context)
-                                val width = convertPixelsToDp(lastElement.size.toSize().width, context)
-                                val itemOffset = currentGridItemOffset.copy(
-                                    y = currentGridItemOffset.y - (imageHeight - imageWidth).toInt() / 2
-                                )
-                                onGalleryScreenEvent(GalleryScreenEvent.OnSaveCurrentGridItemOffset(itemOffset))
-                                onGalleryScreenEvent(GalleryScreenEvent.OnSaveGridItemSize(DpSize(height = height.dp, width = width.dp)))
-                            } else {
-                                val width = findFinalWidth(imageHeight, imageWidth, context)
-                                val height = convertPixelsToDp(lastElement.size.toSize().height, context)
-                                val itemOffset = currentGridItemOffset.copy(
-                                    x = currentGridItemOffset.x - (imageWidth - imageHeight).toInt() / 2
-                                )
-                                onGalleryScreenEvent(GalleryScreenEvent.OnSaveCurrentGridItemOffset(itemOffset))
-                                onGalleryScreenEvent(GalleryScreenEvent.OnSaveGridItemSize(DpSize(height = height.dp, width = width.dp)))
-                            }
-                            val lastColumn = lastElement.column + 1 // если последний элемент в первой колонке?.
-                            // По другому пока никак, нам неизвестно кол-во колонок или столбцов.
-                            val lastFullVisibleIndex =
-                                lastElement.index - lastElement.column - 1
-                            val firstFullVisibleIndex =
-                                visibleItems.first().index + lastColumn - 1
                             val offset =
                                 lazyGridState.layoutInfo.viewportSize.height - lastElement.size.height
+                            onGalleryScreenEvent(GalleryScreenEvent.OnSavePainterIntrinsicSize(size))
                             onGalleryScreenEvent(GalleryScreenEvent.OnSaveGridItemOffsetToScroll(offset))
-                            onGalleryScreenEvent(
-                                GalleryScreenEvent.OnSaveGridVisibleInterval(
-                                    startIndex = if (firstFullVisibleIndex < 0) lastColumn - 1 else firstFullVisibleIndex,
-                                    endIndex = if (lastFullVisibleIndex < 0) 0 else lastFullVisibleIndex,
-                                ))
+                            onGalleryScreenEvent(GalleryScreenEvent.OnSaveCurrentGridItemOffset(currentGridItemOffset))
                             for(i in notValidImageIndexes) {
                                 onGalleryScreenEvent(GalleryScreenEvent.OnSaveNotValidImageIndex(i))
                             }
