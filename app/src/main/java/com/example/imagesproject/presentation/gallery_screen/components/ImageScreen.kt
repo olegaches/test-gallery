@@ -156,7 +156,7 @@ fun ImageScreen(
                     mutableStateOf<Size?>(null)
                 }
                 LaunchedEffect(key1 = isTouching) {
-                    if(prevPagerIndex != pagerState.currentPage && !isTouching) {
+                    if(prevPagerIndex != pagerState.currentPage && !isTouching || pagerState.settledPage != prevPagerIndex) {
                         zoomableState.animateScaleTo(1f)
                         prevPagerIndex = pagerState.currentPage
                     }

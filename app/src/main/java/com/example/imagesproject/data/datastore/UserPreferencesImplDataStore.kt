@@ -26,7 +26,6 @@ class UserPreferencesImplDataStore @Inject constructor(
     private val tag = this::class.java.simpleName
     private var broadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) = goAsync {
-
             if (intent.action == PowerManager.ACTION_POWER_SAVE_MODE_CHANGED) {
                 togglePowerSavingMode()
             }
@@ -43,12 +42,11 @@ class UserPreferencesImplDataStore @Inject constructor(
         }
         .map { preferences ->
             val useDynamicColors = preferences[PreferencesKeys.useDynamicColors] ?: true
-            val usePowerSavingMode = preferences[PreferencesKeys.usePowerSavingMode] ?: false
             val themeStyle = preferences[PreferencesKeys.themeStyle].toThemeStyleType()
             AppConfiguration(
                 useDynamicColors = useDynamicColors,
                 themeStyle = themeStyle,
-                usePowerSavingMode = usePowerSavingMode,
+                usePowerSavingMode = isPowerSavingMode(context),
             )
         }
 
@@ -78,18 +76,16 @@ class UserPreferencesImplDataStore @Inject constructor(
     private suspend fun togglePowerSavingMode() {
         tryIt {
             dataStorePreferences.edit { preferences ->
-                val current = preferences[PreferencesKeys.usePowerSavingMode] ?: isPowerSavingMode(context = context)
-                preferences[PreferencesKeys.useDynamicColors] = !current
+                val current = preferences[PreferencesKeys.togglePowerSavingMode] ?: false
+                preferences[PreferencesKeys.togglePowerSavingMode] = !current
             }
         }
     }
 
     override suspend fun changeThemeStyle(themeStyle: ThemeStyleType) {
         tryIt {
-            dataStorePreferences.updateData {
-                val prefs = it.toPreferences().toMutablePreferences()
+            dataStorePreferences.edit { prefs ->
                 prefs[PreferencesKeys.themeStyle] = themeStyle.name
-                prefs
             }
         }
     }
@@ -110,7 +106,7 @@ class UserPreferencesImplDataStore @Inject constructor(
 
     private object PreferencesKeys {
         val useDynamicColors = booleanPreferencesKey(name = "use_dynamic_colors")
-        val usePowerSavingMode = booleanPreferencesKey(name = "use_power_saving_mode")
+        val togglePowerSavingMode = booleanPreferencesKey(name = "use_power_saving_mode")
         val themeStyle = stringPreferencesKey(name = "theme_style")
     }
 }
