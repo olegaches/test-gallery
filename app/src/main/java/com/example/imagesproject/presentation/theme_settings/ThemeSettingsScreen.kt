@@ -6,7 +6,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -22,7 +21,7 @@ fun ThemeSettingsScreen(
     navController: NavController,
     viewModel: ThemeSettingsViewModel = hiltViewModel()
 ) {
-    val screenState by viewModel.screenState.collectAsState()
+    val screenState = viewModel.state.collectAsState().value
     Scaffold(
         topBar = {
             TopAppBar(
@@ -74,7 +73,6 @@ fun ThemeSettingsScreen(
                 text = stringResource(R.string.app_theme_title_text),
                 style = MaterialTheme.typography.bodyLarge
             )
-
             ThemeStyleSection(
                 modifier = Modifier.padding(horizontal = 32.dp),
                 themeStyle = screenState.themeStyle,

@@ -11,15 +11,10 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-private data class SettingsViewModelState(
+data class SettingsScreenState(
     val useDynamicColors: Boolean = true,
     val themeStyle: ThemeStyleType = ThemeStyleType.FollowAndroidSystem
-) {
-    fun asScreenState() = ThemeSettingsScreenState(
-        useDynamicColors = useDynamicColors,
-        themeStyle = themeStyle
-    )
-}
+)
 
 @HiltViewModel
 class ThemeSettingsViewModel @Inject constructor(
@@ -27,13 +22,8 @@ class ThemeSettingsViewModel @Inject constructor(
     private val toggleDynamicColorsUseCase: ToggleDynamicColorsUseCase,
     private val changeThemeStyleUseCase: ChangeThemeStyleUseCase
 ) : ViewModel() {
-    private val viewModelState = MutableStateFlow(value = SettingsViewModelState())
-
-    val screenState = viewModelState.map { it.asScreenState() }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000),
-        initialValue = viewModelState.value.asScreenState()
-    )
+    private val _state = MutableStateFlow(value = SettingsScreenState())
+    val state = _state.asStateFlow()
 
     init {
         watchAppConfigurationStream()
@@ -42,7 +32,7 @@ class ThemeSettingsViewModel @Inject constructor(
     private fun watchAppConfigurationStream() {
         viewModelScope.launch {
             getAppConfigurationStreamUseCase().collectLatest { appConfiguration ->
-                viewModelState.update { state ->
+                _state.update { state ->
                     state.copy(
                         useDynamicColors = appConfiguration.useDynamicColors,
                         themeStyle = appConfiguration.themeStyle

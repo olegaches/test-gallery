@@ -20,7 +20,7 @@ fun isCompatibleWithDynamicColors(): Boolean =
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
 @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.P)
-fun isCompatibleWithApi27(): Boolean =
+fun isCompatibleWithApi28(): Boolean =
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
 
 @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.Q)
@@ -39,15 +39,16 @@ fun shouldUseDarkTheme(
     themeStyle: ThemeStyleType,
     context: Context
 ): Boolean {
-    val systemTheme = if(!isCompatibleWithApi27()) {
+    val powerSavingMode = if(!isCompatibleWithApi29()) {
         isPowerSavingMode(context)
     } else {
         isSystemInDarkTheme()
     }
     return when (themeStyle) {
-        ThemeStyleType.FollowAndroidSystem -> systemTheme
+        ThemeStyleType.FollowAndroidSystem -> isSystemInDarkTheme()
         ThemeStyleType.LightMode -> false
         ThemeStyleType.DarkMode -> true
+        ThemeStyleType.FollowPowerSavingMode -> powerSavingMode
     }
 }
 

@@ -20,7 +20,8 @@ import javax.inject.Inject
 data class MainActivityState(
     val isLoading: Boolean,
     val useDynamicColors: Boolean,
-    val themeStyle: ThemeStyleType
+    val themeStyle: ThemeStyleType,
+    val usePowerModeSaving: Boolean,
 )
 
 /**
@@ -29,12 +30,14 @@ data class MainActivityState(
 private data class MainViewModelState(
     val isLoading: Boolean = true,
     val useDynamicColors: Boolean = true,
-    val themeStyle: ThemeStyleType = ThemeStyleType.FollowAndroidSystem
+    val themeStyle: ThemeStyleType = ThemeStyleType.FollowAndroidSystem,
+    val usePowerModeSaving: Boolean = false,
 ) {
     fun asActivityState() = MainActivityState(
         isLoading = isLoading,
         useDynamicColors = useDynamicColors,
-        themeStyle = themeStyle
+        themeStyle = themeStyle,
+        usePowerModeSaving = usePowerModeSaving,
     )
 }
 
@@ -62,6 +65,7 @@ class MainViewModel @Inject constructor(
                     state.copy(
                         isLoading = false,
                         useDynamicColors = appConfiguration.useDynamicColors,
+                        usePowerModeSaving = appConfiguration.usePowerSavingMode,
                         themeStyle = appConfiguration.themeStyle
                     )
                 }

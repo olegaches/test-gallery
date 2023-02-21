@@ -7,6 +7,7 @@ import android.os.PowerManager
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
+import com.example.imagesproject.core.util.isCompatibleWithApi28
 import com.example.imagesproject.core.util.isPowerSavingMode
 import com.example.imagesproject.domain.datastore.UserPreferences
 import com.example.imagesproject.domain.model.AppConfiguration
@@ -27,7 +28,7 @@ class UserPreferencesImplDataStore @Inject constructor(
     private var broadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) = goAsync {
             if (intent.action == PowerManager.ACTION_POWER_SAVE_MODE_CHANGED) {
-                togglePowerSavingMode()
+                updateDataStoreFlow()
             }
         }
     }
@@ -73,11 +74,12 @@ class UserPreferencesImplDataStore @Inject constructor(
         }
     }
 
-    private suspend fun togglePowerSavingMode() {
+    private suspend fun updateDataStoreFlow() {
         tryIt {
             dataStorePreferences.edit { preferences ->
-                val current = preferences[PreferencesKeys.togglePowerSavingMode] ?: false
-                preferences[PreferencesKeys.togglePowerSavingMode] = !current
+                val current = preferences[PreferencesKeys.updateFlag] ?: false
+                Log.e("666", current.toString())
+                preferences[PreferencesKeys.updateFlag] = !current
             }
         }
     }
@@ -101,12 +103,17 @@ class UserPreferencesImplDataStore @Inject constructor(
     private fun String?.toThemeStyleType(): ThemeStyleType = when (this) {
         ThemeStyleType.LightMode.name -> ThemeStyleType.LightMode
         ThemeStyleType.DarkMode.name -> ThemeStyleType.DarkMode
-        else -> ThemeStyleType.FollowAndroidSystem
+        ThemeStyleType.FollowPowerSavingMode.name -> ThemeStyleType.FollowPowerSavingMode
+        else -> if(!isCompatibleWithApi28()) {
+            ThemeStyleType.FollowPowerSavingMode
+        } else {
+            ThemeStyleType.FollowAndroidSystem
+        }
     }
 
     private object PreferencesKeys {
         val useDynamicColors = booleanPreferencesKey(name = "use_dynamic_colors")
-        val togglePowerSavingMode = booleanPreferencesKey(name = "use_power_saving_mode")
+        val updateFlag = booleanPreferencesKey(name = "update_flag")
         val themeStyle = stringPreferencesKey(name = "theme_style")
     }
 }

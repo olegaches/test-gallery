@@ -121,7 +121,7 @@ fun ImageScreen(
             ) {
                 imageContent()
             }
-        } else {
+        } else if(animationType == AnimationType.EXPAND_ANIMATION) {
             var isTouching by remember {
                 mutableStateOf(false)
             }
