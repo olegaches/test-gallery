@@ -8,10 +8,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerDefaults
-import androidx.compose.foundation.pager.PagerSnapDistance
-import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.pager.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,10 +59,11 @@ fun ImageScreen(
     LaunchedEffect(key1 = imageScreenState.animationState.animationType) {
         animationType = imageScreenState.animationState.animationType
     }
-
-    val pagerState = rememberPagerState(
-        initialPage = imageScreenState.pagerIndex
-    )
+    val pagerState = remember {
+        PagerState(
+            initialPage = imageScreenState.pagerIndex
+        )
+    }
     LaunchedEffect(key1 = pagerState.currentPage) {
         val index = imageIndexesList[pagerState.currentPage]
         onImageScreenEvent(ImageScreenEvent.OnTopBarTitleTextChange(imagesList[index]))
