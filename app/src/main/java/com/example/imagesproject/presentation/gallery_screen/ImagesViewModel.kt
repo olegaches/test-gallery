@@ -1,12 +1,17 @@
 package com.example.imagesproject.presentation.gallery_screen
 
+import android.util.Log
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
+import androidx.lifecycle.viewmodel.compose.saveable
 import com.example.imagesproject.core.util.Resource
 import com.example.imagesproject.domain.use_case.GetImagesUrlListUseCase
 import com.example.imagesproject.presentation.gallery_screen.ui_events.GalleryScreenEvent
@@ -23,15 +28,28 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(SavedStateHandleSaveableApi::class)
 @HiltViewModel
 class ImagesViewModel @Inject constructor(
-    private val getImagesUrlListUseCase: GetImagesUrlListUseCase
+    private val getImagesUrlListUseCase: GetImagesUrlListUseCase,
+    private val savedStateHandle: SavedStateHandle,
 ): ViewModel() {
 
     private val _state = MutableStateFlow(ImagesScreenState())
     val state = _state.asStateFlow()
+    var filteredData = savedStateHandle.saveable(
+        key = "state",
+        init = {
+            mutableStateOf(_state.value)
+        }
+    )
 
     init {
+        //savedStateHandle["imagesState"] = _state.value
+//        Log.e("init", "init")
+//        if(filteredData.value.imagesList.size != 0) {
+//            Log.e("iamge saved", filteredData.value.imagesList[0])
+//        }
         loadImageUrlList()
     }
 
