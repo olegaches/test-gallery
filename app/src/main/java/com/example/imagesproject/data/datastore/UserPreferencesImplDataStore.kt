@@ -78,7 +78,6 @@ class UserPreferencesImplDataStore @Inject constructor(
         tryIt {
             dataStorePreferences.edit { preferences ->
                 val current = preferences[PreferencesKeys.updateFlag] ?: false
-                Log.e("666", current.toString())
                 preferences[PreferencesKeys.updateFlag] = !current
             }
         }
