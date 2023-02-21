@@ -127,6 +127,9 @@ fun ImageScreen(
             var isTouching by remember {
                 mutableStateOf(false)
             }
+            var prevPagerIndex by remember {
+                mutableStateOf(pagerState.currentPage)
+            }
             HorizontalPager(
                 state = pagerState,
                 pageCount = imageIndexesList.size,
@@ -155,9 +158,10 @@ fun ImageScreen(
                     mutableStateOf<Size?>(null)
                 }
                 LaunchedEffect(key1 = isTouching) {
-                    if(pagerState.targetPage != pagerState.settledPage && !isTouching) {
+                    if(prevPagerIndex != pagerState.currentPage && !isTouching) {
                         launch(Dispatchers.Main) {
                             zoomableState.animateScaleTo(1f)
+                            prevPagerIndex = pagerState.currentPage
                         }
                     }
                 }
