@@ -81,13 +81,22 @@ fun LazyGridImages(
                             val visibleItems =
                                 lazyGridState.layoutInfo.visibleItemsInfo
                             val lastElement = visibleItems.last()
-                            val currentGridItemOffset = visibleItems.find { it.index == index }?.offset ?: IntOffset.Zero
+                            val currentGridItemOffset =
+                                visibleItems.find { it.index == index }?.offset ?: IntOffset.Zero
                             val offset =
                                 lazyGridState.layoutInfo.viewportSize.height - lastElement.size.height
                             onGalleryScreenEvent(GalleryScreenEvent.OnSavePainterIntrinsicSize(size))
-                            onGalleryScreenEvent(GalleryScreenEvent.OnSaveGridItemOffsetToScroll(offset))
-                            onGalleryScreenEvent(GalleryScreenEvent.OnSaveCurrentGridItemOffset(currentGridItemOffset))
-                            for(i in notValidImageIndexes) {
+                            onGalleryScreenEvent(
+                                GalleryScreenEvent.OnSaveGridItemOffsetToScroll(
+                                    offset
+                                )
+                            )
+                            onGalleryScreenEvent(
+                                GalleryScreenEvent.OnSaveCurrentGridItemOffset(
+                                    currentGridItemOffset
+                                )
+                            )
+                            for (i in notValidImageIndexes) {
                                 onGalleryScreenEvent(GalleryScreenEvent.OnSaveNotValidImageIndex(i))
                             }
                             onGalleryScreenEvent(GalleryScreenEvent.OnImageClick(index))
