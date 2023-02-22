@@ -10,7 +10,6 @@ import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
@@ -30,18 +29,19 @@ import com.mxalbert.zoomable.rememberZoomableState
 import com.skydoves.orbital.Orbital
 import com.skydoves.orbital.animateSharedElementTransition
 import com.skydoves.orbital.rememberContentWithOrbitalScope
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ImageScreen(
-    imagesList: ImmutableList<String>,
+    imagesList: List<String>,
     imageScreenState: ImageScreenState,
     paddingValues: PaddingValues,
     onImageScreenEvent: (ImageScreenEvent) -> Unit,
 ) {
+    if(!imageScreenState.isVisible)
+        return
     val isHorizontalOrientation = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     LaunchedEffect(key1 = true) {
         if(imageScreenState.animationState.animationType != AnimationType.EXPAND_ANIMATION) {
@@ -60,11 +60,9 @@ fun ImageScreen(
     LaunchedEffect(key1 = imageScreenState.animationState.animationType) {
         animationType = imageScreenState.animationState.animationType
     }
-    val pagerState = remember {
-        PagerState(
-            initialPage = imageScreenState.pagerIndex
-        )
-    }
+    val pagerState = rememberPagerState(
+        initialPage = imageScreenState.pagerIndex
+    )
     LaunchedEffect(key1 = pagerState.currentPage) {
         val index = imageIndexesList[pagerState.currentPage]
         onImageScreenEvent(ImageScreenEvent.OnTopBarTitleTextChange(imagesList[index]))
@@ -90,10 +88,11 @@ fun ImageScreen(
                         .padding(
                             top = paddingValues.calculateTopPadding()
                         )
-                        .offset {
-                            imageScreenState.imageOffset
-                        }
-                        .size(imageScreenState.gridItemSize)
+                        .offset { imageScreenState.imageOffset.toIntOffset() }
+                        .size(
+                            imageScreenState.gridItemSize.width.dp,
+                            imageScreenState.gridItemSize.width.dp
+                        )
                 }.animateSharedElementTransition(
                     orbitalScope,
                     SpringSpec(stiffness = 1200f),

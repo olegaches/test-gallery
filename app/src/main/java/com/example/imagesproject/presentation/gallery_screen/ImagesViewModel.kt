@@ -1,11 +1,7 @@
 package com.example.imagesproject.presentation.gallery_screen
 
-import android.util.Log
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -35,21 +31,10 @@ class ImagesViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
 ): ViewModel() {
 
-    private val _state = MutableStateFlow(ImagesScreenState())
+    private val _state by savedStateHandle.saveable(saver = ImagesScreenState.Saver, init = { MutableStateFlow(ImagesScreenState()) })
     val state = _state.asStateFlow()
-    var filteredData = savedStateHandle.saveable(
-        key = "state",
-        init = {
-            mutableStateOf(_state.value)
-        }
-    )
 
     init {
-        //savedStateHandle["imagesState"] = _state.value
-//        Log.e("init", "init")
-//        if(filteredData.value.imagesList.size != 0) {
-//            Log.e("iamge saved", filteredData.value.imagesList[0])
-//        }
         loadImageUrlList()
     }
 
@@ -134,11 +119,11 @@ class ImagesViewModel @Inject constructor(
     private fun changeImageSize(size: Size) {
         _state.update {
             val imageState = _state.value.imageScreenState
-            if(imageState.painterIntrinsicSize == size)
+            if(imageState.painterIntrinsicSize.toSize() == size)
                 return
             it.copy(
                 imageScreenState = it.imageScreenState.copy(
-                    painterIntrinsicSize = size
+                    painterIntrinsicSize = ParcelableSize(size.width, size.height)
                 )
             )
         }
@@ -169,7 +154,7 @@ class ImagesViewModel @Inject constructor(
                 scrollOffset =
                 if(stateValue.lazyGridState.layoutInfo.visibleItemsInfo.last().index <= imageIndex)
                     -stateValue.itemOffsetToScroll else {
-                        0
+                    0
                 }
             )
         }
@@ -180,7 +165,7 @@ class ImagesViewModel @Inject constructor(
             _state.update {
                 it.copy(
                     imageScreenState = it.imageScreenState.copy(
-                        imageOffset = intOffset
+                        imageOffset = ParcelableIntOffset(intOffset.x, intOffset.y)
                     )
                 )
             }
@@ -216,8 +201,8 @@ class ImagesViewModel @Inject constructor(
                         imageScreenState = it.imageScreenState.copy(
                             pagerIndex = newList.indexOf(event.index),
                             isVisible = true,
-                            gridItemSize = DpSize(convertPixelsToDp(gridItemSize.width, null).dp, convertPixelsToDp(gridItemSize.height, null).dp),
-                            imageIndexesList = newList.toImmutableList()
+                            gridItemSize = ParcelableSize(convertPixelsToDp(gridItemSize.width, null), convertPixelsToDp(gridItemSize.height, null)),
+                            imageIndexesList = newList
                         ),
                     )
                 }
@@ -254,7 +239,7 @@ class ImagesViewModel @Inject constructor(
                     )
                 )
             }
-            delay(350) // 250
+            delay(350)
             _state.update {
                 it.copy(
                     topBarTitleText = "",

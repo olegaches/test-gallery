@@ -1,9 +1,6 @@
 package com.example.imagesproject.presentation.gallery_screen
 
 import android.annotation.SuppressLint
-import android.content.Context
-import android.content.res.Resources
-import android.util.DisplayMetrics
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -14,7 +11,6 @@ import androidx.compose.foundation.pager.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.*
@@ -28,6 +24,8 @@ import com.example.imagesproject.presentation.gallery_screen.components.ImageScr
 import com.example.imagesproject.presentation.gallery_screen.components.ImageScreenTopBar
 import com.example.imagesproject.presentation.gallery_screen.components.LazyGridImages
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import kotlinx.collections.immutable.toImmutableList
+
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,19 +78,17 @@ fun GalleryScreen(
                 ) {
                     LazyGridImages(
                         lazyGridState = state.lazyGridState,
-                        imagesUrlList = state.imagesList,
+                        imagesUrlList = state.imagesList.toImmutableList(),
                         onGalleryScreenEvent = viewModel::onGalleryScreenEvent
                     )
                 }
             }
-            if(state.imageScreenState.isVisible) {
-                ImageScreen(
-                    paddingValues = savedPaddingValues,
-                    imagesList = state.imagesList,
-                    imageScreenState = state.imageScreenState,
-                    onImageScreenEvent = viewModel::onImageScreenEvent,
-                )
-            }
+            ImageScreen(
+                imagesList = state.imagesList,
+                paddingValues = savedPaddingValues,
+                imageScreenState = state.imageScreenState,
+                onImageScreenEvent = viewModel::onImageScreenEvent,
+            )
         }
     }
 }
