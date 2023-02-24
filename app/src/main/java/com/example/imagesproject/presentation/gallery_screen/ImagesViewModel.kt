@@ -247,6 +247,7 @@ class ImagesViewModel @Inject constructor(
             delay(350)
             _state.update {
                 it.copy(
+                    systemNavigationBarVisible = true,
                     topBarTitleText = "",
                     imageScreenState = it.imageScreenState.copy(
                         isVisible = false,
