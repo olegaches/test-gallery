@@ -89,7 +89,11 @@ fun ImageScreen(
                     Modifier
                         .padding(
                             top = paddingValues.calculateTopPadding(),
-                            start = paddingValues.calculateLeftPadding(if(isRightLayoutDirection)LayoutDirection.Rtl else LayoutDirection.Ltr),
+                            start = paddingValues.calculateLeftPadding(
+                                if (isRightLayoutDirection)
+                                    LayoutDirection.Rtl else
+                                        LayoutDirection.Ltr
+                            ),
                         )
                         .offset { imageScreenState.imageOffset.toIntOffset() }
                         .size(

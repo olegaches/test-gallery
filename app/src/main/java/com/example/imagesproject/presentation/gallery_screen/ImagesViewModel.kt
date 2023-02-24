@@ -16,7 +16,6 @@ import com.example.imagesproject.presentation.util.convertPixelsToDp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -85,20 +84,7 @@ class ImagesViewModel @Inject constructor(
                 }
             }
             is ImageScreenEvent.OnPagerCurrentImageChange -> {
-                viewModelScope.launch {
-                    val stateValue = _state.value
-                    val visibleItemsInfo = stateValue.lazyGridState.layoutInfo.visibleItemsInfo
-                    val lastVisibleIndex = visibleItemsInfo.last().index
-                    val firstVisibleIndex = visibleItemsInfo.first().index
-                    if(event.index > lastVisibleIndex || event.index < firstVisibleIndex) {
-                        onScrollToImage(event.index).join()
-                    }
-                    val currentElement = stateValue.lazyGridState.layoutInfo.visibleItemsInfo.find { it.index == event.index }
-                        ?: stateValue.lazyGridState.layoutInfo.visibleItemsInfo.last()
-                    val currentGridItemOffset = currentElement.offset
-                    changeCurrentGridItemOffset(currentGridItemOffset)
-                    changeImageSize(event.painterIntrinsicSize)
-                }
+                changeImageSize(event.painterIntrinsicSize)
             }
             is ImageScreenEvent.OnBarsVisibilityChange -> {
                 onBarsVisibilityChange()
@@ -146,18 +132,16 @@ class ImagesViewModel @Inject constructor(
         }
     }
 
-    private fun onScrollToImage(imageIndex: Int): Job {
-        return viewModelScope.launch(Dispatchers.Main) {
-            val stateValue = _state.value
-            stateValue.lazyGridState.scrollToItem(
-                index = imageIndex,
-                scrollOffset =
-                if(stateValue.lazyGridState.layoutInfo.visibleItemsInfo.last().index <= imageIndex)
-                    -stateValue.itemOffsetToScroll else {
-                    0
-                }
-            )
-        }
+    private suspend fun onScrollToImage(imageIndex: Int, isScrollToEnd: Boolean) {
+        val stateValue = _state.value
+        stateValue.lazyGridState.scrollToItem(
+            index = imageIndex,
+            scrollOffset =
+            if(isScrollToEnd)
+                -stateValue.itemOffsetToScroll else {
+                0
+            }
+        )
     }
 
     private fun changeCurrentGridItemOffset(intOffset: IntOffset) {
@@ -224,14 +208,31 @@ class ImagesViewModel @Inject constructor(
         val imageStateValue = stateValue.imageScreenState
         val visibleItemsInfo = stateValue.lazyGridState.layoutInfo.visibleItemsInfo
         val imageIndex = imageStateValue.imageIndexesList[imageStateValue.pagerIndex]
-        if(imageIndex > visibleItemsInfo.last().index || imageIndex < visibleItemsInfo.first().index) {
-            onScrollToImage(imageIndex)
+        val gridItem = visibleItemsInfo.find { it.index == imageIndex }
+        val isScrollToEnd: Boolean?
+        var indexToScroll = imageIndex
+        if (gridItem == null) {
+            isScrollToEnd = imageIndex > visibleItemsInfo.last().index
+        } else if (gridItem.offset.y < 0) {
+            isScrollToEnd = false
+            indexToScroll = gridItem.index
+        } else if (gridItem.offset.y + gridItem.size.height > stateValue.lazyGridState.layoutInfo.viewportSize.height) {
+            isScrollToEnd = true
+            indexToScroll = gridItem.index
+        } else {
+            isScrollToEnd = null
         }
-        val gridItem = visibleItemsInfo.find { it.index ==  imageIndex } ?: visibleItemsInfo.last()
-        if(gridItem.offset != imageStateValue.imageOffset.toIntOffset()) {
-            changeCurrentGridItemOffset(gridItem.offset)
-        }
+
         viewModelScope.launch {
+            if(isScrollToEnd == null) {
+                changeCurrentGridItemOffset(gridItem!!.offset)
+            } else {
+                viewModelScope.launch(Dispatchers.Main) {
+                    onScrollToImage(indexToScroll, isScrollToEnd)
+                }.join()
+                val newGridItem = state.value.lazyGridState.layoutInfo.visibleItemsInfo.find { it.index ==  imageIndex } ?: visibleItemsInfo.last()
+                changeCurrentGridItemOffset(newGridItem.offset)
+            }
             _state.update {
                 it.copy(
                     topBarVisible = false,
