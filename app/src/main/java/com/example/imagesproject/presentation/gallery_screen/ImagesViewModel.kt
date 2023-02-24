@@ -227,6 +227,10 @@ class ImagesViewModel @Inject constructor(
         if(imageIndex > visibleItemsInfo.last().index || imageIndex < visibleItemsInfo.first().index) {
             onScrollToImage(imageIndex)
         }
+        val gridItem = visibleItemsInfo.find { it.index ==  imageIndex } ?: visibleItemsInfo.last()
+        if(gridItem.offset != imageStateValue.imageOffset.toIntOffset()) {
+            changeCurrentGridItemOffset(gridItem.offset)
+        }
         viewModelScope.launch {
             _state.update {
                 it.copy(

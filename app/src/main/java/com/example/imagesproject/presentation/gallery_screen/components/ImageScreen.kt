@@ -18,6 +18,7 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.imagesproject.presentation.gallery_screen.AnimationType
@@ -43,6 +44,7 @@ fun ImageScreen(
     if(!imageScreenState.isVisible)
         return
     val isHorizontalOrientation = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val isRightLayoutDirection= LocalConfiguration.current.layoutDirection == Configuration.SCREENLAYOUT_LAYOUTDIR_RTL
     LaunchedEffect(key1 = true) {
         if(imageScreenState.animationState.animationType != AnimationType.EXPAND_ANIMATION) {
             onImageScreenEvent(ImageScreenEvent.OnBarsVisibilityChange)
@@ -86,7 +88,8 @@ fun ImageScreen(
                 } else {
                     Modifier
                         .padding(
-                            top = paddingValues.calculateTopPadding()
+                            top = paddingValues.calculateTopPadding(),
+                            start = paddingValues.calculateLeftPadding(if(isRightLayoutDirection)LayoutDirection.Rtl else LayoutDirection.Ltr),
                         )
                         .offset { imageScreenState.imageOffset.toIntOffset() }
                         .size(
