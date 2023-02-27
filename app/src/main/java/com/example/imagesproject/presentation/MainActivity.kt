@@ -1,16 +1,15 @@
 package com.example.imagesproject.presentation
 
+import android.Manifest
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,17 +20,27 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.imagesproject.core.util.isCompatibleWithApi33
 import com.example.imagesproject.core.util.shouldUseDarkTheme
 import com.example.imagesproject.domain.type.Screen
 import com.example.imagesproject.domain.type.ThemeStyleType
 import com.example.imagesproject.presentation.gallery_screen.GalleryScreen
 import com.example.imagesproject.presentation.theme_settings.ThemeSettingsScreen
 import com.example.imagesproject.ui.theme.ImagesProjectTheme
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private val viewModel by viewModels<MainViewModel>()
+    override fun onPause() {
+        super.onPause()
+        viewModel.cancelNotification()
+    }
+    @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -39,6 +48,14 @@ class MainActivity : ComponentActivity() {
             val viewModel: MainViewModel = hiltViewModel()
             val activityState by viewModel.activityState.collectAsState()
             val navController = rememberNavController()
+            if(isCompatibleWithApi33()) {
+                val notificationPermissionState = rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+                if(!notificationPermissionState.status.isGranted) {
+                    SideEffect {
+                        notificationPermissionState.launchPermissionRequest()
+                    }
+                }
+            }
             TransparentSystemBars(activityState.themeStyle)
             when (activityState.isLoading) {
                 true -> ImagesProjectTheme {

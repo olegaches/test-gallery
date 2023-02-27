@@ -1,10 +1,12 @@
 package com.example.imagesproject.presentation
 
+import android.app.NotificationManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.imagesproject.domain.type.ThemeStyleType
 import com.example.imagesproject.domain.use_case.GetAppConfigurationStreamUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
@@ -43,7 +45,8 @@ private data class MainViewModelState(
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val getAppConfigurationStreamUseCase: GetAppConfigurationStreamUseCase
+    private val getAppConfigurationStreamUseCase: GetAppConfigurationStreamUseCase,
+    private val notificationManager: NotificationManager,
 ) : ViewModel() {
     private val viewModelState = MutableStateFlow(value = MainViewModelState())
 
@@ -55,6 +58,13 @@ class MainViewModel @Inject constructor(
 
     init {
         watchAppConfigurationStream()
+    }
+
+    fun cancelNotification() {
+        viewModelScope.launch {
+            delay(5000)
+            notificationManager.cancel(1)
+        }
     }
 
     private fun watchAppConfigurationStream() {

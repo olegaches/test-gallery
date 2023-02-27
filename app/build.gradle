@@ -56,6 +56,7 @@ dependencies {
 
     // Google accompanist
     implementation "com.google.accompanist:accompanist-systemuicontroller:0.29.1-alpha"
+    implementation "com.google.accompanist:accompanist-permissions:0.29.1-alpha"
 
     // Retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'

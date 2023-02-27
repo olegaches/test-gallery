@@ -1,5 +1,7 @@
 package com.example.imagesproject.presentation.gallery_screen
 
+import android.app.Notification
+import android.app.NotificationManager
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.toSize
@@ -27,6 +29,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ImagesViewModel @Inject constructor(
     private val getImagesUrlListUseCase: GetImagesUrlListUseCase,
+    private val notificationManager: NotificationManager,
     private val savedStateHandle: SavedStateHandle,
 ): ViewModel() {
 
@@ -99,7 +102,17 @@ class ImagesViewModel @Inject constructor(
             is ImageScreenEvent.OnBackToGallery -> {
                 onBackClicked()
             }
+            is ImageScreenEvent.OnShowNotification -> {
+                notifyOpenedImage(event.notification)
+            }
+            is ImageScreenEvent.OnHideNotification -> {
+                onHideNotification()
+            }
         }
+    }
+
+    private fun onHideNotification() {
+        notificationManager.cancel(1)
     }
 
     private fun changeImageSize(size: Size) {
@@ -204,6 +217,7 @@ class ImagesViewModel @Inject constructor(
     }
 
     fun onBackClicked() {
+        onHideNotification()
         val stateValue = state.value
         val imageStateValue = stateValue.imageScreenState
         val visibleItemsInfo = stateValue.lazyGridState.layoutInfo.visibleItemsInfo
@@ -258,6 +272,13 @@ class ImagesViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private fun notifyOpenedImage(notification: Notification) {
+        notificationManager.notify(
+            1,
+            notification
+        )
     }
 
     private fun loadImageUrlList() {

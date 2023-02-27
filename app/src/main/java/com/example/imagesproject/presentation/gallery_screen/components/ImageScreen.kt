@@ -1,5 +1,7 @@
 package com.example.imagesproject.presentation.gallery_screen.components
 
+import android.app.PendingIntent
+import android.content.Intent
 import android.content.res.Configuration
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.SpringSpec
@@ -18,9 +20,14 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationCompat
 import coil.compose.AsyncImage
+import com.example.imagesproject.R
+import com.example.imagesproject.presentation.Constants
+import com.example.imagesproject.presentation.MainActivity
 import com.example.imagesproject.presentation.gallery_screen.AnimationType
 import com.example.imagesproject.presentation.gallery_screen.ImageScreenState
 import com.example.imagesproject.presentation.gallery_screen.ui_events.ImageScreenEvent
@@ -65,9 +72,28 @@ fun ImageScreen(
     val pagerState = rememberPagerState(
         initialPage = imageScreenState.pagerIndex
     )
+    val applicationContext = LocalContext.current
     LaunchedEffect(key1 = pagerState.currentPage) {
         val index = imageIndexesList[pagerState.currentPage]
         onImageScreenEvent(ImageScreenEvent.OnTopBarTitleTextChange(imagesList[index]))
+        val resultIntent = Intent(applicationContext, MainActivity::class.java)
+            .setAction(Intent.ACTION_MAIN)
+            .addCategory(Intent.CATEGORY_LAUNCHER)
+        val resultPendingIntent = PendingIntent.getActivity(applicationContext, 1, resultIntent, PendingIntent.FLAG_IMMUTABLE)
+        onImageScreenEvent(
+            ImageScreenEvent.OnShowNotification(
+                NotificationCompat.Builder(
+                    applicationContext,
+                    Constants.NOTIFICATION_CHANNEL_ID
+                    )
+                    .setOngoing(true)
+                    .setSilent(true)
+                    .setContentText(imagesList[index])
+                    .setSmallIcon(R.drawable.ic_android_24)
+                    .setContentIntent(resultPendingIntent)
+                    .build()
+            )
+        )
         onImageScreenEvent(ImageScreenEvent.OnPagerIndexChanged(
             pagerState.currentPage
         ))
@@ -92,7 +118,7 @@ fun ImageScreen(
                             start = paddingValues.calculateLeftPadding(
                                 if (isRightLayoutDirection)
                                     LayoutDirection.Rtl else
-                                        LayoutDirection.Ltr
+                                    LayoutDirection.Ltr
                             ),
                         )
                         .offset { imageScreenState.imageOffset.toIntOffset() }
@@ -105,8 +131,7 @@ fun ImageScreen(
                     SpringSpec(stiffness = 1200f),
                     SpringSpec(stiffness = 1200f)
                 ),
-                model = imagesList[imageIndexesList[imageScreenState.pagerIndex]]
-                ,
+                model = imagesList[imageIndexesList[imageScreenState.pagerIndex]],
                 contentScale = ContentScale.Crop,
                 contentDescription = null,
             )
@@ -139,8 +164,7 @@ fun ImageScreen(
                 state = pagerState,
                 pageCount = imageIndexesList.size,
                 modifier = Modifier
-                    .fillMaxSize()
-                ,
+                    .fillMaxSize(),
                 pageSpacing = 16.dp,
                 flingBehavior = PagerDefaults.flingBehavior(
                     state = pagerState,
@@ -195,13 +219,12 @@ fun ImageScreen(
                                 do {
                                     val event = awaitPointerEvent()
                                     isTouching = true
-                                    if(event.type == PointerEventType.Release) {
+                                    if (event.type == PointerEventType.Release) {
                                         isTouching = false
                                     }
                                 } while (event.changes.any { it.pressed })
                             }
-                        }
-                            ,
+                        },
                     state = zoomableState,
                     onTap = {
                         onImageScreenEvent(ImageScreenEvent.OnBarsVisibilityChange)
@@ -210,12 +233,14 @@ fun ImageScreen(
                     AsyncImage(
                         modifier = Modifier
                             .then(
-                                if(imageSize != null) {
-                                    Modifier.aspectRatio(imageSize!!.width / imageSize!!.height, isHorizontalOrientation)
+                                if (imageSize != null) {
+                                    Modifier.aspectRatio(
+                                        imageSize!!.width / imageSize!!.height,
+                                        isHorizontalOrientation
+                                    )
                                 } else
                                     Modifier.fillMaxSize()
-                            )
-                                ,
+                            ),
                         model = imagesList[imageIndex],
                         contentScale = ContentScale.Fit,
                         onSuccess = { painterState ->

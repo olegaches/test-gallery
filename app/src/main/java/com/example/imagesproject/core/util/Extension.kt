@@ -27,6 +27,10 @@ fun isCompatibleWithApi28(): Boolean =
 fun isCompatibleWithApi29(): Boolean =
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
 
+@ChecksSdkIntAtLeast(api = Build.VERSION_CODES.TIRAMISU)
+fun isCompatibleWithApi33(): Boolean =
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+
 /**
  * Map a ThemeStyleType into a [Boolean].
  *
