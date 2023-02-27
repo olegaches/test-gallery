@@ -1,11 +1,13 @@
 package com.example.imagesproject.presentation
 
+import android.app.Notification
 import android.app.NotificationManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.imagesproject.domain.type.ThemeStyleType
 import com.example.imagesproject.domain.use_case.GetAppConfigurationStreamUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,6 +26,7 @@ data class MainActivityState(
     val useDynamicColors: Boolean,
     val themeStyle: ThemeStyleType,
     val usePowerModeSaving: Boolean,
+    val currentNotification: Notification?
 )
 
 /**
@@ -34,8 +37,10 @@ private data class MainViewModelState(
     val useDynamicColors: Boolean = true,
     val themeStyle: ThemeStyleType = ThemeStyleType.FollowAndroidSystem,
     val usePowerModeSaving: Boolean = false,
+    val currentNotification: Notification? = null
 ) {
     fun asActivityState() = MainActivityState(
+        currentNotification = currentNotification,
         isLoading = isLoading,
         useDynamicColors = useDynamicColors,
         themeStyle = themeStyle,
@@ -59,11 +64,27 @@ class MainViewModel @Inject constructor(
     init {
         watchAppConfigurationStream()
     }
+    private var job: Job? = null
 
     fun cancelNotification() {
-        viewModelScope.launch {
+        if(notificationManager.activeNotifications.isNotEmpty()) {
+            viewModelState.update { state ->
+                state.copy(
+                    currentNotification = notificationManager.activeNotifications.first().notification
+                )
+            }
+        }
+        job?.cancel()
+        job = viewModelScope.launch {
             delay(5000)
             notificationManager.cancel(1)
+        }
+    }
+
+    fun recreateNotification() {
+        viewModelState.value.currentNotification?.let {
+            notificationManager.notify(1, it)
+            job?.cancel()
         }
     }
 

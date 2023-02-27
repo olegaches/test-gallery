@@ -40,6 +40,12 @@ class MainActivity : ComponentActivity() {
         super.onPause()
         viewModel.cancelNotification()
     }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.recreateNotification()
+    }
+
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
