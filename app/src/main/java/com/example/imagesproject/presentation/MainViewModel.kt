@@ -85,6 +85,8 @@ class MainViewModel @Inject constructor(
         viewModelState.value.currentNotification?.let {
             notificationManager.notify(1, it)
             job?.cancel()
+            job = null
+            viewModelState.update { it.copy(currentNotification = null) }
         }
     }
 
