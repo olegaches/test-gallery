@@ -14,10 +14,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.*
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.imagesproject.core.util.shouldUseDarkTheme
 import com.example.imagesproject.domain.type.Screen
 import com.example.imagesproject.presentation.gallery_screen.components.GalleryScreenTopBar
 import com.example.imagesproject.presentation.gallery_screen.components.ImageScreen
@@ -25,6 +27,23 @@ import com.example.imagesproject.presentation.gallery_screen.components.ImageScr
 import com.example.imagesproject.presentation.gallery_screen.components.LazyGridImages
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.collections.immutable.toImmutableList
+@Composable
+fun TransparentSystemBars(isDarkTheme: Boolean, isFullScreenMode: Boolean) {
+    val systemUiController = rememberSystemUiController()
+    val isDarkThemeColors = isDarkTheme|| isFullScreenMode
+    SideEffect {
+        systemUiController.setSystemBarsColor(Color.Transparent)
+        systemUiController.setNavigationBarColor(
+            darkIcons = !isDarkThemeColors,
+            color = Color.Transparent,
+            navigationBarContrastEnforced = false,
+        )
+        systemUiController.setStatusBarColor(
+            color = Color.Transparent,
+            darkIcons = !isDarkThemeColors
+        )
+    }
+}
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,6 +57,10 @@ fun GalleryScreen(
     LaunchedEffect(key1 = state.systemNavigationBarVisible) {
         systemUiController.isNavigationBarVisible = state.systemNavigationBarVisible
     }
+    TransparentSystemBars(
+        shouldUseDarkTheme(themeStyle = state.currentTheme, context = LocalContext.current),
+        state.imageScreenState.isVisible
+    )
     SideEffect {
         systemUiController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
     }

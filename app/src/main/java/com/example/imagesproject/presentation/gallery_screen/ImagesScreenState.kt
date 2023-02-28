@@ -5,9 +5,11 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.listSaver
 import com.example.imagesproject.core.util.UiText
-import kotlinx.android.parcel.Parcelize
-import kotlinx.android.parcel.RawValue
+import com.example.imagesproject.domain.type.ThemeStyleType
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.parcelize.Parcelize
+import kotlinx.parcelize.RawValue
+
 @Parcelize
 data class ImagesScreenState(
     val isLoading: Boolean = false,
@@ -20,6 +22,7 @@ data class ImagesScreenState(
     val itemOffsetToScroll: Int = 0,
     val notValidImagesIndexes: List<Int> = emptyList(),
     val imageScreenState: ImageScreenState = ImageScreenState(),
+    val currentTheme: ThemeStyleType = ThemeStyleType.FollowAndroidSystem,
 ): Parcelable {
     companion object {
         val Saver: Saver<MutableStateFlow<ImagesScreenState>, *> = listSaver(

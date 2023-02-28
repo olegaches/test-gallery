@@ -23,7 +23,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.imagesproject.core.util.isCompatibleWithApi33
 import com.example.imagesproject.core.util.shouldUseDarkTheme
 import com.example.imagesproject.domain.type.Screen
-import com.example.imagesproject.domain.type.ThemeStyleType
 import com.example.imagesproject.presentation.gallery_screen.GalleryScreen
 import com.example.imagesproject.presentation.theme_settings.ThemeSettingsScreen
 import com.example.imagesproject.ui.theme.ImagesProjectTheme
@@ -62,7 +61,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
-            TransparentSystemBars(activityState.themeStyle)
+            TransparentSystemBars(shouldUseDarkTheme(themeStyle = activityState.themeStyle, LocalContext.current),)
             when (activityState.isLoading) {
                 true -> ImagesProjectTheme {
                     Box(
@@ -90,9 +89,8 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun TransparentSystemBars(currentThemeStyleType: ThemeStyleType) {
+fun TransparentSystemBars(isDarkTheme: Boolean) {
     val systemUiController = rememberSystemUiController()
-    val isDarkTheme = shouldUseDarkTheme(themeStyle = currentThemeStyleType, LocalContext.current)
 
     SideEffect {
         systemUiController.setSystemBarsColor(Color.Transparent)

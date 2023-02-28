@@ -7,15 +7,13 @@ import androidx.lifecycle.viewModelScope
 import com.example.imagesproject.domain.type.ThemeStyleType
 import com.example.imagesproject.domain.use_case.GetAppConfigurationStreamUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
@@ -82,12 +80,12 @@ class MainViewModel @Inject constructor(
     }
 
     fun recreateNotification() {
-        viewModelState.value.currentNotification?.let {
-            notificationManager.notify(1, it)
-            job?.cancel()
-            job = null
-            viewModelState.update { it.copy(currentNotification = null) }
+        job?.cancel()
+        job = null
+        viewModelState.value.currentNotification?.let { currentNotification ->
+            notificationManager.notify(1, currentNotification)
         }
+        viewModelState.update { it.copy(currentNotification = null) }
     }
 
     private fun watchAppConfigurationStream() {

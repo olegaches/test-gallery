@@ -50,6 +50,7 @@ fun ImageScreen(
 ) {
     if(!imageScreenState.isVisible)
         return
+
     val isHorizontalOrientation = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val isRightLayoutDirection= LocalConfiguration.current.layoutDirection == Configuration.SCREENLAYOUT_LAYOUTDIR_RTL
     LaunchedEffect(key1 = true) {

@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
 import androidx.lifecycle.viewmodel.compose.saveable
 import com.example.imagesproject.core.util.Resource
+import com.example.imagesproject.domain.use_case.GetAppConfigurationStreamUseCase
 import com.example.imagesproject.domain.use_case.GetImagesUrlListUseCase
 import com.example.imagesproject.presentation.gallery_screen.ui_events.GalleryScreenEvent
 import com.example.imagesproject.presentation.gallery_screen.ui_events.ImageScreenEvent
@@ -19,9 +20,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -31,6 +30,7 @@ class ImagesViewModel @Inject constructor(
     private val getImagesUrlListUseCase: GetImagesUrlListUseCase,
     private val notificationManager: NotificationManager,
     private val savedStateHandle: SavedStateHandle,
+    private val getAppConfigurationStreamUseCase: GetAppConfigurationStreamUseCase,
 ): ViewModel() {
 
     private val _state by savedStateHandle.saveable(saver = ImagesScreenState.Saver, init = { MutableStateFlow(ImagesScreenState()) })
@@ -282,6 +282,15 @@ class ImagesViewModel @Inject constructor(
     }
 
     private fun loadImageUrlList() {
+        viewModelScope.launch {
+            getAppConfigurationStreamUseCase().collectLatest { appConfiguration ->
+                _state.update {
+                    it.copy(
+                        currentTheme = appConfiguration.themeStyle,
+                    )
+                }
+            }
+        }
         viewModelScope.launch {
             _state.update {
                 it.copy(
