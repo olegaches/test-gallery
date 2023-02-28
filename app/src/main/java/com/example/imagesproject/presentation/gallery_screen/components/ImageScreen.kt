@@ -74,7 +74,10 @@ fun ImageScreen(
         modifier = Modifier.fillMaxSize(),
         containerColor = Color.Transparent,
         bottomBar = {
-            ImageScreenBottomBar(imageUrl = imagesList[imageIndexesList[pagerState.currentPage]])
+            ImageScreenBottomBar(
+                imageUrl = imagesList[imageIndexesList[pagerState.currentPage]],
+                isVisible = imageScreenState.topBarVisible,
+            )
         },
         topBar = {
             ImageScreenTopBar(
