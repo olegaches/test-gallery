@@ -16,7 +16,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object ServiceModule {
-    @RequiresApi(Build.VERSION_CODES.O)
     @Provides
     @Singleton
     fun provideNotificationManager(

@@ -79,6 +79,10 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    fun onImmediateCancelation() {
+        notificationManager.cancel(1)
+    }
+
     fun recreateNotification() {
         job?.cancel()
         job = null
