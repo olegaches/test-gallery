@@ -58,5 +58,9 @@ fun shouldUseDarkTheme(
 
 fun isPowerSavingMode(context: Context): Boolean {
     val powerManager = getSystemService(context, PowerManager::class.java) as PowerManager
-    return powerManager.isPowerSaveMode
+    return try {
+        powerManager.isPowerSaveMode
+    } catch (e: Exception) {
+        false
+    }
 }

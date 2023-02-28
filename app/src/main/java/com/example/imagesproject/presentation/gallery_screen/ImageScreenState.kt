@@ -4,7 +4,8 @@ import android.os.Parcelable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.IntOffset
-import kotlinx.android.parcel.Parcelize
+import com.example.imagesproject.domain.type.ThemeStyleType
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class ImageScreenState(
@@ -16,8 +17,11 @@ data class ImageScreenState(
     val imageOffset: ParcelableIntOffset = ParcelableIntOffset.Zero,
     val painterIntrinsicSize: ParcelableSize = ParcelableSize.Zero,
     val imageIndexesList: List<Int> = emptyList(),
+    val topBarText: String = "",
+    val systemNavigationBarVisible: Boolean = true,
+    val topBarVisible: Boolean = false,
+    val currentTheme: ThemeStyleType = ThemeStyleType.FollowAndroidSystem,
 ): Parcelable
-
 @Parcelize
 data class ParcelableSize(
     val width: Float,

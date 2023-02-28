@@ -93,11 +93,7 @@ class ImagesViewModel @Inject constructor(
                 onBarsVisibilityChange()
             }
             is ImageScreenEvent.OnTopBarTitleTextChange -> {
-                _state.update {
-                    it.copy(
-                        topBarTitleText = event.titleText
-                    )
-                }
+                changeTopBarText(event.topBarText)
             }
             is ImageScreenEvent.OnBackToGallery -> {
                 onBackClicked()
@@ -108,6 +104,16 @@ class ImagesViewModel @Inject constructor(
             is ImageScreenEvent.OnHideNotification -> {
                 onHideNotification()
             }
+        }
+    }
+
+    private fun changeTopBarText(text: String) {
+        _state.update {
+            it.copy(
+                imageScreenState = it.imageScreenState.copy(
+                    topBarText = text,
+                )
+            )
         }
     }
 
@@ -131,7 +137,9 @@ class ImagesViewModel @Inject constructor(
     private fun onBarsVisibilityChange() {
         _state.update {
             it.copy(
-                topBarVisible = !it.topBarVisible,
+                imageScreenState = it.imageScreenState.copy(
+                    topBarVisible = !it.imageScreenState.topBarVisible,
+                )
             )
         }
         onNavigationBarVisibilityChange()
@@ -140,7 +148,10 @@ class ImagesViewModel @Inject constructor(
     private fun onNavigationBarVisibilityChange() {
         _state.update {
             it.copy(
-                systemNavigationBarVisible = it.topBarVisible
+                imageScreenState = it.imageScreenState
+                    .copy(
+                        systemNavigationBarVisible = it.imageScreenState.topBarVisible
+                    )
             )
         }
     }
@@ -249,8 +260,8 @@ class ImagesViewModel @Inject constructor(
             }
             _state.update {
                 it.copy(
-                    topBarVisible = false,
                     imageScreenState = it.imageScreenState.copy(
+                        topBarVisible = false,
                         animationState = it.imageScreenState.animationState.copy(
                             isAnimationInProgress = true,
                             animationType = AnimationType.HIDE_ANIMATION
@@ -261,9 +272,9 @@ class ImagesViewModel @Inject constructor(
             delay(350)
             _state.update {
                 it.copy(
-                    systemNavigationBarVisible = true,
-                    topBarTitleText = "",
                     imageScreenState = it.imageScreenState.copy(
+                        systemNavigationBarVisible = true,
+                        topBarText = "",
                         isVisible = false,
                         animationState = it.imageScreenState.animationState.copy(
                             isAnimationInProgress = true
@@ -286,7 +297,9 @@ class ImagesViewModel @Inject constructor(
             getAppConfigurationStreamUseCase().collectLatest { appConfiguration ->
                 _state.update {
                     it.copy(
-                        currentTheme = appConfiguration.themeStyle,
+                        imageScreenState = it.imageScreenState.copy(
+                            currentTheme = appConfiguration.themeStyle,
+                        )
                     )
                 }
             }
