@@ -84,7 +84,7 @@ fun ImageScreen(
         }
     ) {
         val isHorizontalOrientation = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-        val isRightLayoutDirection= LocalConfiguration.current.layoutDirection == Configuration.SCREENLAYOUT_LAYOUTDIR_RTL
+        val isRightLayoutDirection = LocalConfiguration.current.layoutDirection == Configuration.SCREENLAYOUT_LAYOUTDIR_RTL
         LaunchedEffect(key1 = true) {
             if(imageScreenState.animationState.animationType != AnimationType.EXPAND_ANIMATION) {
                 onImageScreenEvent(ImageScreenEvent.OnBarsVisibilityChange)
