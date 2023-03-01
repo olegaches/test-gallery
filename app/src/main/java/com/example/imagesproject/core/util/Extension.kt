@@ -23,6 +23,10 @@ fun isCompatibleWithDynamicColors(): Boolean =
 fun isCompatibleWithApi28(): Boolean =
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
 
+@ChecksSdkIntAtLeast(api = Build.VERSION_CODES.O)
+fun isCompatibleWithApi26(): Boolean =
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+
 @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.Q)
 fun isCompatibleWithApi29(): Boolean =
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q

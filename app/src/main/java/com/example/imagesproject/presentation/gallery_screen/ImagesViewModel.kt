@@ -1,7 +1,5 @@
 package com.example.imagesproject.presentation.gallery_screen
 
-import android.app.Notification
-import android.app.NotificationManager
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.toSize
@@ -11,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
 import androidx.lifecycle.viewmodel.compose.saveable
 import com.example.imagesproject.core.util.Resource
+import com.example.imagesproject.domain.service.ImageService
 import com.example.imagesproject.domain.use_case.GetAppConfigurationStreamUseCase
 import com.example.imagesproject.domain.use_case.GetImagesUrlListUseCase
 import com.example.imagesproject.presentation.gallery_screen.ui_events.GalleryScreenEvent
@@ -28,9 +27,9 @@ import javax.inject.Inject
 @HiltViewModel
 class ImagesViewModel @Inject constructor(
     private val getImagesUrlListUseCase: GetImagesUrlListUseCase,
-    private val notificationManager: NotificationManager,
     private val savedStateHandle: SavedStateHandle,
     private val getAppConfigurationStreamUseCase: GetAppConfigurationStreamUseCase,
+    private val imageService: ImageService,
 ): ViewModel() {
 
     private val _state by savedStateHandle.saveable(saver = ImagesScreenState.Saver, init = { MutableStateFlow(ImagesScreenState()) })
@@ -99,7 +98,7 @@ class ImagesViewModel @Inject constructor(
                 onBackClicked()
             }
             is ImageScreenEvent.OnShowNotification -> {
-                notifyOpenedImage(event.notification)
+                notifyOpenedImage(event.imageUrl)
             }
             is ImageScreenEvent.OnHideNotification -> {
                 onHideNotification()
@@ -118,7 +117,7 @@ class ImagesViewModel @Inject constructor(
     }
 
     private fun onHideNotification() {
-        notificationManager.cancel(1)
+        imageService.hideNotification()
     }
 
     private fun changeImageSize(size: Size) {
@@ -285,11 +284,8 @@ class ImagesViewModel @Inject constructor(
         }
     }
 
-    private fun notifyOpenedImage(notification: Notification) {
-        notificationManager.notify(
-            1,
-            notification
-        )
+    private fun notifyOpenedImage(imageUrl: String) {
+        imageService.showNotification(imageUrl)
     }
 
     private fun loadImageUrlList() {

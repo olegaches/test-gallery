@@ -2,7 +2,6 @@ package com.example.imagesproject.presentation
 
 import android.Manifest
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -39,17 +38,6 @@ class MainActivity : ComponentActivity() {
     override fun onPause() {
         super.onPause()
         viewModel.cancelNotification()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        Log.e("666", "onStop")
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.e("666", "destroy")
-        viewModel.onImmediateCancelation()
     }
 
     override fun onResume() {

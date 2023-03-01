@@ -4,8 +4,8 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
+import com.example.imagesproject.core.util.isCompatibleWithApi26
 import com.example.imagesproject.presentation.Constants
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
@@ -15,15 +15,9 @@ class ImagesApp: Application() {
     @Inject lateinit var notificationManager: NotificationManager
     override fun onCreate() {
         super.onCreate()
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if(isCompatibleWithApi26()) {
             createNotification()
         }
-    }
-
-    override fun onTerminate() {
-        super.onTerminate()
-        Log.e("666", "terminate")
-        notificationManager.cancel(1)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
