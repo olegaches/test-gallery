@@ -1,12 +1,10 @@
 package com.example.imagesproject.core.util
 
-import android.content.Context
 import android.os.Build
 import android.os.PowerManager
 import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
-import androidx.core.content.ContextCompat.getSystemService
 import com.example.imagesproject.domain.type.ThemeStyleType
 
 
@@ -15,56 +13,65 @@ import com.example.imagesproject.domain.type.ThemeStyleType
  *
  * @return true when this device is API 31 (Android 12) or up, false otherwise.
  */
-@ChecksSdkIntAtLeast(api = Build.VERSION_CODES.S)
-fun isCompatibleWithDynamicColors(): Boolean =
-    Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
-@ChecksSdkIntAtLeast(api = Build.VERSION_CODES.P)
-fun isCompatibleWithApi28(): Boolean =
-    Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+object Extension {
+    private lateinit var powerManager: PowerManager
 
-@ChecksSdkIntAtLeast(api = Build.VERSION_CODES.O)
-fun isCompatibleWithApi26(): Boolean =
-    Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
-
-@ChecksSdkIntAtLeast(api = Build.VERSION_CODES.Q)
-fun isCompatibleWithApi29(): Boolean =
-    Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
-
-@ChecksSdkIntAtLeast(api = Build.VERSION_CODES.TIRAMISU)
-fun isCompatibleWithApi33(): Boolean =
-    Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-
-/**
- * Map a ThemeStyleType into a [Boolean].
- *
- * @param themeStyle the [ThemeStyleType].
- *
- * @return the corresponding boolean value of this ThemeStyleType.
- */
-@Composable
-fun shouldUseDarkTheme(
-    themeStyle: ThemeStyleType,
-    context: Context
-): Boolean {
-    val powerSavingMode = if(!isCompatibleWithApi29()) {
-        isPowerSavingMode(context)
-    } else {
-        isSystemInDarkTheme()
+    fun init(
+        powerManager: PowerManager,
+    ) {
+        this.powerManager = powerManager
     }
-    return when (themeStyle) {
-        ThemeStyleType.FollowAndroidSystem -> isSystemInDarkTheme()
-        ThemeStyleType.LightMode -> false
-        ThemeStyleType.DarkMode -> true
-        ThemeStyleType.FollowPowerSavingMode -> powerSavingMode
-    }
-}
 
-fun isPowerSavingMode(context: Context): Boolean {
-    val powerManager = getSystemService(context, PowerManager::class.java) as PowerManager
-    return try {
-        powerManager.isPowerSaveMode
-    } catch (e: Exception) {
-        false
+    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.S)
+    fun isCompatibleWithDynamicColors(): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+
+    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.P)
+    fun isCompatibleWithApi28(): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+
+    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.O)
+    fun isCompatibleWithApi26(): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+
+    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.Q)
+    fun isCompatibleWithApi29(): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+
+    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.TIRAMISU)
+    fun isCompatibleWithApi33(): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+
+    /**
+     * Map a ThemeStyleType into a [Boolean].
+     *
+     * @param themeStyle the [ThemeStyleType].
+     *
+     * @return the corresponding boolean value of this ThemeStyleType.
+     */
+    @Composable
+    fun shouldUseDarkTheme(
+        themeStyle: ThemeStyleType,
+    ): Boolean {
+        val powerSavingMode = if(!isCompatibleWithApi29()) {
+            isPowerSavingMode()
+        } else {
+            isSystemInDarkTheme()
+        }
+        return when (themeStyle) {
+            ThemeStyleType.FollowAndroidSystem -> isSystemInDarkTheme()
+            ThemeStyleType.LightMode -> false
+            ThemeStyleType.DarkMode -> true
+            ThemeStyleType.FollowPowerSavingMode -> powerSavingMode
+        }
+    }
+
+    fun isPowerSavingMode(): Boolean {
+        return try {
+            powerManager.isPowerSaveMode
+        } catch (e: Exception) {
+            false
+        }
     }
 }

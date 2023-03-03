@@ -20,11 +20,10 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.example.imagesproject.core.util.shouldUseDarkTheme
+import com.example.imagesproject.core.util.Extension.shouldUseDarkTheme
 import com.example.imagesproject.presentation.gallery_screen.AnimationType
 import com.example.imagesproject.presentation.gallery_screen.ImageScreenState
 import com.example.imagesproject.presentation.gallery_screen.ui_events.ImageScreenEvent
@@ -49,7 +48,7 @@ fun ImageScreen(
 ) {
     if(!imageScreenState.isVisible) {
         TransparentSystemBars(
-            shouldUseDarkTheme(themeStyle = imageScreenState.currentTheme, context = LocalContext.current),
+            shouldUseDarkTheme(themeStyle = imageScreenState.currentTheme),
         )
         return
     }

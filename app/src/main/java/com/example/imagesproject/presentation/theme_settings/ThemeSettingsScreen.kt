@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.imagesproject.R
-import com.example.imagesproject.core.util.isCompatibleWithDynamicColors
+import com.example.imagesproject.core.util.Extension.isCompatibleWithDynamicColors
 import com.example.imagesproject.presentation.theme_settings.components.ThemeStyleSection
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -1,56 +1,113 @@
 package com.example.imagesproject.data.repository
 
-import android.app.DownloadManager
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
+import com.example.imagesproject.R
 import com.example.imagesproject.core.util.Resource
-import com.example.imagesproject.domain.downloader.Downloader
+import com.example.imagesproject.core.util.UiText
+import com.example.imagesproject.data.remote.ImagesApi
 import com.example.imagesproject.domain.file_provider.FileProvider
 import com.example.imagesproject.domain.repository.Repository
-import com.example.imagesproject.presentation.Constants
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.*
+import okhttp3.ResponseBody
+import retrofit2.HttpException
+import java.io.IOException
 import javax.inject.Inject
 
 class RepositoryImpl @Inject constructor(
     private val fileProvider: FileProvider,
-    private val downloader: Downloader,
-    @ApplicationContext private val context: Context,
+    private val api: ImagesApi,
 ): Repository {
-    override fun getImagesUrlList(): Flow<Resource<List<String>>> {
-        return callbackFlow {
-            downloader.downloadFile(Constants.FILE_URL)
-            val receiver = object : BroadcastReceiver() {
-                override fun onReceive(context: Context?, intent: Intent?) {
-                    if (intent?.action == "android.intent.action.DOWNLOAD_COMPLETE") {
-                        val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
-                        if (id != -1L) {
-                            val urlList = mutableListOf<String>()
-                            val file = fileProvider.getFile()
-                            val lines = file?.readLines()
-                            if (lines != null) {
-                                for(line in lines) {
-                                    urlList.add(line)
-                                }
-                            }
-                            trySend(Resource.Success(urlList.toList()))
+
+    private sealed class DownloadState {
+        data class Downloading(val progress: Int) : DownloadState()
+        object Finished : DownloadState()
+        data class Failed(val error: Throwable) : DownloadState()
+    }
+
+    private fun ResponseBody.saveFile(): Flow<DownloadState> {
+        return flow {
+            emit(DownloadState.Downloading(0))
+            val destinationFile = fileProvider.getFile()
+            try {
+                byteStream().use { inputStream->
+                    destinationFile.outputStream().use { outputStream->
+                        val totalBytes = contentLength()
+                        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                        var progressBytes = 0L
+                        var bytes = inputStream.read(buffer)
+                        while (bytes >= 0) {
+                            outputStream.write(buffer, 0, bytes)
+                            progressBytes += bytes
+                            bytes = inputStream.read(buffer)
+                            emit(DownloadState.Downloading(((progressBytes * 100) / totalBytes).toInt()))
                         }
                     }
                 }
+                emit(DownloadState.Finished)
+            } catch (e: Exception) {
+                emit(DownloadState.Failed(e))
             }
-            context.registerReceiver(receiver,
-                android.content.IntentFilter("android.intent.action.DOWNLOAD_COMPLETE")
-            )
-
-            awaitClose {
-                context.unregisterReceiver(receiver)
+        }.flowOn(Dispatchers.IO).distinctUntilChanged()
+    }
+    override fun getImagesUrlList(): Flow<Resource<List<String>>> {
+        return flow<Resource<List<String>>> {
+            val responseBody = safeApiCall {
+                api.loadFile()
             }
-
+            when(responseBody) {
+                is Resource.Success -> {
+                    responseBody.data.saveFile().collect { downloadState ->
+                        when(downloadState) {
+                            is DownloadState.Downloading -> {}
+                            is DownloadState.Failed -> {
+                                emit(Resource.Error(handleThrowableException(downloadState.error)))
+                            }
+                            DownloadState.Finished -> {
+                                val urlList = mutableListOf<String>()
+                                val file = fileProvider.getFile()
+                                val lines = file.readLines()
+                                for(line in lines) {
+                                    urlList.add(line)
+                                }
+                                emit(Resource.Success(urlList))
+                            }
+                        }
+                    }
+                }
+                is Resource.Error -> {
+                    emit(Resource.Error(responseBody.message))
+                }
+            }
         }.flowOn(Dispatchers.IO)
+    }
+
+    private inline fun <T> safeApiCall(apiCall: () -> T): Resource<T> {
+        return try {
+            val data = apiCall()
+            Resource.Success(data = data)
+        } catch(throwable: Throwable) {
+            Resource.Error(handleThrowableException(throwable))
+        }
+    }
+
+    private fun handleThrowableException(throwable: Throwable): UiText {
+        return when(throwable) {
+            is HttpException -> {
+                if(throwable.localizedMessage.isNullOrEmpty()) {
+                    UiText.StringResource(R.string.unknown_exception)
+                }
+                else {
+                    if(throwable.localizedMessage != null) {
+                        UiText.DynamicString(throwable.localizedMessage!!)
+                    } else {
+                        UiText.StringResource(R.string.unknown_exception)
+                    }
+                }
+            }
+            is IOException -> {
+                UiText.StringResource(R.string.io_exception)
+            }
+            else -> UiText.StringResource(R.string.unknown_exception)
+        }
     }
 }

@@ -36,7 +36,7 @@ class ImagesViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
-        loadImageUrlList()
+        init()
     }
 
     fun onImageScreenEvent(event: ImageScreenEvent) {
@@ -288,18 +288,11 @@ class ImagesViewModel @Inject constructor(
         imageService.showNotification(imageUrl)
     }
 
+    fun onRefresh() {
+        loadImageUrlList()
+    }
+
     private fun loadImageUrlList() {
-        viewModelScope.launch {
-            getAppConfigurationStreamUseCase().collectLatest { appConfiguration ->
-                _state.update {
-                    it.copy(
-                        imageScreenState = it.imageScreenState.copy(
-                            currentTheme = appConfiguration.themeStyle,
-                        )
-                    )
-                }
-            }
-        }
         viewModelScope.launch {
             _state.update {
                 it.copy(
@@ -331,5 +324,20 @@ class ImagesViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private fun init() {
+        viewModelScope.launch {
+            getAppConfigurationStreamUseCase().collectLatest { appConfiguration ->
+                _state.update {
+                    it.copy(
+                        imageScreenState = it.imageScreenState.copy(
+                            currentTheme = appConfiguration.themeStyle,
+                        )
+                    )
+                }
+            }
+        }
+        loadImageUrlList()
     }
 }

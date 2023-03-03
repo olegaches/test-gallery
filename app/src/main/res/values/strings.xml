@@ -2,6 +2,7 @@
     <string name="app_name">ImagesProject</string>
     <string name="top_bar_title">Галерея</string>
     <string name="image_loading_error_text">Не удалось загрузить изображение</string>
+    <string name="unknown_exception">Возникла неизвестная ошибка</string>
     <string name="theme_label_text">Тема</string>
     <string name="theme_settings_title_text">Тема</string>
     <string name="light_theme_text">Светлая тема</string>
@@ -11,4 +12,6 @@
     <string name="app_theme_title_text">Тема приложения:</string>
     <string name="power_saving_mode_text">Режим энергосбережения</string>
     <string name="power_saving_mode_theme">С учетом энергосбережения</string>
+    <string name="refresh_page_button_text">Повторить попытку</string>
+    <string name="io_exception">Ошибка загрузки. Проверьте подключение к сети и повторите попытку.</string>
 </resources>

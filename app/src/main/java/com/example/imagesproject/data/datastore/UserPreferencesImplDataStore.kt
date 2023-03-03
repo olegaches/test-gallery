@@ -7,8 +7,8 @@ import android.os.PowerManager
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
-import com.example.imagesproject.core.util.isCompatibleWithApi28
-import com.example.imagesproject.core.util.isPowerSavingMode
+import com.example.imagesproject.core.util.Extension.isCompatibleWithApi28
+import com.example.imagesproject.core.util.Extension.isPowerSavingMode
 import com.example.imagesproject.domain.datastore.UserPreferences
 import com.example.imagesproject.domain.model.AppConfiguration
 import com.example.imagesproject.domain.type.ThemeStyleType
@@ -47,7 +47,7 @@ class UserPreferencesImplDataStore @Inject constructor(
             AppConfiguration(
                 useDynamicColors = useDynamicColors,
                 themeStyle = themeStyle,
-                usePowerSavingMode = isPowerSavingMode(context),
+                usePowerSavingMode = isPowerSavingMode(),
             )
         }
 

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.*
@@ -16,6 +17,7 @@ import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.imagesproject.domain.type.Screen
+import com.example.imagesproject.presentation.gallery_screen.components.ErrorLabel
 import com.example.imagesproject.presentation.gallery_screen.components.GalleryScreenTopBar
 import com.example.imagesproject.presentation.gallery_screen.components.ImageScreen
 import com.example.imagesproject.presentation.gallery_screen.components.LazyGridImages
@@ -52,6 +54,26 @@ fun GalleryScreen(
                 imagesUrlList = state.imagesList.toImmutableList(),
                 onGalleryScreenEvent = viewModel::onGalleryScreenEvent
             )
+        }
+    }
+    if(state.error != null) {
+        ErrorLabel(
+            error = state.error,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .background(MaterialTheme.colorScheme.background)
+            ,
+            onRefreshClick = viewModel::onRefresh
+        )
+    }
+    if(state.isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
     }
     ImageScreen(

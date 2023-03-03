@@ -13,15 +13,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.imagesproject.core.util.isCompatibleWithApi33
-import com.example.imagesproject.core.util.shouldUseDarkTheme
+import com.example.imagesproject.core.util.Extension.isCompatibleWithApi33
+import com.example.imagesproject.core.util.Extension.shouldUseDarkTheme
 import com.example.imagesproject.domain.type.Screen
 import com.example.imagesproject.presentation.gallery_screen.GalleryScreen
 import com.example.imagesproject.presentation.theme_settings.ThemeSettingsScreen
@@ -35,8 +34,9 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<MainViewModel>()
-    override fun onPause() {
-        super.onPause()
+
+    override fun onStop() {
+        super.onStop()
         viewModel.cancelNotification()
     }
 
@@ -61,7 +61,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
-            TransparentSystemBars(shouldUseDarkTheme(themeStyle = activityState.themeStyle, LocalContext.current))
+            TransparentSystemBars(shouldUseDarkTheme(themeStyle = activityState.themeStyle))
             when (activityState.isLoading) {
                 true -> ImagesProjectTheme {
                     Box(
@@ -71,7 +71,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 false -> ImagesProjectTheme(
-                    darkTheme = shouldUseDarkTheme(themeStyle = activityState.themeStyle, LocalContext.current),
+                    darkTheme = shouldUseDarkTheme(themeStyle = activityState.themeStyle),
                     dynamicColor = activityState.useDynamicColors
                 ) {
                     Surface(

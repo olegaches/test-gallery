@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import com.example.imagesproject.core.util.CoroutinesDispatchers
+import com.example.imagesproject.presentation.Constants
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -26,7 +27,8 @@ object DataStoreModule {
     ): DataStore<Preferences> = PreferenceDataStoreFactory.create(
         scope = CoroutineScope(context = coroutinesDispatchers.io + SupervisorJob()),
         produceFile = {
-            context.preferencesDataStoreFile(name = "user_preferences")
+            context.filesDir
+            context.preferencesDataStoreFile(name = Constants.USER_SETTINGS_FILE_NAME)
         }
     )
 }

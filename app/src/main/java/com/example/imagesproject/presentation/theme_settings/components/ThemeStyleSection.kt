@@ -12,8 +12,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.imagesproject.R
-import com.example.imagesproject.core.util.isCompatibleWithApi28
-import com.example.imagesproject.core.util.isCompatibleWithApi29
+import com.example.imagesproject.core.util.Extension.isCompatibleWithApi28
+import com.example.imagesproject.core.util.Extension.isCompatibleWithApi29
 import com.example.imagesproject.domain.type.ThemeStyleType
 
 @OptIn(ExperimentalMaterial3Api::class)
