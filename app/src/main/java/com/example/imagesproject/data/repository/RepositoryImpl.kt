@@ -18,10 +18,10 @@ class RepositoryImpl @Inject constructor(
     private val api: ImagesApi,
 ): Repository {
 
-    private sealed class DownloadState {
-        data class Downloading(val progress: Int) : DownloadState()
-        object Finished : DownloadState()
-        data class Failed(val error: Throwable) : DownloadState()
+    private sealed interface DownloadState {
+        data class Downloading(val progress: Int) : DownloadState
+        object Finished : DownloadState
+        data class Failed(val error: Throwable) : DownloadState
     }
 
     private fun ResponseBody.saveFile(): Flow<DownloadState> {
