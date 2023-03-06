@@ -25,7 +25,7 @@ class ImageServiceImpl @Inject constructor(): ImageService, Service() {
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        val url = intent.getStringExtra(Constants.PARAM_IMAGE_URL)
+        val url = intent.getStringExtra(Constants.SERVICE_PARAM_IMAGE_URL)
         val resultIntent = Intent(applicationContext, MainActivity::class.java)
             .setAction(Intent.ACTION_MAIN)
             .addCategory(Intent.CATEGORY_LAUNCHER)
@@ -55,7 +55,7 @@ class ImageServiceImpl @Inject constructor(): ImageService, Service() {
     }
 
     override fun showNotification(url: String) {
-        context.startService(Intent(context, ImageServiceImpl::class.java).putExtra(Constants.PARAM_IMAGE_URL, url))
+        context.startService(Intent(context, ImageServiceImpl::class.java).putExtra(Constants.SERVICE_PARAM_IMAGE_URL, url))
     }
 
     override fun hideNotification() {

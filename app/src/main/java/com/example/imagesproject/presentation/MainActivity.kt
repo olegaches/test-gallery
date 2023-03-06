@@ -1,6 +1,7 @@
 package com.example.imagesproject.presentation
 
 import android.Manifest
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,6 +24,7 @@ import com.example.imagesproject.core.util.Extension.isCompatibleWithApi33
 import com.example.imagesproject.core.util.Extension.shouldUseDarkTheme
 import com.example.imagesproject.domain.type.Screen
 import com.example.imagesproject.presentation.gallery_screen.GalleryScreen
+import com.example.imagesproject.presentation.shared_url.SharedUrlScreen
 import com.example.imagesproject.presentation.theme_settings.ThemeSettingsScreen
 import com.example.imagesproject.ui.theme.ImagesProjectTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -34,6 +36,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<MainViewModel>()
+    private lateinit var navHostController: NavHostController
 
     override fun onStop() {
         super.onStop()
@@ -52,7 +55,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val viewModel: MainViewModel = hiltViewModel()
             val activityState by viewModel.activityState.collectAsState()
-            val navController = rememberNavController()
+            navHostController = rememberNavController()
             if(isCompatibleWithApi33()) {
                 val notificationPermissionState = rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
                 if(!notificationPermissionState.status.isGranted) {
@@ -78,9 +81,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background
                     ) {
-                        Navigation(
-                            navHostController = navController,
-                        )
+                        Navigation(navHostController, intent = intent)
                     }
                 }
             }
@@ -107,10 +108,19 @@ fun TransparentSystemBars(isDarkTheme: Boolean) {
 }
 
 @Composable
-fun Navigation(navHostController: NavHostController) {
+fun Navigation(navHostController: NavHostController, intent: Intent) {
     NavHost(
         navController = navHostController,
-        startDestination = Screen.ImagesScreen.route,
+        startDestination = if (intent.action == Intent.ACTION_SEND) {
+            if ("text/plain" == intent.type) {
+                Screen.SharedUrlScreen.route
+            }
+            else {
+                Screen.ImagesScreen.route
+            }
+        } else {
+            Screen.ImagesScreen.route
+        }
     ) {
         composable(
             route = Screen.ImagesScreen.route
@@ -125,6 +135,11 @@ fun Navigation(navHostController: NavHostController) {
             ThemeSettingsScreen(
                 navController = navHostController
             )
+        }
+        composable(
+            route = Screen.SharedUrlScreen.route,
+        ) {
+            SharedUrlScreen(intent.getStringExtra(Intent.EXTRA_TEXT) ?: "", navController = navHostController)
         }
     }
 }

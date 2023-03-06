@@ -14,4 +14,6 @@
     <string name="power_saving_mode_theme">С учетом энергосбережения</string>
     <string name="refresh_page_button_text">Повторить попытку</string>
     <string name="io_exception">Ошибка загрузки. Проверьте подключение к сети и повторите попытку.</string>
+    <string name="save_image_button_text">Сохранить</string>
+    <string name="cancel_saving_image_button_text">Отмена</string>
 </resources>

@@ -1,6 +1,6 @@
 package com.example.imagesproject.di
 
-import com.example.imagesproject.data.datastore.UserPreferencesImplDataStore
+import com.example.imagesproject.data.local.datastore.UserPreferencesImplDataStore
 import com.example.imagesproject.domain.datastore.UserPreferences
 import dagger.Binds
 import dagger.Module

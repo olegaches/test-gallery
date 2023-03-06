@@ -3,6 +3,8 @@ package com.example.imagesproject.data.repository
 import com.example.imagesproject.R
 import com.example.imagesproject.core.util.Resource
 import com.example.imagesproject.core.util.UiText
+import com.example.imagesproject.data.local.ImageUrlDao
+import com.example.imagesproject.data.local.entity.ImageUrlEntity
 import com.example.imagesproject.data.remote.ImagesApi
 import com.example.imagesproject.domain.file_provider.FileProvider
 import com.example.imagesproject.domain.repository.Repository
@@ -16,6 +18,7 @@ import javax.inject.Inject
 class RepositoryImpl @Inject constructor(
     private val fileProvider: FileProvider,
     private val api: ImagesApi,
+    private val imageUrlDao: ImageUrlDao,
 ): Repository {
 
     private sealed interface DownloadState {
@@ -63,13 +66,12 @@ class RepositoryImpl @Inject constructor(
                                 emit(Resource.Error(handleThrowableException(downloadState.error)))
                             }
                             DownloadState.Finished -> {
-                                val urlList = mutableListOf<String>()
                                 val file = fileProvider.getFile()
                                 val lines = file.readLines()
                                 for(line in lines) {
-                                    urlList.add(line)
+                                    imageUrlDao.insertImageUrl(ImageUrlEntity(imageUrl = line))
                                 }
-                                emit(Resource.Success(urlList))
+                                emit(Resource.Success(imageUrlDao.getImageUrlList().map { it.imageUrl }))
                             }
                         }
                     }

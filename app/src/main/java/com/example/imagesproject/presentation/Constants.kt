@@ -6,5 +6,6 @@ object Constants {
     const val USER_SETTINGS_FILE_NAME = "User-settings"
     const val TOP_BAR_VISIBILITY_ENTRY_ANIMATION_TIME = 1000
     const val TOP_BAR_VISIBILITY_EXIT_ANIMATION_TIME = 100
-    const val PARAM_IMAGE_URL = "image_url"
+    const val SERVICE_PARAM_IMAGE_URL = "image_url"
+    const val IMAGES_URL_TABLE_NAME = "image_url_table"
 }

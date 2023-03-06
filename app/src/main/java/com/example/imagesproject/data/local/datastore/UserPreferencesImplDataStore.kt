@@ -1,4 +1,4 @@
-package com.example.imagesproject.data.datastore
+package com.example.imagesproject.data.local.datastore
 
 import android.content.BroadcastReceiver
 import android.content.Context
