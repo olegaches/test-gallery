@@ -15,6 +15,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.imagesproject.R
 import com.example.imagesproject.presentation.Constants
+import com.example.imagesproject.ui.theme.md_theme_dark_primaryContainer
 
 @Composable
 fun SharedUrlScreenBottomBar(
@@ -37,24 +38,32 @@ fun SharedUrlScreenBottomBar(
         ) {
             Row(
                 modifier = Modifier
-                    //.padding(horizontal = 6.dp)
                     .fillMaxWidth()
                 ,
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                if(isSuccess) {
-                    Button(
-                        modifier = Modifier.padding(horizontal = 10.dp).weight(1f),
-                        onClick = onSaveImage
-                    ) {
-                        Text(
-                            text = stringResource(R.string.save_image_button_text)
-                        )
-                    }
+                Button(
+                    modifier = Modifier
+                        .padding(horizontal = 10.dp)
+                        .weight(1f),
+                    onClick = onSaveImage,
+                    enabled = isSuccess,
+                    colors = ButtonDefaults.buttonColors(
+                        contentColor = Color.White,
+                        containerColor = md_theme_dark_primaryContainer,
+                        disabledContainerColor = Color.Gray,
+                        disabledContentColor = Color.DarkGray
+                    )
+                ) {
+                    Text(
+                        text = stringResource(R.string.save_image_button_text)
+                    )
                 }
                 OutlinedButton(
-                    modifier = Modifier.padding(horizontal = 10.dp).weight(1f),
+                    modifier = Modifier
+                        .padding(horizontal = 10.dp)
+                        .weight(1f),
                     onClick = onCancel
                 ) {
                     Text(
