@@ -16,7 +16,10 @@ interface ImageUrlDao {
     @Query("DELETE FROM $IMAGES_URL_TABLE_NAME WHERE imageUrl=:imageUrl")
     suspend fun deleteImageUrl(imageUrl: String)
 
-    @Query("SELECT * FROM $IMAGES_URL_TABLE_NAME")
+    @Query("SELECT * FROM $IMAGES_URL_TABLE_NAME ORDER BY id DESC")
     suspend fun getImageUrlList(): List<ImageUrlEntity>
+
+    @Query("SELECT EXISTS(SELECT * FROM $IMAGES_URL_TABLE_NAME WHERE imageUrl=:imageUrl)")
+    suspend fun hasItem(imageUrl: String): Boolean
 
 }
