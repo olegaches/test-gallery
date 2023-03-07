@@ -15,7 +15,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.imagesproject.R
 import com.example.imagesproject.presentation.Constants
-import com.example.imagesproject.ui.theme.md_theme_dark_primaryContainer
+import com.example.imagesproject.ui.theme.*
 
 @Composable
 fun SharedUrlScreenBottomBar(
@@ -43,33 +43,29 @@ fun SharedUrlScreenBottomBar(
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Button(
-                    modifier = Modifier
-                        .padding(horizontal = 10.dp)
-                        .weight(1f),
-                    onClick = onSaveImage,
-                    enabled = isSuccess,
-                    colors = ButtonDefaults.buttonColors(
-                        contentColor = Color.White,
-                        containerColor = md_theme_dark_primaryContainer,
-                        disabledContainerColor = Color.Gray,
-                        disabledContentColor = Color.DarkGray
-                    )
-                ) {
-                    Text(
-                        text = stringResource(R.string.save_image_button_text)
-                    )
-                }
-                OutlinedButton(
-                    modifier = Modifier
-                        .padding(horizontal = 10.dp)
-                        .weight(1f),
-                    onClick = onCancel
-                ) {
-                    Text(
-                        text = stringResource(R.string.cancel_saving_image_button_text),
-                        textAlign = TextAlign.Center
-                    )
+                ImagesProjectTheme(darkTheme = true) {
+                    OutlinedButton(
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp)
+                            .weight(1f),
+                        onClick = onCancel,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.cancel_saving_image_button_text),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    Button(
+                        modifier = Modifier
+                            .padding(horizontal = 10.dp)
+                            .weight(1f),
+                        onClick = onSaveImage,
+                        enabled = isSuccess,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.save_image_button_text)
+                        )
+                    }
                 }
             }
         }
