@@ -66,7 +66,6 @@ class RepositoryImpl @Inject constructor(
                                 emit(Resource.Error(handleThrowableException(downloadState.error)))
                             }
                             DownloadState.Finished -> {
-                                //val currentUlrList = imageUrlDao.getImageUrlList().map { it.imageUrl }
                                 val file = fileProvider.getFile()
                                 val lines = file.readLines().reversed()
                                 for(line in lines) {

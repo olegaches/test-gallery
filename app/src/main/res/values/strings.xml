@@ -16,4 +16,8 @@
     <string name="io_exception">Ошибка загрузки. Проверьте подключение к сети и повторите попытку.</string>
     <string name="save_image_button_text">Сохранить</string>
     <string name="cancel_saving_image_button_text">Отмена</string>
+    <string name="delete_dialog_text">Вы действительно уверены, что хотите удалить данный элемент?</string>
+    <string name="delete_dialog_title">Удаление</string>
+    <string name="delete_button_text">Удалить</string>
+    <string name="cancel_button_text">Отмена</string>
 </resources>

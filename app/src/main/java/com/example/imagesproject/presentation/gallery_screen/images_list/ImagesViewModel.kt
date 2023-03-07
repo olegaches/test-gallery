@@ -1,4 +1,4 @@
-package com.example.imagesproject.presentation.gallery_screen
+package com.example.imagesproject.presentation.gallery_screen.images_list
 
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.IntOffset
@@ -10,10 +10,14 @@ import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
 import androidx.lifecycle.viewmodel.compose.saveable
 import com.example.imagesproject.core.util.Resource
 import com.example.imagesproject.domain.service.ImageService
+import com.example.imagesproject.domain.use_case.DeleteImageUrlFromRoomDbUseCase
 import com.example.imagesproject.domain.use_case.GetAppConfigurationStreamUseCase
 import com.example.imagesproject.domain.use_case.GetImagesUrlListUseCase
-import com.example.imagesproject.presentation.gallery_screen.ui_events.GalleryScreenEvent
-import com.example.imagesproject.presentation.gallery_screen.ui_events.ImageScreenEvent
+import com.example.imagesproject.presentation.gallery_screen.AnimationType
+import com.example.imagesproject.presentation.gallery_screen.ImagesScreenState
+import com.example.imagesproject.presentation.gallery_screen.ParcelableIntOffset
+import com.example.imagesproject.presentation.gallery_screen.ParcelableSize
+import com.example.imagesproject.presentation.gallery_screen.full_screen_image.ImageScreenEvent
 import com.example.imagesproject.presentation.util.convertPixelsToDp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
@@ -30,9 +34,12 @@ class ImagesViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val getAppConfigurationStreamUseCase: GetAppConfigurationStreamUseCase,
     private val imageService: ImageService,
+    private val deleteImageUrlFromRoomDbUseCase: DeleteImageUrlFromRoomDbUseCase,
 ): ViewModel() {
 
-    private val _state by savedStateHandle.saveable(saver = ImagesScreenState.Saver, init = { MutableStateFlow(ImagesScreenState()) })
+    private val _state by savedStateHandle.saveable(saver = ImagesScreenState.Saver, init = { MutableStateFlow(
+        ImagesScreenState()
+    ) })
     val state = _state.asStateFlow()
 
     init {
@@ -102,6 +109,21 @@ class ImagesViewModel @Inject constructor(
             }
             is ImageScreenEvent.OnHideNotification -> {
                 onHideNotification()
+            }
+            is ImageScreenEvent.OnDeleteImageUrl -> {
+                deleteImageUrl(event.imageUrl)
+            }
+        }
+    }
+
+    private fun deleteImageUrl(imageUrl: String) {
+        viewModelScope.launch {
+            deleteImageUrlFromRoomDbUseCase(imageUrl)
+            val newList = state.value.imagesList.minus(imageUrl)
+            _state.update {
+                it.copy(
+                    imagesList = newList
+                )
             }
         }
     }

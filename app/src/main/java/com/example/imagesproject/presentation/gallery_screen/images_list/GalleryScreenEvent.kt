@@ -1,4 +1,4 @@
-package com.example.imagesproject.presentation.gallery_screen.ui_events
+package com.example.imagesproject.presentation.gallery_screen.images_list
 
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.geometry.Size

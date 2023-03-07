@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.*
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import com.example.imagesproject.presentation.gallery_screen.ui_events.GalleryScreenEvent
+import com.example.imagesproject.presentation.gallery_screen.images_list.GalleryScreenEvent
 import kotlinx.collections.immutable.ImmutableList
 
 @Composable

@@ -21,9 +21,9 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.imagesproject.R
 import com.example.imagesproject.domain.type.Screen
-import com.example.imagesproject.presentation.gallery_screen.components.ImageScreenTopBar
 import com.example.imagesproject.presentation.gallery_screen.components.TransparentSystemBars
 import com.example.imagesproject.presentation.shared_url.components.SharedUrlScreenBottomBar
+import com.example.imagesproject.presentation.shared_url.components.SharedUrlScreenTopBar
 import com.mxalbert.zoomable.OverZoomConfig
 import com.mxalbert.zoomable.Zoomable
 import com.mxalbert.zoomable.rememberZoomableState
@@ -66,7 +66,7 @@ fun SharedUrlScreen(
             }
         },
         topBar = {
-            ImageScreenTopBar(
+            SharedUrlScreenTopBar(
                 isVisible = state.visibleBars,
                 title = url,
                 onBackClicked = {

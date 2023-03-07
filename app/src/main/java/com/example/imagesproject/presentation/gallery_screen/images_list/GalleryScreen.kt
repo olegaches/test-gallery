@@ -21,6 +21,7 @@ import com.example.imagesproject.presentation.gallery_screen.components.ErrorLab
 import com.example.imagesproject.presentation.gallery_screen.components.GalleryScreenTopBar
 import com.example.imagesproject.presentation.gallery_screen.components.ImageScreen
 import com.example.imagesproject.presentation.gallery_screen.components.LazyGridImages
+import com.example.imagesproject.presentation.gallery_screen.images_list.ImagesViewModel
 import kotlinx.collections.immutable.toImmutableList
 
 @OptIn(ExperimentalMaterial3Api::class)

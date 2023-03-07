@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -17,6 +18,7 @@ fun ImageScreenTopBar(
     isVisible: Boolean,
     title: String,
     onBackClicked: () -> Unit,
+    onDeleteIconClick: () -> Unit,
 ) {
     AnimatedVisibility(
         visible = isVisible,
@@ -39,6 +41,16 @@ fun ImageScreenTopBar(
                 containerColor = Color.Black.copy(alpha = 0.6f),
                 navigationIconContentColor = Color.White,
             ),
+            actions = {
+                IconButton(
+                    onClick = onDeleteIconClick
+                ) {
+                    Icon(
+                        contentDescription = null,
+                        imageVector = Icons.Default.Delete
+                    )
+                }
+            },
             navigationIcon = {
                 IconButton(
                     onClick = onBackClicked
