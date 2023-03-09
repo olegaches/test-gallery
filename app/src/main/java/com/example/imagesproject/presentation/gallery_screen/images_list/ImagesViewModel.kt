@@ -14,7 +14,7 @@ import com.example.imagesproject.domain.use_case.DeleteImageUrlFromRoomDbUseCase
 import com.example.imagesproject.domain.use_case.GetAppConfigurationStreamUseCase
 import com.example.imagesproject.domain.use_case.GetImagesUrlListUseCase
 import com.example.imagesproject.presentation.gallery_screen.AnimationType
-import com.example.imagesproject.presentation.gallery_screen.ImagesScreenState
+import com.example.imagesproject.presentation.gallery_screen.GalleryScreenState
 import com.example.imagesproject.presentation.gallery_screen.ParcelableIntOffset
 import com.example.imagesproject.presentation.gallery_screen.ParcelableSize
 import com.example.imagesproject.presentation.gallery_screen.full_screen_image.ImageScreenEvent
@@ -37,8 +37,8 @@ class ImagesViewModel @Inject constructor(
     private val deleteImageUrlFromRoomDbUseCase: DeleteImageUrlFromRoomDbUseCase,
 ): ViewModel() {
 
-    private val _state by savedStateHandle.saveable(saver = ImagesScreenState.Saver, init = { MutableStateFlow(
-        ImagesScreenState()
+    private val _state by savedStateHandle.saveable(saver = GalleryScreenState.Saver, init = { MutableStateFlow(
+        GalleryScreenState()
     ) })
     val state = _state.asStateFlow()
 
@@ -52,8 +52,8 @@ class ImagesViewModel @Inject constructor(
                 viewModelScope.launch {
                     _state.update {
                         it.copy(
-                            imageScreenState = it.imageScreenState.copy(
-                                animationState = it.imageScreenState.animationState.copy(
+                            pagerScreenState = it.pagerScreenState.copy(
+                                animationState = it.pagerScreenState.animationState.copy(
                                     isAnimationInProgress = true,
                                     animationType = event.value
                                 )
@@ -63,8 +63,8 @@ class ImagesViewModel @Inject constructor(
                     delay(400)
                     _state.update {
                         it.copy(
-                            imageScreenState = it.imageScreenState.copy(
-                                animationState = it.imageScreenState.animationState.copy(
+                            pagerScreenState = it.pagerScreenState.copy(
+                                animationState = it.pagerScreenState.animationState.copy(
                                     isAnimationInProgress = false,
                                 )
                             )
@@ -75,7 +75,7 @@ class ImagesViewModel @Inject constructor(
             is ImageScreenEvent.OnVisibleChanged -> {
                 _state.update {
                     it.copy(
-                        imageScreenState = it.imageScreenState.copy(
+                        pagerScreenState = it.pagerScreenState.copy(
                             isVisible = event.value
                         )
                     )
@@ -106,7 +106,7 @@ class ImagesViewModel @Inject constructor(
         _state.update {
             notifyOpenedImage(it.imagesList[index])
             it.copy(
-                imageScreenState = it.imageScreenState.copy(
+                pagerScreenState = it.pagerScreenState.copy(
                     pagerIndex = index,
                     topBarText = it.imagesList[index]
                 )
@@ -129,7 +129,7 @@ class ImagesViewModel @Inject constructor(
             _state.update {
                 it.copy(
                     imagesList = newList,
-                    imageScreenState = it.imageScreenState.copy(
+                    pagerScreenState = it.pagerScreenState.copy(
                         pagerIndex = newPagerIndex
                     )
                 )
@@ -148,11 +148,11 @@ class ImagesViewModel @Inject constructor(
 
     private fun changeImageSize(size: Size) {
         _state.update {
-            val imageState = _state.value.imageScreenState
+            val imageState = _state.value.pagerScreenState
             if(imageState.painterIntrinsicSize.toSize() == size)
                 return
             it.copy(
-                imageScreenState = it.imageScreenState.copy(
+                pagerScreenState = it.pagerScreenState.copy(
                     painterIntrinsicSize = ParcelableSize(size.width, size.height)
                 )
             )
@@ -162,8 +162,8 @@ class ImagesViewModel @Inject constructor(
     private fun onBarsVisibilityChange() {
         _state.update {
             it.copy(
-                imageScreenState = it.imageScreenState.copy(
-                    topBarVisible = !it.imageScreenState.topBarVisible,
+                pagerScreenState = it.pagerScreenState.copy(
+                    topBarVisible = !it.pagerScreenState.topBarVisible,
                 )
             )
         }
@@ -173,9 +173,9 @@ class ImagesViewModel @Inject constructor(
     private fun onNavigationBarVisibilityChange() {
         _state.update {
             it.copy(
-                imageScreenState = it.imageScreenState
+                pagerScreenState = it.pagerScreenState
                     .copy(
-                        systemNavigationBarVisible = it.imageScreenState.topBarVisible
+                        systemNavigationBarVisible = it.pagerScreenState.topBarVisible
                     )
             )
         }
@@ -197,7 +197,7 @@ class ImagesViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update {
                 it.copy(
-                    imageScreenState = it.imageScreenState.copy(
+                    pagerScreenState = it.pagerScreenState.copy(
                         imageOffset = ParcelableIntOffset(intOffset.x, intOffset.y)
                     )
                 )
@@ -233,7 +233,7 @@ class ImagesViewModel @Inject constructor(
             val imageUrl = it.imagesList[index]
             notifyOpenedImage(imageUrl)
             it.copy(
-                imageScreenState = it.imageScreenState.copy(
+                pagerScreenState = it.pagerScreenState.copy(
                     pagerIndex = index,
                     isVisible = true,
                     topBarText = imageUrl,
@@ -246,7 +246,7 @@ class ImagesViewModel @Inject constructor(
     fun onBackClicked() {
         onHideNotification()
         val stateValue = state.value
-        val imageStateValue = stateValue.imageScreenState
+        val imageStateValue = stateValue.pagerScreenState
         val visibleItemsInfo = stateValue.lazyGridState.layoutInfo.visibleItemsInfo
         val imageIndex = imageStateValue.pagerIndex
         val gridItem = visibleItemsInfo.find { it.index == imageIndex }
@@ -276,9 +276,9 @@ class ImagesViewModel @Inject constructor(
             }
             _state.update {
                 it.copy(
-                    imageScreenState = it.imageScreenState.copy(
+                    pagerScreenState = it.pagerScreenState.copy(
                         topBarVisible = false,
-                        animationState = it.imageScreenState.animationState.copy(
+                        animationState = it.pagerScreenState.animationState.copy(
                             isAnimationInProgress = true,
                             animationType = AnimationType.HIDE_ANIMATION
                         )
@@ -288,11 +288,11 @@ class ImagesViewModel @Inject constructor(
             delay(350)
             _state.update {
                 it.copy(
-                    imageScreenState = it.imageScreenState.copy(
+                    pagerScreenState = it.pagerScreenState.copy(
                         systemNavigationBarVisible = true,
                         topBarText = "",
                         isVisible = false,
-                        animationState = it.imageScreenState.animationState.copy(
+                        animationState = it.pagerScreenState.animationState.copy(
                             isAnimationInProgress = true
                         )
                     )
@@ -348,7 +348,7 @@ class ImagesViewModel @Inject constructor(
             getAppConfigurationStreamUseCase().collectLatest { appConfiguration ->
                 _state.update {
                     it.copy(
-                        imageScreenState = it.imageScreenState.copy(
+                        pagerScreenState = it.pagerScreenState.copy(
                             currentTheme = appConfiguration.themeStyle,
                         )
                     )

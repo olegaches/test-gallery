@@ -8,7 +8,7 @@ import com.example.imagesproject.domain.type.ThemeStyleType
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class ImageScreenState(
+data class PagerScreenState(
     val isAnimatedScale: Boolean = false,
     val animationState: AnimationState = AnimationState(),
     val pagerIndex: Int = 0,

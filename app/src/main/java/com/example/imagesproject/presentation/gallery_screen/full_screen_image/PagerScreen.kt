@@ -28,7 +28,7 @@ import coil.compose.AsyncImage
 import com.example.imagesproject.R
 import com.example.imagesproject.core.util.Extension.shouldUseDarkTheme
 import com.example.imagesproject.presentation.gallery_screen.AnimationType
-import com.example.imagesproject.presentation.gallery_screen.ImageScreenState
+import com.example.imagesproject.presentation.gallery_screen.PagerScreenState
 import com.example.imagesproject.presentation.gallery_screen.components.ImageScreenBottomBar
 import com.example.imagesproject.presentation.gallery_screen.components.ImageScreenTopBar
 import com.example.imagesproject.presentation.gallery_screen.components.TransparentSystemBars
@@ -48,26 +48,26 @@ import kotlinx.coroutines.launch
 @Composable
 fun PagerScreen(
     imagesList: List<String>,
-    imageScreenState: ImageScreenState,
+    pagerScreenState: PagerScreenState,
     paddingValues: PaddingValues,
     onImageScreenEvent: (ImageScreenEvent) -> Unit,
 ) {
     ImagesProjectTheme(darkTheme = true) {
-        if(!imageScreenState.isVisible || imagesList.isEmpty()) {
+        if(!pagerScreenState.isVisible || imagesList.isEmpty()) {
             TransparentSystemBars(
-                shouldUseDarkTheme(themeStyle = imageScreenState.currentTheme),
+                shouldUseDarkTheme(themeStyle = pagerScreenState.currentTheme),
             )
             return@ImagesProjectTheme
         }
         val systemUiController = rememberSystemUiController()
-        LaunchedEffect(key1 = imageScreenState.systemNavigationBarVisible) {
-            systemUiController.isNavigationBarVisible = imageScreenState.systemNavigationBarVisible
+        LaunchedEffect(key1 = pagerScreenState.systemNavigationBarVisible) {
+            systemUiController.isNavigationBarVisible = pagerScreenState.systemNavigationBarVisible
         }
         TransparentSystemBars(
             true,
         )
         val pagerState = rememberPagerState(
-            initialPage = imageScreenState.pagerIndex
+            initialPage = pagerScreenState.pagerIndex
         )
         var isDeleteDialogOpened by remember {
             mutableStateOf(false)
@@ -83,7 +83,7 @@ fun PagerScreen(
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            onImageScreenEvent(ImageScreenEvent.OnDeleteImageUrl(imageScreenState.pagerIndex))
+                            onImageScreenEvent(ImageScreenEvent.OnDeleteImageUrl(pagerScreenState.pagerIndex))
                             isDeleteDialogOpened = false
                         },
                     ) {
@@ -114,14 +114,14 @@ fun PagerScreen(
             containerColor = Color.Transparent,
             bottomBar = {
                 ImageScreenBottomBar(
-                    imageUrl = imagesList[imageScreenState.pagerIndex],
-                    isVisible = imageScreenState.topBarVisible,
+                    imageUrl = imagesList[pagerScreenState.pagerIndex],
+                    isVisible = pagerScreenState.topBarVisible,
                 )
             },
             topBar = {
                 ImageScreenTopBar(
-                    isVisible = imageScreenState.topBarVisible,
-                    title = imageScreenState.topBarText,
+                    isVisible = pagerScreenState.topBarVisible,
+                    title = pagerScreenState.topBarText,
                     onBackClicked = {
                         onImageScreenEvent(ImageScreenEvent.OnBackToGallery)
                     },
@@ -134,7 +134,7 @@ fun PagerScreen(
             val isHorizontalOrientation = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
             val isRightLayoutDirection = LocalConfiguration.current.layoutDirection == Configuration.SCREENLAYOUT_LAYOUTDIR_RTL
             LaunchedEffect(key1 = true) {
-                if(imageScreenState.animationState.animationType != AnimationType.EXPAND_ANIMATION) {
+                if(pagerScreenState.animationState.animationType != AnimationType.EXPAND_ANIMATION) {
                     onImageScreenEvent(ImageScreenEvent.OnBarsVisibilityChange)
                     onImageScreenEvent(ImageScreenEvent.OnAnimate(AnimationType.EXPAND_ANIMATION))
                 }
@@ -144,10 +144,10 @@ fun PagerScreen(
             }
 
             var animationType by remember {
-                mutableStateOf(imageScreenState.animationState.animationType)
+                mutableStateOf(pagerScreenState.animationState.animationType)
             }
-            LaunchedEffect(key1 = imageScreenState.animationState.animationType) {
-                animationType = imageScreenState.animationState.animationType
+            LaunchedEffect(key1 = pagerScreenState.animationState.animationType) {
+                animationType = pagerScreenState.animationState.animationType
             }
             LaunchedEffect(key1 = pagerState.currentPage) {
                 onImageScreenEvent(
@@ -161,7 +161,7 @@ fun PagerScreen(
                     modifier = Modifier
                         .fillMaxSize()
                 ) {
-                    val ratio = imageScreenState.painterIntrinsicSize.width/imageScreenState.painterIntrinsicSize.height
+                    val ratio = pagerScreenState.painterIntrinsicSize.width/pagerScreenState.painterIntrinsicSize.height
                     var isSuccess by remember {
                         mutableStateOf(true)
                     }
@@ -181,10 +181,10 @@ fun PagerScreen(
                                             LayoutDirection.Ltr
                                     ),
                                 )
-                                .offset { imageScreenState.imageOffset.toIntOffset() }
+                                .offset { pagerScreenState.imageOffset.toIntOffset() }
                                 .size(
-                                    imageScreenState.gridItemSize.width.dp,
-                                    imageScreenState.gridItemSize.width.dp
+                                    pagerScreenState.gridItemSize.width.dp,
+                                    pagerScreenState.gridItemSize.width.dp
                                 )
                         }.animateSharedElementTransition(
                             orbitalScope,
@@ -196,7 +196,7 @@ fun PagerScreen(
                         },
                         placeholder = painterResource(id = R.drawable.image_not_found),
                         error = painterResource(id = R.drawable.image_not_found),
-                        model = imagesList[imageScreenState.pagerIndex],
+                        model = imagesList[pagerScreenState.pagerIndex],
                         contentScale = ContentScale.Crop,
                         contentDescription = null,
                     )
@@ -211,7 +211,7 @@ fun PagerScreen(
                     .background(backGroundColor)
                     .fillMaxSize()
             ) {
-                if(imageScreenState.animationState.isAnimationInProgress) {
+                if(pagerScreenState.animationState.isAnimationInProgress) {
                     Orbital(
                         modifier = Modifier
                             .fillMaxSize()

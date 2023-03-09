@@ -39,7 +39,7 @@ fun GalleryScreen(
             )
         }
     ) { paddingValues ->
-        BackHandler(enabled = state.imageScreenState.isVisible) {
+        BackHandler(enabled = state.pagerScreenState.isVisible) {
             viewModel.onBackClicked()
         }
         savedPaddingValues = paddingValues
@@ -78,7 +78,7 @@ fun GalleryScreen(
     PagerScreen(
         paddingValues = savedPaddingValues,
         imagesList = state.imagesList,
-        imageScreenState = state.imageScreenState,
+        pagerScreenState = state.pagerScreenState,
         onImageScreenEvent = viewModel::onImageScreenEvent,
     )
 }
