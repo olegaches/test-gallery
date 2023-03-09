@@ -1,4 +1,4 @@
-package com.example.imagesproject.presentation.gallery_screen.components
+package com.example.imagesproject.presentation.gallery_screen.images_list
 
 import com.example.imagesproject.R
 import androidx.compose.foundation.Image
@@ -15,7 +15,6 @@ import androidx.compose.ui.unit.*
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import com.example.imagesproject.presentation.gallery_screen.images_list.GalleryScreenEvent
 import kotlinx.collections.immutable.ImmutableList
 
 @Composable
@@ -24,7 +23,6 @@ fun LazyGridImages(
     imagesUrlList: ImmutableList<String>,
     onGalleryScreenEvent: (GalleryScreenEvent) -> Unit,
 ) {
-    val notValidImageIndexes = mutableListOf<Int>()
     val context = LocalContext.current
     val gridItemModifier = Modifier
         .padding(1.dp)
@@ -62,7 +60,6 @@ fun LazyGridImages(
                 onState = { imageState ->
                     when(imageState) {
                         is AsyncImagePainter.State.Error -> {
-                            notValidImageIndexes.add(index)
                             isSuccess = false
                         }
                         is AsyncImagePainter.State.Success -> {
@@ -75,7 +72,6 @@ fun LazyGridImages(
             Image(
                 modifier = gridItemModifier
                     .clickable(
-                        enabled = isSuccess,
                         onClick = {
                             val size = painter.intrinsicSize
                             val visibleItems =
@@ -96,9 +92,6 @@ fun LazyGridImages(
                                     currentGridItemOffset
                                 )
                             )
-                            for (i in notValidImageIndexes) {
-                                onGalleryScreenEvent(GalleryScreenEvent.OnSaveNotValidImageIndex(i))
-                            }
                             onGalleryScreenEvent(GalleryScreenEvent.OnImageClick(index))
                         }
                     ),

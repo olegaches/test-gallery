@@ -82,15 +82,7 @@ class ImagesViewModel @Inject constructor(
                 }
             }
             is ImageScreenEvent.OnPagerIndexChanged -> {
-                if(_state.value.imageScreenState.pagerIndex == event.value)
-                    return
-                _state.update {
-                    it.copy(
-                        imageScreenState = it.imageScreenState.copy(
-                            pagerIndex = event.value
-                        )
-                    )
-                }
+                onPagerIndexChanged(event.value)
             }
             is ImageScreenEvent.OnPagerCurrentImageChange -> {
                 changeImageSize(event.painterIntrinsicSize)
@@ -98,43 +90,55 @@ class ImagesViewModel @Inject constructor(
             is ImageScreenEvent.OnBarsVisibilityChange -> {
                 onBarsVisibilityChange()
             }
-            is ImageScreenEvent.OnTopBarTitleTextChange -> {
-                changeTopBarText(event.topBarText)
-            }
             is ImageScreenEvent.OnBackToGallery -> {
                 onBackClicked()
-            }
-            is ImageScreenEvent.OnShowNotification -> {
-                notifyOpenedImage(event.imageUrl)
             }
             is ImageScreenEvent.OnHideNotification -> {
                 onHideNotification()
             }
             is ImageScreenEvent.OnDeleteImageUrl -> {
-                deleteImageUrl(event.imageUrl)
+                deleteImageUrl(event.pagerIndex)
             }
         }
     }
 
-    private fun deleteImageUrl(imageUrl: String) {
-        viewModelScope.launch {
-            deleteImageUrlFromRoomDbUseCase(imageUrl)
-            val newList = state.value.imagesList.minus(imageUrl)
-            _state.update {
-                it.copy(
-                    imagesList = newList
-                )
-            }
-        }
-    }
-
-    private fun changeTopBarText(text: String) {
+    private fun onPagerIndexChanged(index: Int) {
         _state.update {
+            notifyOpenedImage(it.imagesList[index])
             it.copy(
                 imageScreenState = it.imageScreenState.copy(
-                    topBarText = text,
+                    pagerIndex = index,
+                    topBarText = it.imagesList[index]
                 )
             )
+        }
+    }
+
+    private fun deleteImageUrl(pagerIndex: Int) {
+        viewModelScope.launch {
+            val stateValue = state.value
+            val imagesList = stateValue.imagesList
+            val imageUrl = imagesList[pagerIndex]
+            val newList = imagesList.minus(imageUrl)
+            val newPagerIndex = if(newList.size == pagerIndex) {
+                pagerIndex - 1
+            } else {
+                pagerIndex
+            }
+            deleteImageUrlFromRoomDbUseCase(imageUrl)
+            _state.update {
+                it.copy(
+                    imagesList = newList,
+                    imageScreenState = it.imageScreenState.copy(
+                        pagerIndex = newPagerIndex
+                    )
+                )
+            }
+            if(newList.isEmpty()) {
+                onHideNotification()
+            } else  {
+                onPagerIndexChanged(newPagerIndex)
+            }
         }
     }
 
@@ -217,34 +221,25 @@ class ImagesViewModel @Inject constructor(
                 changeCurrentGridItemOffset(event.intOffset)
             }
             is GalleryScreenEvent.OnImageClick -> {
-                val newList = mutableListOf<Int>()
-                val stateValue = _state.value
-                val gridItemSize = stateValue.lazyGridState.layoutInfo.visibleItemsInfo.first().size.toSize()
-                for(i in 0 until stateValue.imagesList.size) {
-                    if(!stateValue.notValidImagesIndexes.contains(i)) {
-                        newList.add(i)
-                    }
-                }
-                _state.update {
-                    it.copy(
-                        imageScreenState = it.imageScreenState.copy(
-                            pagerIndex = newList.indexOf(event.index),
-                            isVisible = true,
-                            gridItemSize = ParcelableSize(convertPixelsToDp(gridItemSize.width, null), convertPixelsToDp(gridItemSize.height, null)),
-                            imageIndexesList = newList
-                        ),
-                    )
-                }
+                onImageClick(event.index)
             }
-            is GalleryScreenEvent.OnSaveNotValidImageIndex -> {
-                val imageState = _state.value
-                val newList = imageState.notValidImagesIndexes + event.index
-                _state.update {
-                    it.copy(
-                        notValidImagesIndexes = newList.toImmutableList()
-                    )
-                }
-            }
+        }
+    }
+
+    private fun onImageClick(index: Int) {
+        val stateValue = _state.value
+        val gridItemSize = stateValue.lazyGridState.layoutInfo.visibleItemsInfo.first().size.toSize()
+        _state.update {
+            val imageUrl = it.imagesList[index]
+            notifyOpenedImage(imageUrl)
+            it.copy(
+                imageScreenState = it.imageScreenState.copy(
+                    pagerIndex = index,
+                    isVisible = true,
+                    topBarText = imageUrl,
+                    gridItemSize = ParcelableSize(convertPixelsToDp(gridItemSize.width, null), convertPixelsToDp(gridItemSize.height, null)),
+                ),
+            )
         }
     }
 
@@ -253,7 +248,7 @@ class ImagesViewModel @Inject constructor(
         val stateValue = state.value
         val imageStateValue = stateValue.imageScreenState
         val visibleItemsInfo = stateValue.lazyGridState.layoutInfo.visibleItemsInfo
-        val imageIndex = imageStateValue.imageIndexesList[imageStateValue.pagerIndex]
+        val imageIndex = imageStateValue.pagerIndex
         val gridItem = visibleItemsInfo.find { it.index == imageIndex }
         val isScrollToEnd: Boolean?
         var indexToScroll = imageIndex

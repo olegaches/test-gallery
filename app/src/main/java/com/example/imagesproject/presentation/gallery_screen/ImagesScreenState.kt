@@ -16,7 +16,6 @@ data class ImagesScreenState(
     val error: @RawValue UiText? = null,
     val lazyGridState: @RawValue LazyGridState = LazyGridState(firstVisibleItemIndex = 0, firstVisibleItemScrollOffset = 0),
     val itemOffsetToScroll: Int = 0,
-    val notValidImagesIndexes: List<Int> = emptyList(),
     val imageScreenState: ImageScreenState = ImageScreenState(),
 ): Parcelable {
     companion object {
@@ -31,7 +30,6 @@ data class ImagesScreenState(
                     value.lazyGridState.firstVisibleItemIndex,
                     value.lazyGridState.firstVisibleItemScrollOffset,
                     value.itemOffsetToScroll,
-                    value.notValidImagesIndexes.joinToString(separator = " "),
                     value.imageScreenState,
                 )
             },
@@ -43,12 +41,7 @@ data class ImagesScreenState(
                         //error = it[2] as UiText?, not parsing TODO
                         lazyGridState = LazyGridState(it[3] as Int, it[4] as Int),
                         itemOffsetToScroll = it[5] as Int,
-                        notValidImagesIndexes = if((it[6] as String).isNotBlank()) {
-                            (it[6] as String).split(' ').map { item -> item.toInt() }
-                        } else {
-                            emptyList()
-                        },
-                        imageScreenState = it[7] as ImageScreenState,
+                        imageScreenState = it[6] as ImageScreenState,
                     )
                 )
             }

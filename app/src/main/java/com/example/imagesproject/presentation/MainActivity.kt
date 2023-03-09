@@ -23,7 +23,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.imagesproject.core.util.Extension.isCompatibleWithApi33
 import com.example.imagesproject.core.util.Extension.shouldUseDarkTheme
 import com.example.imagesproject.domain.type.Screen
-import com.example.imagesproject.presentation.gallery_screen.GalleryScreen
+import com.example.imagesproject.presentation.gallery_screen.images_list.GalleryScreen
 import com.example.imagesproject.presentation.shared_url.SharedUrlScreen
 import com.example.imagesproject.presentation.theme_settings.ThemeSettingsScreen
 import com.example.imagesproject.ui.theme.ImagesProjectTheme

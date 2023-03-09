@@ -1,4 +1,4 @@
-package com.example.imagesproject.presentation.gallery_screen
+package com.example.imagesproject.presentation.gallery_screen.images_list
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
@@ -19,9 +19,7 @@ import androidx.navigation.NavController
 import com.example.imagesproject.domain.type.Screen
 import com.example.imagesproject.presentation.gallery_screen.components.ErrorLabel
 import com.example.imagesproject.presentation.gallery_screen.components.GalleryScreenTopBar
-import com.example.imagesproject.presentation.gallery_screen.components.ImageScreen
-import com.example.imagesproject.presentation.gallery_screen.components.LazyGridImages
-import com.example.imagesproject.presentation.gallery_screen.images_list.ImagesViewModel
+import com.example.imagesproject.presentation.gallery_screen.full_screen_image.PagerScreen
 import kotlinx.collections.immutable.toImmutableList
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,7 +75,7 @@ fun GalleryScreen(
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
     }
-    ImageScreen(
+    PagerScreen(
         paddingValues = savedPaddingValues,
         imagesList = state.imagesList,
         imageScreenState = state.imageScreenState,

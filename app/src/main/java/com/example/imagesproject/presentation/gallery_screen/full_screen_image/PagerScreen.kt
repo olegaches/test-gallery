@@ -1,4 +1,4 @@
-package com.example.imagesproject.presentation.gallery_screen.components
+package com.example.imagesproject.presentation.gallery_screen.full_screen_image
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
@@ -20,6 +20,7 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -28,7 +29,9 @@ import com.example.imagesproject.R
 import com.example.imagesproject.core.util.Extension.shouldUseDarkTheme
 import com.example.imagesproject.presentation.gallery_screen.AnimationType
 import com.example.imagesproject.presentation.gallery_screen.ImageScreenState
-import com.example.imagesproject.presentation.gallery_screen.full_screen_image.ImageScreenEvent
+import com.example.imagesproject.presentation.gallery_screen.components.ImageScreenBottomBar
+import com.example.imagesproject.presentation.gallery_screen.components.ImageScreenTopBar
+import com.example.imagesproject.presentation.gallery_screen.components.TransparentSystemBars
 import com.example.imagesproject.ui.theme.ImagesProjectTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.mxalbert.zoomable.OverZoomConfig
@@ -43,14 +46,14 @@ import kotlinx.coroutines.launch
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun ImageScreen(
+fun PagerScreen(
     imagesList: List<String>,
     imageScreenState: ImageScreenState,
     paddingValues: PaddingValues,
     onImageScreenEvent: (ImageScreenEvent) -> Unit,
 ) {
     ImagesProjectTheme(darkTheme = true) {
-        if(!imageScreenState.isVisible) {
+        if(!imageScreenState.isVisible || imagesList.isEmpty()) {
             TransparentSystemBars(
                 shouldUseDarkTheme(themeStyle = imageScreenState.currentTheme),
             )
@@ -66,11 +69,9 @@ fun ImageScreen(
         val pagerState = rememberPagerState(
             initialPage = imageScreenState.pagerIndex
         )
-        val imageIndexesList = imageScreenState.imageIndexesList
         var isDeleteDialogOpened by remember {
             mutableStateOf(false)
         }
-        val coroutineScope = rememberCoroutineScope()
         if(isDeleteDialogOpened) {
             AlertDialog(
                 onDismissRequest = { isDeleteDialogOpened = false },
@@ -82,14 +83,8 @@ fun ImageScreen(
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            coroutineScope.launch {
-                                launch(Dispatchers.Main) {
-                                    isDeleteDialogOpened = false
-                                    pagerState.animateScrollToPage(imageScreenState.pagerIndex + 1)
-                                }.join()
-                                onImageScreenEvent(ImageScreenEvent.OnDeleteImageUrl(imagesList[imageIndexesList[imageScreenState.pagerIndex]]))
-                                isDeleteDialogOpened = false
-                            }
+                            onImageScreenEvent(ImageScreenEvent.OnDeleteImageUrl(imageScreenState.pagerIndex))
+                            isDeleteDialogOpened = false
                         },
                     ) {
                         Text(
@@ -109,7 +104,7 @@ fun ImageScreen(
                 },
                 text = {
                     Text(
-                        text = stringResource(R.string.delete_dialog_text),// imagesList[imageIndexesList[imageScreenState.pagerIndex]],
+                        text = stringResource(R.string.delete_dialog_text),
                     )
                 }
             )
@@ -119,7 +114,7 @@ fun ImageScreen(
             containerColor = Color.Transparent,
             bottomBar = {
                 ImageScreenBottomBar(
-                    imageUrl = imagesList[imageIndexesList[pagerState.currentPage]],
+                    imageUrl = imagesList[imageScreenState.pagerIndex],
                     isVisible = imageScreenState.topBarVisible,
                 )
             },
@@ -155,13 +150,10 @@ fun ImageScreen(
                 animationType = imageScreenState.animationState.animationType
             }
             LaunchedEffect(key1 = pagerState.currentPage) {
-                val index = imageIndexesList[pagerState.currentPage]
-                onImageScreenEvent(ImageScreenEvent.OnTopBarTitleTextChange(imagesList[index]))
-                onImageScreenEvent(ImageScreenEvent.OnShowNotification(imagesList[index]))
                 onImageScreenEvent(
                     ImageScreenEvent.OnPagerIndexChanged(
-                    pagerState.currentPage
-                ))
+                        pagerState.currentPage
+                    ))
             }
             val imageContent = rememberContentWithOrbitalScope {
                 val orbitalScope = this
@@ -170,6 +162,9 @@ fun ImageScreen(
                         .fillMaxSize()
                 ) {
                     val ratio = imageScreenState.painterIntrinsicSize.width/imageScreenState.painterIntrinsicSize.height
+                    var isSuccess by remember {
+                        mutableStateOf(true)
+                    }
                     AsyncImage(
                         modifier = if (animationType == AnimationType.EXPAND_ANIMATION) {
                             Modifier
@@ -196,7 +191,12 @@ fun ImageScreen(
                             SpringSpec(stiffness = 1200f),
                             SpringSpec(stiffness = 1200f)
                         ),
-                        model = imagesList[imageIndexesList[imageScreenState.pagerIndex]],
+                        onError = {
+                            isSuccess = false
+                        },
+                        placeholder = painterResource(id = R.drawable.image_not_found),
+                        error = painterResource(id = R.drawable.image_not_found),
+                        model = imagesList[imageScreenState.pagerIndex],
                         contentScale = ContentScale.Crop,
                         contentDescription = null,
                     )
@@ -227,7 +227,7 @@ fun ImageScreen(
                     }
                     HorizontalPager(
                         state = pagerState,
-                        pageCount = imageIndexesList.size,
+                        pageCount = imagesList.size,
                         modifier = Modifier
                             .fillMaxSize(),
                         pageSpacing = 16.dp,
@@ -238,7 +238,6 @@ fun ImageScreen(
                         contentPadding = PaddingValues(0.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) { index ->
-                        val imageIndex = imageIndexesList[index]
                         val overZoomConfig = OverZoomConfig(
                             minSnapScale = 1f,
                             maxSnapScale = 1.7f
@@ -264,10 +263,16 @@ fun ImageScreen(
                                 if(imageSize != null && pagerState.currentPage == index)
                                     onImageScreenEvent(
                                         ImageScreenEvent.OnPagerCurrentImageChange(
-                                        imageIndex,
+                                            imageSize!!
+                                        ))
+                            }
+                        }
+                        LaunchedEffect(key1 = imagesList.size) {
+                            if(imageSize != null && pagerState.currentPage == index)
+                                onImageScreenEvent(
+                                    ImageScreenEvent.OnPagerCurrentImageChange(
                                         imageSize!!
                                     ))
-                            }
                         }
                         LaunchedEffect(key1 = zoomableState.scale) {
                             if(zoomableState.scale <= 0.5) {
@@ -307,8 +312,13 @@ fun ImageScreen(
                                         } else
                                             Modifier.fillMaxSize()
                                     ),
-                                model = imagesList[imageIndex],
+                                error = painterResource(id = R.drawable.image_not_found),
+                                model = imagesList[index],
                                 contentScale = ContentScale.Fit,
+                                placeholder = painterResource(id = R.drawable.image_not_found),
+                                onError = { painterState ->
+                                    imageSize = painterState.painter?.intrinsicSize
+                                },
                                 onSuccess = { painterState ->
                                     imageSize = painterState.painter.intrinsicSize
                                 },

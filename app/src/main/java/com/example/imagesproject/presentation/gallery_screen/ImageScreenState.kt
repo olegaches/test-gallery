@@ -16,7 +16,6 @@ data class ImageScreenState(
     val gridItemSize: ParcelableSize = ParcelableSize.Zero,
     val imageOffset: ParcelableIntOffset = ParcelableIntOffset.Zero,
     val painterIntrinsicSize: ParcelableSize = ParcelableSize.Zero,
-    val imageIndexesList: List<Int> = emptyList(),
     val topBarText: String = "",
     val systemNavigationBarVisible: Boolean = true,
     val topBarVisible: Boolean = false,
