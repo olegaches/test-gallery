@@ -3,6 +3,7 @@ package com.example.imagesproject.presentation.shared_url
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.res.Configuration
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,7 +33,6 @@ import com.mxalbert.zoomable.rememberZoomableState
 @Composable
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 fun SharedUrlScreen(
-    url: String,
     navController: NavController,
     viewModel: SharedUrlViewModel = hiltViewModel()
 ) {
@@ -53,32 +53,35 @@ fun SharedUrlScreen(
                 SharedUrlScreenBottomBar(
                     isSuccess = isSuccess,
                     onSaveImage = {
-                        viewModel.onSaveImage(url)
+                        viewModel.onSaveImage(state.url)
                         navController.navigate(Screen.ImagesScreen.route) {
-                            popUpTo(Screen.SharedUrlScreen.route) {
+                            popUpTo(Screen.ImagesScreen.route) {
                                 inclusive = true
                             }
                         }
                     },
                     isVisible = state.visibleBars,
-                    onCancel = { (context as? Activity)?.finish() }
+                    onCancel = {
+                        val activity = (context as? Activity)
+                        activity?.finishAndRemoveTask()
+                    }
                 )
             }
         },
         topBar = {
             SharedUrlScreenTopBar(
                 isVisible = state.visibleBars,
-                title = url,
+                title = state.url,
                 onBackClicked = {
-                    navController.navigate(Screen.ImagesScreen.route) {
-                        popUpTo(Screen.SharedUrlScreen.route) {
-                            inclusive = true
-                        }
-                    }
+                    navController.navigateUp()
                 }
             )
         }
     ) { paddingValues ->
+        BackHandler {
+            val activity = (context as? Activity)
+            activity?.finishAndRemoveTask()
+        }
         Box(modifier = Modifier
             .fillMaxSize()) {
             var imageSize by remember {
@@ -111,7 +114,7 @@ fun SharedUrlScreen(
                             } else
                                 Modifier.fillMaxSize()
                         ),
-                    model = url,
+                    model = state.url,
                     contentScale = ContentScale.Fit,
                     error = painterResource(id = R.drawable.image_not_found),
                     placeholder = if(isSuccess)

@@ -31,6 +31,10 @@ object Extension {
     fun isCompatibleWithApi28(): Boolean =
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
 
+    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.M)
+    fun isCompatibleWithApi23(): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+
     @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.O)
     fun isCompatibleWithApi26(): Boolean =
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.N

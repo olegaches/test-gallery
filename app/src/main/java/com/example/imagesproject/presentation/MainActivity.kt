@@ -3,6 +3,7 @@ package com.example.imagesproject.presentation
 import android.Manifest
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -20,6 +21,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navDeepLink
 import com.example.imagesproject.core.util.Extension.isCompatibleWithApi33
 import com.example.imagesproject.core.util.Extension.shouldUseDarkTheme
 import com.example.imagesproject.domain.type.Screen
@@ -38,9 +40,26 @@ class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<MainViewModel>()
     private lateinit var navHostController: NavHostController
 
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        if(intent?.action == Intent.ACTION_SEND) {
+            viewModel.cancelNotification()
+        }
+        navHostController.handleDeepLink(intent = intent)
+    }
+
+    private fun wasLaunchedFromRecents(intent: Intent): Boolean {
+        return intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY == Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.e("onCreate", "onDestroy")
+    }
+
     override fun onStop() {
         super.onStop()
-        viewModel.cancelNotification()
+        viewModel.delayCancelNotification()
     }
 
     override fun onResume() {
@@ -51,11 +70,21 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        viewModel.delayCancelNotification()
+        Log.e("onCreate", "onCreateMain")
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             val viewModel: MainViewModel = hiltViewModel()
             val activityState by viewModel.activityState.collectAsState()
+//            val asds = Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS")
+//            startActivity(asds)
             navHostController = rememberNavController()
+            val notificationListenerPermission = rememberPermissionState(Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE)
+            if(!notificationListenerPermission.status.isGranted) {
+                SideEffect {
+                    notificationListenerPermission.launchPermissionRequest()
+                }
+            }
             if(isCompatibleWithApi33()) {
                 val notificationPermissionState = rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
                 if(!notificationPermissionState.status.isGranted) {
@@ -81,7 +110,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background
                     ) {
-                        Navigation(navHostController, intent = intent)
+                        Navigation(navHostController, wasLaunchedFromRecents(intent = intent))
                     }
                 }
             }
@@ -108,19 +137,10 @@ fun TransparentSystemBars(isDarkTheme: Boolean) {
 }
 
 @Composable
-fun Navigation(navHostController: NavHostController, intent: Intent) {
+fun Navigation(navHostController: NavHostController, isLaunchedFromRecents: Boolean) {
     NavHost(
         navController = navHostController,
-        startDestination = if (intent.action == Intent.ACTION_SEND) {
-            if ("text/plain" == intent.type) {
-                Screen.SharedUrlScreen.route
-            }
-            else {
-                Screen.ImagesScreen.route
-            }
-        } else {
-            Screen.ImagesScreen.route
-        }
+        startDestination = Screen.ImagesScreen.route
     ) {
         composable(
             route = Screen.ImagesScreen.route
@@ -136,10 +156,18 @@ fun Navigation(navHostController: NavHostController, intent: Intent) {
                 navController = navHostController
             )
         }
-        composable(
-            route = Screen.SharedUrlScreen.route,
-        ) {
-            SharedUrlScreen(intent.getStringExtra(Intent.EXTRA_TEXT) ?: "", navController = navHostController)
+        if(!isLaunchedFromRecents) {
+            composable(
+                route = Screen.SharedUrlScreen.route,
+                deepLinks = listOf(
+                    navDeepLink {
+                        action = Intent.ACTION_SEND
+                        mimeType = "text/*"
+                    }
+                )
+            ) {
+                SharedUrlScreen(navController = navHostController)
+            }
         }
     }
 }

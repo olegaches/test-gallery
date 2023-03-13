@@ -1,4 +1,4 @@
-package com.example.imagesproject.presentation.gallery_screen.components
+package com.example.imagesproject.presentation.gallery_screen.full_screen_image.components
 
 import android.content.ComponentName
 import android.content.Context

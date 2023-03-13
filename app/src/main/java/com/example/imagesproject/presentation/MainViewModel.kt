@@ -1,9 +1,8 @@
 package com.example.imagesproject.presentation
 
-import android.app.Notification
-import android.app.NotificationManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.imagesproject.domain.service.ImageService
 import com.example.imagesproject.domain.type.ThemeStyleType
 import com.example.imagesproject.domain.use_case.GetAppConfigurationStreamUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +23,7 @@ data class MainActivityState(
     val useDynamicColors: Boolean,
     val themeStyle: ThemeStyleType,
     val usePowerModeSaving: Boolean,
-    val currentNotification: Notification?
+    val currentUrl: String?
 )
 
 /**
@@ -35,10 +34,10 @@ private data class MainViewModelState(
     val useDynamicColors: Boolean = true,
     val themeStyle: ThemeStyleType = ThemeStyleType.FollowAndroidSystem,
     val usePowerModeSaving: Boolean = false,
-    val currentNotification: Notification? = null
+    val currentUrl: String? = null
 ) {
     fun asActivityState() = MainActivityState(
-        currentNotification = currentNotification,
+        currentUrl = currentUrl,
         isLoading = isLoading,
         useDynamicColors = useDynamicColors,
         themeStyle = themeStyle,
@@ -49,7 +48,7 @@ private data class MainViewModelState(
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val getAppConfigurationStreamUseCase: GetAppConfigurationStreamUseCase,
-    private val notificationManager: NotificationManager,
+    private val imageService: ImageService
 ) : ViewModel() {
     private val viewModelState = MutableStateFlow(value = MainViewModelState())
 
@@ -65,31 +64,46 @@ class MainViewModel @Inject constructor(
     private var job: Job? = null
 
     fun cancelNotification() {
-        if(notificationManager.activeNotifications.isNotEmpty()) {
+        val activeNotification = imageService.getCurrentUrl()
+        activeNotification?.let {
             viewModelState.update { state ->
                 state.copy(
-                    currentNotification = notificationManager.activeNotifications.first().notification
+                    currentUrl = it
+                )
+            }
+        }
+        job?.cancel()
+        imageService.hideNotification()
+        viewModelState.update { state ->
+            state.copy(
+                currentUrl = null
+            )
+        }
+    }
+
+    fun delayCancelNotification() {
+        val activeNotification = imageService.getCurrentUrl()
+        activeNotification?.let {
+            viewModelState.update { state ->
+                state.copy(
+                    currentUrl = activeNotification
                 )
             }
         }
         job?.cancel()
         job = viewModelScope.launch {
             delay(5000)
-            notificationManager.cancel(1)
+            imageService.hideNotification()
         }
-    }
-
-    fun onImmediateCancelation() {
-        notificationManager.cancel(1)
     }
 
     fun recreateNotification() {
         job?.cancel()
         job = null
-        viewModelState.value.currentNotification?.let { currentNotification ->
-            notificationManager.notify(1, currentNotification)
+        viewModelState.value.currentUrl?.let { currentUrl ->
+            imageService.showNotification(currentUrl)
         }
-        viewModelState.update { it.copy(currentNotification = null) }
+        viewModelState.update { it.copy(currentUrl = null) }
     }
 
     private fun watchAppConfigurationStream() {

@@ -29,7 +29,7 @@ import com.example.imagesproject.R
 import com.example.imagesproject.core.util.Extension.shouldUseDarkTheme
 import com.example.imagesproject.presentation.gallery_screen.AnimationType
 import com.example.imagesproject.presentation.gallery_screen.PagerScreenState
-import com.example.imagesproject.presentation.gallery_screen.components.ImageScreenBottomBar
+import com.example.imagesproject.presentation.gallery_screen.full_screen_image.components.ImageScreenBottomBar
 import com.example.imagesproject.presentation.gallery_screen.components.ImageScreenTopBar
 import com.example.imagesproject.presentation.gallery_screen.components.TransparentSystemBars
 import com.example.imagesproject.ui.theme.ImagesProjectTheme

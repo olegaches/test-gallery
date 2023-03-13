@@ -28,17 +28,24 @@
             android:name=".presentation.MainActivity"
             android:windowSoftInputMode="adjustResize"
             android:configChanges="uiMode|orientation|screenSize|touchscreen|navigation|mnc|mcc|fontScale|keyboard|keyboardHidden|locale|layoutDirection"
-            android:exported="true"
+            android:exported="false"
             android:label="@string/app_name"
             android:theme="@style/Theme.ImagesProject">
+        </activity>
+        <activity
+            android:noHistory="true"
+            android:name=".presentation.ReceiveIntentActivity"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Transparent">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="text/plain" />
+                <data android:mimeType="text/*" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
