@@ -18,6 +18,7 @@ import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -89,15 +90,17 @@ fun ImageScreenBottomBar(imageUrl: String, isVisible: Boolean, onErrorOccurred: 
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 val context = LocalContext.current
+                val intent = remember {
+                    val targetIntent = Intent(Intent.ACTION_SEND)
+                    targetIntent.type = "text/plain"
+                    targetIntent.putExtra(Intent.EXTRA_SUBJECT, "subject")
+                    targetIntent.putExtra(Intent.EXTRA_TEXT, imageUrl)
+                }
                 IconButton(
                     onClick = {
-                        val targetIntent = Intent(Intent.ACTION_SEND)
-                        targetIntent.type = "text/plain"
-                        targetIntent.putExtra(Intent.EXTRA_SUBJECT, "subject")
-                        targetIntent.putExtra(Intent.EXTRA_TEXT, imageUrl)
-                        val intent = getIntentChooser(context, targetIntent)
+                        val chooserIntent = getIntentChooser(context, intent.putExtra(Intent.EXTRA_TEXT, imageUrl))
                         if(!trySystemAction {
-                            context.startActivity(intent)
+                            context.startActivity(chooserIntent)
                         }) {
                             onErrorOccurred()
                         }
