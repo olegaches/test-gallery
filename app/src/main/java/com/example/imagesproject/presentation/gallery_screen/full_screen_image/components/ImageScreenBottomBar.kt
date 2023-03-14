@@ -89,14 +89,13 @@ fun ImageScreenBottomBar(imageUrl: String, isVisible: Boolean, onErrorOccurred: 
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 val context = LocalContext.current
-                val targetIntent = Intent(Intent.ACTION_SEND)
-                targetIntent.type = "text/plain"
-                targetIntent.putExtra(Intent.EXTRA_SUBJECT, "subject")
-                targetIntent.putExtra(Intent.EXTRA_TEXT, imageUrl)
-                val intent = getIntentChooser(context, targetIntent)
-
                 IconButton(
                     onClick = {
+                        val targetIntent = Intent(Intent.ACTION_SEND)
+                        targetIntent.type = "text/plain"
+                        targetIntent.putExtra(Intent.EXTRA_SUBJECT, "subject")
+                        targetIntent.putExtra(Intent.EXTRA_TEXT, imageUrl)
+                        val intent = getIntentChooser(context, targetIntent)
                         if(!trySystemAction {
                             context.startActivity(intent)
                         }) {
