@@ -59,7 +59,8 @@ private fun getIntentChooser(context: Context, intent: Intent, chooserTitle: Cha
             .putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excludedComponentNames.toTypedArray())
     } else {
         // deal with M list seperate problem
-        val chooserIntent: Intent = Intent.createChooser(Intent(), chooserTitle) ?: return null
+        val chooserIntent: Intent = Intent.createChooser(Intent(), chooserTitle)
+            ?: return null
         // add initial intents
         chooserIntent.putExtra(
             Intent.EXTRA_INITIAL_INTENTS,
@@ -96,10 +97,13 @@ fun ImageScreenBottomBar(imageUrl: String, isVisible: Boolean, onErrorOccurred: 
                     targetIntent.putExtra(Intent.EXTRA_SUBJECT, "subject")
                     targetIntent.putExtra(Intent.EXTRA_TEXT, imageUrl)
                 }
-                var chooserIntent: Intent?
+                var chooserIntent: Intent? = null
                 IconButton(
                     onClick = {
-                        chooserIntent = getIntentChooser(context, intent.putExtra(Intent.EXTRA_TEXT, imageUrl))
+                        if(chooserIntent == null) {
+                            chooserIntent = getIntentChooser(context, intent.putExtra(Intent.EXTRA_TEXT, imageUrl))
+                        }
+                        //chooserIntent = getIntentChooser(context, intent.putExtra(Intent.EXTRA_TEXT, imageUrl))
                         if(!trySystemAction {
                             context.startActivity(chooserIntent)
                         }) {
