@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.LabeledIntent
+import android.content.pm.ResolveInfo
 import android.os.Build
 import android.os.Parcelable
 import androidx.compose.animation.AnimatedVisibility
@@ -26,30 +27,18 @@ import com.example.imagesproject.presentation.Constants
 
 
 private fun getIntentChooser(context: Context, intent: Intent, chooserTitle: CharSequence? = null): Intent? {
-    val resolveInfos = context.packageManager.queryIntentActivities(intent, 0)
+    var resolveInfos: MutableList<ResolveInfo> = mutableListOf()
+    trySystemAction {
+        resolveInfos = context.packageManager.queryIntentActivities(intent, 0)
+    }
     val excludedComponentNames = HashSet<ComponentName>()
+    val targetIntents: MutableList<Intent> = ArrayList()
     resolveInfos.forEach {
         val activityInfo = it.activityInfo
+        val componentName = ComponentName(activityInfo.packageName, activityInfo.name)
         if(activityInfo.packageName == context.packageName) {
-            excludedComponentNames.add(ComponentName(activityInfo.packageName, activityInfo.name))
-        }
-    }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-        return Intent.createChooser(intent, chooserTitle)
-            .putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excludedComponentNames.toTypedArray())
-    }
-    if (resolveInfos.isNotEmpty()) {
-        val targetIntents: MutableList<Intent> = ArrayList()
-        for (resolveInfo in resolveInfos) {
-            val activityInfo = resolveInfo.activityInfo
-            if (excludedComponentNames.contains(
-                    ComponentName(
-                        activityInfo.packageName,
-                        activityInfo.name
-                    )
-                )
-            )
-                continue
+            excludedComponentNames.add(componentName)
+        } else {
             val targetIntent = Intent(intent)
             targetIntent.setPackage(activityInfo.packageName)
             targetIntent.component = ComponentName(activityInfo.packageName, activityInfo.name)
@@ -57,12 +46,17 @@ private fun getIntentChooser(context: Context, intent: Intent, chooserTitle: Cha
             val labeledIntent = LabeledIntent(
                 targetIntent,
                 activityInfo.packageName,
-                resolveInfo.labelRes,
-                resolveInfo.icon
+                it.labelRes,
+                it.icon
             )
             // add filtered intent to a list
             targetIntents.add(labeledIntent)
         }
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        return Intent.createChooser(intent, chooserTitle)
+            .putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excludedComponentNames.toTypedArray())
+    } else {
         // deal with M list seperate problem
         val chooserIntent: Intent = Intent.createChooser(Intent(), chooserTitle) ?: return null
         // add initial intents
@@ -72,7 +66,6 @@ private fun getIntentChooser(context: Context, intent: Intent, chooserTitle: Cha
         )
         return chooserIntent
     }
-    return null
 }
 
 @Composable
