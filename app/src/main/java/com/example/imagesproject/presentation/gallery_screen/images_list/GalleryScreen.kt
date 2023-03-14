@@ -1,6 +1,5 @@
 package com.example.imagesproject.presentation.gallery_screen.images_list
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -17,8 +16,8 @@ import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.imagesproject.domain.type.Screen
-import com.example.imagesproject.presentation.gallery_screen.components.ErrorLabel
-import com.example.imagesproject.presentation.gallery_screen.components.GalleryScreenTopBar
+import com.example.imagesproject.presentation.gallery_screen.images_list.components.ErrorLabel
+import com.example.imagesproject.presentation.gallery_screen.images_list.components.GalleryScreenTopBar
 import com.example.imagesproject.presentation.gallery_screen.full_screen_image.PagerScreen
 import kotlinx.collections.immutable.toImmutableList
 
@@ -39,9 +38,6 @@ fun GalleryScreen(
             )
         }
     ) { paddingValues ->
-        BackHandler(enabled = state.pagerScreenState.isVisible) {
-            viewModel.onBackClicked()
-        }
         savedPaddingValues = paddingValues
         Box(
             Modifier

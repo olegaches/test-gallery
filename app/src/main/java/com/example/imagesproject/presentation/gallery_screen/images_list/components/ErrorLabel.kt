@@ -1,4 +1,4 @@
-package com.example.imagesproject.presentation.gallery_screen.components
+package com.example.imagesproject.presentation.gallery_screen.images_list.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

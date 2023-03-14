@@ -2,6 +2,7 @@ package com.example.imagesproject.presentation.gallery_screen.full_screen_image
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.tween
@@ -30,7 +31,7 @@ import com.example.imagesproject.core.util.Extension.shouldUseDarkTheme
 import com.example.imagesproject.presentation.gallery_screen.AnimationType
 import com.example.imagesproject.presentation.gallery_screen.PagerScreenState
 import com.example.imagesproject.presentation.gallery_screen.full_screen_image.components.ImageScreenBottomBar
-import com.example.imagesproject.presentation.gallery_screen.components.ImageScreenTopBar
+import com.example.imagesproject.presentation.gallery_screen.full_screen_image.components.ImageScreenTopBar
 import com.example.imagesproject.presentation.gallery_screen.components.TransparentSystemBars
 import com.example.imagesproject.ui.theme.ImagesProjectTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -58,6 +59,9 @@ fun PagerScreen(
                 shouldUseDarkTheme(themeStyle = pagerScreenState.currentTheme),
             )
             return@ImagesProjectTheme
+        }
+        BackHandler {
+            onImageScreenEvent(ImageScreenEvent.OnBackToGallery)
         }
         val systemUiController = rememberSystemUiController()
         LaunchedEffect(key1 = pagerScreenState.systemNavigationBarVisible) {

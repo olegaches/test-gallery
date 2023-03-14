@@ -77,12 +77,6 @@ class MainActivity : ComponentActivity() {
             val viewModel: MainViewModel = hiltViewModel()
             val activityState by viewModel.activityState.collectAsState()
             navHostController = rememberNavController()
-            val notificationListenerPermission = rememberPermissionState(Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE)
-            if(!notificationListenerPermission.status.isGranted) {
-                SideEffect {
-                    notificationListenerPermission.launchPermissionRequest()
-                }
-            }
             if(isCompatibleWithApi33()) {
                 val notificationPermissionState = rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
                 if(!notificationPermissionState.status.isGranted) {

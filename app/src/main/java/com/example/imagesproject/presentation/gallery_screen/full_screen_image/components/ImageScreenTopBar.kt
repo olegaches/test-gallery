@@ -1,4 +1,4 @@
-package com.example.imagesproject.presentation.gallery_screen.components
+package com.example.imagesproject.presentation.gallery_screen.full_screen_image.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween

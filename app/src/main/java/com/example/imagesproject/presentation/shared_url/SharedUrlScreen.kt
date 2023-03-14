@@ -45,28 +45,28 @@ fun SharedUrlScreen(
         mutableStateOf(true)
     }
     val context = LocalContext.current
+    val activity = remember {
+        (context as? Activity)
+    }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = Color.Black,
         bottomBar = {
-            if(!isLoading) {
-                SharedUrlScreenBottomBar(
-                    isSuccess = isSuccess,
-                    onSaveImage = {
-                        viewModel.onSaveImage(state.url)
-                        navController.navigate(Screen.ImagesScreen.route) {
-                            popUpTo(Screen.ImagesScreen.route) {
-                                inclusive = true
-                            }
+            SharedUrlScreenBottomBar(
+                isSuccess = isSuccess,
+                onSaveImage = {
+                    viewModel.onSaveImage(state.url)
+                    navController.navigate(Screen.ImagesScreen.route) {
+                        popUpTo(Screen.ImagesScreen.route) {
+                            inclusive = true
                         }
-                    },
-                    isVisible = state.visibleBars,
-                    onCancel = {
-                        val activity = (context as? Activity)
-                        activity?.finishAndRemoveTask()
                     }
-                )
-            }
+                },
+                isVisible = state.visibleBars && !isLoading,
+                onCancel = {
+                    activity?.finishAndRemoveTask()
+                }
+            )
         },
         topBar = {
             SharedUrlScreenTopBar(
@@ -77,9 +77,8 @@ fun SharedUrlScreen(
                 }
             )
         }
-    ) { paddingValues ->
+    ) {
         BackHandler {
-            val activity = (context as? Activity)
             activity?.finishAndRemoveTask()
         }
         Box(modifier = Modifier
