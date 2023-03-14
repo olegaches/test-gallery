@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import com.example.imagesproject.core.util.Extension.trySystemAction
 
 class ReceiveIntentActivity : ComponentActivity() {
 
@@ -19,21 +20,26 @@ class ReceiveIntentActivity : ComponentActivity() {
                 "text/plain" -> {
                     val resultIntent = Intent(applicationContext, MainActivity::class.java)
                         .setAction(Intent.ACTION_SEND)
-                        //.addCategory(Intent.CATEGORY_LAUNCHER)
                     resultIntent.type = "text/plain"
-                    resultIntent.putExtra(Intent.EXTRA_TEXT, intent.getStringExtra(Intent.EXTRA_TEXT))
+                    resultIntent.putExtra(
+                        Intent.EXTRA_TEXT,
+                        intent.getStringExtra(Intent.EXTRA_TEXT)
+                    )
                     resultIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-                    Log.e("onCreate", "onCreate pending")
-                    startActivity(resultIntent)
-                    //resultPendingIntent.send()
-                } else -> {
-                Log.e("onCreate", "onCreate orig2")
-                    startActivity(launchIntent)
+                    trySystemAction {
+                        startActivity(resultIntent)
+                    }
+                }
+                else -> {
+                    trySystemAction {
+                        startActivity(launchIntent)
+                    }
                 }
             }
         } else {
-            Log.e("onCreate", "onCreate orig1")
-            startActivity(launchIntent)
+            trySystemAction{
+                startActivity(launchIntent)
+            }
         }
     }
 

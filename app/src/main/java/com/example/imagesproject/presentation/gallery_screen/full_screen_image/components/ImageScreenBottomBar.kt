@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import com.example.imagesproject.core.util.Extension.trySystemAction
 import com.example.imagesproject.presentation.Constants
 
 
@@ -103,7 +104,9 @@ fun ImageScreenBottomBar(imageUrl: String, isVisible: Boolean) {
 
                 IconButton(
                     onClick = {
-                        context.startActivity(intent)
+                        trySystemAction {
+                            context.startActivity(intent)
+                        }
                     }
                 ) {
                     Icon(

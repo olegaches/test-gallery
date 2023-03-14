@@ -76,8 +76,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             val viewModel: MainViewModel = hiltViewModel()
             val activityState by viewModel.activityState.collectAsState()
-//            val asds = Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS")
-//            startActivity(asds)
             navHostController = rememberNavController()
             val notificationListenerPermission = rememberPermissionState(Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE)
             if(!notificationListenerPermission.status.isGranted) {

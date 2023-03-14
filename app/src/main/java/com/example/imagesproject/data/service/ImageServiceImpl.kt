@@ -10,6 +10,7 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.example.imagesproject.R
 import com.example.imagesproject.core.util.Extension.isCompatibleWithApi23
+import com.example.imagesproject.core.util.Extension.trySystemAction
 import com.example.imagesproject.domain.service.ImageService
 import com.example.imagesproject.presentation.Constants
 import com.example.imagesproject.presentation.MainActivity
@@ -71,8 +72,10 @@ class ImageServiceImpl @Inject constructor(): ImageService, Service() {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        notificationManager.cancel(1)
-        context.stopService(Intent(context, ImageServiceImpl::class.java))
+        trySystemAction {
+            notificationManager.cancel(1)
+            context.stopService(Intent(context, ImageServiceImpl::class.java))
+        }
         currentNotification = null
         super.onTaskRemoved(rootIntent)
     }
@@ -83,9 +86,11 @@ class ImageServiceImpl @Inject constructor(): ImageService, Service() {
     }
 
     override fun hideNotification() {
-        notificationManager.cancel(1)
+        trySystemAction {
+            notificationManager.cancel(1)
+            context.stopService(Intent(context, ImageServiceImpl::class.java))
+        }
         currentUrl = null
         currentNotification = null
-        context.stopService(Intent(context, ImageServiceImpl::class.java))
     }
 }

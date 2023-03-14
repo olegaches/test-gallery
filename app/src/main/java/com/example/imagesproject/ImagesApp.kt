@@ -8,6 +8,7 @@ import android.os.PowerManager
 import androidx.annotation.RequiresApi
 import com.example.imagesproject.core.util.Extension
 import com.example.imagesproject.core.util.Extension.isCompatibleWithApi26
+import com.example.imagesproject.core.util.Extension.trySystemAction
 import com.example.imagesproject.presentation.Constants
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
@@ -35,6 +36,8 @@ class ImagesApp: Application() {
             Constants.NOTIFICATION_CHANNEL_NAME,
             NotificationManager.IMPORTANCE_HIGH,
         )
-        notificationManager.createNotificationChannel(channel)
+        trySystemAction {
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 }

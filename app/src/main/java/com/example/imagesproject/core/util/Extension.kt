@@ -71,6 +71,18 @@ object Extension {
         }
     }
 
+    fun trySystemAction(action: () -> Unit) {
+        try {
+            action()
+        } catch (throwable: Throwable) {
+            try {
+                action()
+            } catch (throwable: Throwable) {
+                // else do nothing
+            }
+        }
+    }
+
     fun isPowerSavingMode(): Boolean {
         return try {
             powerManager.isPowerSaveMode
