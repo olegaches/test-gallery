@@ -33,6 +33,7 @@ import com.example.imagesproject.presentation.gallery_screen.PagerScreenState
 import com.example.imagesproject.presentation.gallery_screen.full_screen_image.components.ImageScreenBottomBar
 import com.example.imagesproject.presentation.gallery_screen.full_screen_image.components.ImageScreenTopBar
 import com.example.imagesproject.presentation.gallery_screen.components.TransparentSystemBars
+import com.example.imagesproject.presentation.gallery_screen.full_screen_image.components.DeleteAlertDialog
 import com.example.imagesproject.ui.theme.ImagesProjectTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.mxalbert.zoomable.OverZoomConfig
@@ -78,44 +79,16 @@ fun PagerScreen(
         }
         val unknownException = stringResource(id = R.string.unknown_exception)
         val snackbarHostState = remember { SnackbarHostState() }
+        val coroutineScope = rememberCoroutineScope()
         if(isDeleteDialogOpened) {
-            AlertDialog(
+            DeleteAlertDialog(
+                confirmButtonClick = {
+                    onImageScreenEvent(ImageScreenEvent.OnDeleteImageUrl(pagerScreenState.pagerIndex))
+                    isDeleteDialogOpened = false
+                },
                 onDismissRequest = { isDeleteDialogOpened = false },
-                title = {
-                    Text(
-                        text = stringResource(R.string.delete_dialog_title)
-                    )
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            onImageScreenEvent(ImageScreenEvent.OnDeleteImageUrl(pagerScreenState.pagerIndex))
-                            isDeleteDialogOpened = false
-                        },
-                    ) {
-                        Text(
-                            color = MaterialTheme.colorScheme.error,
-                            text = stringResource(R.string.delete_button_text)
-                        )
-                    }
-                },
-                dismissButton = {
-                    TextButton(
-                        onClick = { isDeleteDialogOpened = false },
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cancel_button_text)
-                        )
-                    }
-                },
-                text = {
-                    Text(
-                        text = stringResource(R.string.delete_dialog_text),
-                    )
-                }
             )
         }
-        val coroutineScope = rememberCoroutineScope()
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = Color.Transparent,

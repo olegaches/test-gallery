@@ -31,7 +31,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ImagesViewModel @Inject constructor(
     private val getImagesUrlListUseCase: GetImagesUrlListUseCase,
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val getAppConfigurationStreamUseCase: GetAppConfigurationStreamUseCase,
     private val imageService: ImageService,
     private val deleteImageUrlFromRoomDbUseCase: DeleteImageUrlFromRoomDbUseCase,
@@ -49,37 +49,10 @@ class ImagesViewModel @Inject constructor(
     fun onImageScreenEvent(event: ImageScreenEvent) {
         when(event) {
             is ImageScreenEvent.OnAnimate -> {
-                viewModelScope.launch {
-                    _state.update {
-                        it.copy(
-                            pagerScreenState = it.pagerScreenState.copy(
-                                animationState = it.pagerScreenState.animationState.copy(
-                                    isAnimationInProgress = true,
-                                    animationType = event.value
-                                )
-                            )
-                        )
-                    }
-                    delay(400)
-                    _state.update {
-                        it.copy(
-                            pagerScreenState = it.pagerScreenState.copy(
-                                animationState = it.pagerScreenState.animationState.copy(
-                                    isAnimationInProgress = false,
-                                )
-                            )
-                        )
-                    }
-                }
+                onAnimate(event.value)
             }
             is ImageScreenEvent.OnVisibleChanged -> {
-                _state.update {
-                    it.copy(
-                        pagerScreenState = it.pagerScreenState.copy(
-                            isVisible = event.value
-                        )
-                    )
-                }
+                onImageVisibilityChange(event.value)
             }
             is ImageScreenEvent.OnPagerIndexChanged -> {
                 onPagerIndexChanged(event.value)
@@ -98,6 +71,41 @@ class ImagesViewModel @Inject constructor(
             }
             is ImageScreenEvent.OnDeleteImageUrl -> {
                 deleteImageUrl(event.pagerIndex)
+            }
+        }
+    }
+
+    private fun onImageVisibilityChange(isVisible: Boolean) {
+        _state.update {
+            it.copy(
+                pagerScreenState = it.pagerScreenState.copy(
+                    isVisible = isVisible
+                )
+            )
+        }
+    }
+
+    private fun onAnimate(animationType: AnimationType) {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    pagerScreenState = it.pagerScreenState.copy(
+                        animationState = it.pagerScreenState.animationState.copy(
+                            isAnimationInProgress = true,
+                            animationType = animationType
+                        )
+                    )
+                )
+            }
+            delay(400)
+            _state.update {
+                it.copy(
+                    pagerScreenState = it.pagerScreenState.copy(
+                        animationState = it.pagerScreenState.animationState.copy(
+                            isAnimationInProgress = false,
+                        )
+                    )
+                )
             }
         }
     }
@@ -208,11 +216,7 @@ class ImagesViewModel @Inject constructor(
     fun onGalleryScreenEvent(event: GalleryScreenEvent) {
         when(event) {
             is GalleryScreenEvent.OnSaveGridItemOffsetToScroll -> {
-                _state.update {
-                    it.copy(
-                        itemOffsetToScroll = event.yOffset
-                    )
-                }
+                onItemOffsetToScrollChange(event.yOffset)
             }
             is GalleryScreenEvent.OnSavePainterIntrinsicSize -> {
                 changeImageSize(event.size)
@@ -223,6 +227,14 @@ class ImagesViewModel @Inject constructor(
             is GalleryScreenEvent.OnImageClick -> {
                 onImageClick(event.index)
             }
+        }
+    }
+
+    private fun onItemOffsetToScrollChange(yOffset: Int) {
+        _state.update {
+            it.copy(
+                itemOffsetToScroll = yOffset
+            )
         }
     }
 
@@ -243,7 +255,7 @@ class ImagesViewModel @Inject constructor(
         }
     }
 
-    fun onBackClicked() {
+    private fun onBackClicked() {
         onHideNotification()
         val stateValue = state.value
         val imageStateValue = stateValue.pagerScreenState
