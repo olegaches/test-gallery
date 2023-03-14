@@ -96,9 +96,10 @@ fun ImageScreenBottomBar(imageUrl: String, isVisible: Boolean, onErrorOccurred: 
                     targetIntent.putExtra(Intent.EXTRA_SUBJECT, "subject")
                     targetIntent.putExtra(Intent.EXTRA_TEXT, imageUrl)
                 }
+                var chooserIntent: Intent?
                 IconButton(
                     onClick = {
-                        val chooserIntent = getIntentChooser(context, intent.putExtra(Intent.EXTRA_TEXT, imageUrl))
+                        chooserIntent = getIntentChooser(context, intent.putExtra(Intent.EXTRA_TEXT, imageUrl))
                         if(!trySystemAction {
                             context.startActivity(chooserIntent)
                         }) {
