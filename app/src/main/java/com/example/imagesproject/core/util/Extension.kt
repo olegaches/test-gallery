@@ -71,13 +71,16 @@ object Extension {
         }
     }
 
-    fun trySystemAction(action: () -> Unit) {
-        try {
+    fun trySystemAction(action: () -> Unit): Boolean {
+        return try {
             action()
+            true
         } catch (throwable: Throwable) {
             try {
                 action()
+                true
             } catch (throwable: Throwable) {
+                false
                 // else do nothing
             }
         }

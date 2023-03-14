@@ -72,6 +72,8 @@ fun PagerScreen(
         var isDeleteDialogOpened by remember {
             mutableStateOf(false)
         }
+        val unknownException = stringResource(id = R.string.unknown_exception)
+        val snackbarHostState = remember { SnackbarHostState() }
         if(isDeleteDialogOpened) {
             AlertDialog(
                 onDismissRequest = { isDeleteDialogOpened = false },
@@ -109,13 +111,22 @@ fun PagerScreen(
                 }
             )
         }
+        val coroutineScope = rememberCoroutineScope()
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = Color.Transparent,
+            snackbarHost = {
+                SnackbarHost(snackbarHostState)
+            },
             bottomBar = {
                 ImageScreenBottomBar(
                     imageUrl = imagesList[pagerScreenState.pagerIndex],
                     isVisible = pagerScreenState.topBarVisible,
+                    onErrorOccurred = {
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar(message = unknownException)
+                        }
+                    }
                 )
             },
             topBar = {

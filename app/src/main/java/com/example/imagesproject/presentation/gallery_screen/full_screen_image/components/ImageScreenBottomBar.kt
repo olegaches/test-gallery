@@ -76,7 +76,7 @@ private fun getIntentChooser(context: Context, intent: Intent, chooserTitle: Cha
 }
 
 @Composable
-fun ImageScreenBottomBar(imageUrl: String, isVisible: Boolean) {
+fun ImageScreenBottomBar(imageUrl: String, isVisible: Boolean, onErrorOccurred: () -> Unit) {
     AnimatedVisibility(
         visible = isVisible,
         enter = fadeIn(
@@ -104,8 +104,10 @@ fun ImageScreenBottomBar(imageUrl: String, isVisible: Boolean) {
 
                 IconButton(
                     onClick = {
-                        trySystemAction {
+                        if(!trySystemAction {
                             context.startActivity(intent)
+                        }) {
+                            onErrorOccurred()
                         }
                     }
                 ) {
