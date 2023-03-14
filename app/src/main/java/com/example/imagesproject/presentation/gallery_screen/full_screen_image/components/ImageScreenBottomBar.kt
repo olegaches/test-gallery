@@ -41,7 +41,7 @@ private fun getIntentChooser(context: Context, intent: Intent, chooserTitle: Cha
         } else {
             val targetIntent = Intent(intent)
             targetIntent.setPackage(activityInfo.packageName)
-            targetIntent.component = ComponentName(activityInfo.packageName, activityInfo.name)
+            targetIntent.component = componentName
             // wrap with LabeledIntent to show correct name and icon
             val labeledIntent = LabeledIntent(
                 targetIntent,
