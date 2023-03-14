@@ -2,7 +2,7 @@
     <string name="app_name">ImagesProject</string>
     <string name="top_bar_title">Галерея</string>
     <string name="image_loading_error_text">Не удалось загрузить изображение</string>
-    <string name="unknown_exception">Возникла неизвестная ошибка</string>
+    <string name="unknown_exception">Неизвестная ошибка. Попробуйте ещё раз</string>
     <string name="theme_label_text">Тема</string>
     <string name="theme_settings_title_text">Тема</string>
     <string name="light_theme_text">Светлая тема</string>
