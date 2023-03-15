@@ -11,21 +11,27 @@ class ReceiveIntentActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val launchIntent = Intent(this.applicationContext, MainActivity::class.java)
+        val applicationContext = applicationContext
+        val intent = intent
+        val classObj = MainActivity::class.java
+        val clearTopFlag = Intent.FLAG_ACTIVITY_CLEAR_TOP
+        val sendAction = Intent.ACTION_SEND
+        val extraText = Intent.EXTRA_TEXT
+        val launchIntent = Intent(applicationContext, classObj)
             .setAction(Intent.ACTION_MAIN)
             .addCategory(Intent.CATEGORY_LAUNCHER)
-            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        if(intent.action == Intent.ACTION_SEND) {
+            .addFlags(clearTopFlag)
+        if(intent.action == sendAction) {
             when(intent.type) {
                 "text/plain" -> {
-                    val resultIntent = Intent(applicationContext, MainActivity::class.java)
-                        .setAction(Intent.ACTION_SEND)
+                    val resultIntent = Intent(applicationContext, classObj)
+                        .setAction(sendAction)
                     resultIntent.type = "text/plain"
                     resultIntent.putExtra(
-                        Intent.EXTRA_TEXT,
-                        intent.getStringExtra(Intent.EXTRA_TEXT)
+                        extraText,
+                        intent.getStringExtra(extraText)
                     )
-                    resultIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+                    resultIntent.addFlags(clearTopFlag or Intent.FLAG_ACTIVITY_NEW_TASK)
                     trySystemAction {
                         startActivity(resultIntent)
                     }
