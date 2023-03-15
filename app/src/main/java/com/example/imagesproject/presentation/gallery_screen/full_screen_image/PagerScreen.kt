@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -23,7 +22,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.imagesproject.R
@@ -34,14 +32,13 @@ import com.example.imagesproject.presentation.gallery_screen.full_screen_image.c
 import com.example.imagesproject.presentation.gallery_screen.full_screen_image.components.ImageScreenTopBar
 import com.example.imagesproject.presentation.gallery_screen.components.TransparentSystemBars
 import com.example.imagesproject.presentation.gallery_screen.full_screen_image.components.DeleteAlertDialog
+import com.example.imagesproject.presentation.gallery_screen.full_screen_image.components.animatedImage
 import com.example.imagesproject.ui.theme.ImagesProjectTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.mxalbert.zoomable.OverZoomConfig
 import com.mxalbert.zoomable.Zoomable
 import com.mxalbert.zoomable.rememberZoomableState
 import com.skydoves.orbital.Orbital
-import com.skydoves.orbital.animateSharedElementTransition
-import com.skydoves.orbital.rememberContentWithOrbitalScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -74,19 +71,16 @@ fun PagerScreen(
         val pagerState = rememberPagerState(
             initialPage = pagerScreenState.pagerIndex
         )
-        var isDeleteDialogOpened by remember {
-            mutableStateOf(false)
-        }
         val unknownException = stringResource(id = R.string.unknown_exception)
         val snackbarHostState = remember { SnackbarHostState() }
         val coroutineScope = rememberCoroutineScope()
-        if(isDeleteDialogOpened) {
+        if(pagerScreenState.deleteDialogOpened) {
             DeleteAlertDialog(
                 confirmButtonClick = {
                     onImageScreenEvent(ImageScreenEvent.OnDeleteImageUrl(pagerScreenState.pagerIndex))
-                    isDeleteDialogOpened = false
+                    onImageScreenEvent(ImageScreenEvent.OnDeleteDialogVisibilityChange(false))
                 },
-                onDismissRequest = { isDeleteDialogOpened = false },
+                onDismissRequest = { onImageScreenEvent(ImageScreenEvent.OnDeleteDialogVisibilityChange(false)) },
             )
         }
         Scaffold(
@@ -114,7 +108,7 @@ fun PagerScreen(
                         onImageScreenEvent(ImageScreenEvent.OnBackToGallery)
                     },
                     onDeleteIconClick = {
-                        isDeleteDialogOpened = true
+                        onImageScreenEvent(ImageScreenEvent.OnDeleteDialogVisibilityChange(true))
                     }
                 )
             }
@@ -126,9 +120,6 @@ fun PagerScreen(
                     onImageScreenEvent(ImageScreenEvent.OnBarsVisibilityChange)
                     onImageScreenEvent(ImageScreenEvent.OnAnimate(AnimationType.EXPAND_ANIMATION))
                 }
-            }
-            var currentScale by remember {
-                mutableStateOf(1f)
             }
 
             var animationType by remember {
@@ -143,53 +134,14 @@ fun PagerScreen(
                         pagerState.currentPage
                     ))
             }
-            val imageContent = rememberContentWithOrbitalScope {
-                val orbitalScope = this
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) {
-                    val ratio = pagerScreenState.painterIntrinsicSize.width/pagerScreenState.painterIntrinsicSize.height
-                    var isSuccess by remember {
-                        mutableStateOf(true)
-                    }
-                    AsyncImage(
-                        modifier = if (animationType == AnimationType.EXPAND_ANIMATION) {
-                            Modifier
-                                .fillMaxSize(currentScale)
-                                .aspectRatio(ratio, isHorizontalOrientation)
-                                .align(Alignment.Center)
-                        } else {
-                            Modifier
-                                .padding(
-                                    top = paddingValues.calculateTopPadding(),
-                                    start = paddingValues.calculateLeftPadding(
-                                        if (isRightLayoutDirection)
-                                            LayoutDirection.Rtl else
-                                            LayoutDirection.Ltr
-                                    ),
-                                )
-                                .offset { pagerScreenState.imageOffset.toIntOffset() }
-                                .size(
-                                    pagerScreenState.gridItemSize.width.dp,
-                                    pagerScreenState.gridItemSize.width.dp
-                                )
-                        }.animateSharedElementTransition(
-                            orbitalScope,
-                            SpringSpec(stiffness = 1200f),
-                            SpringSpec(stiffness = 1200f)
-                        ),
-                        onError = {
-                            isSuccess = false
-                        },
-                        placeholder = painterResource(id = R.drawable.image_not_found),
-                        error = painterResource(id = R.drawable.image_not_found),
-                        model = imagesList[pagerScreenState.pagerIndex],
-                        contentScale = ContentScale.Crop,
-                        contentDescription = null,
-                    )
-                }
-            }
+            val imageContent = animatedImage(
+                pagerScreenState = pagerScreenState,
+                imageUrl = imagesList[pagerScreenState.pagerIndex],
+                isHorizontalOrientation = isHorizontalOrientation,
+                isRightLayoutDirection = isRightLayoutDirection,
+                paddingValues = paddingValues,
+                animationType = animationType,
+            )
             val backGroundColor by animateColorAsState(
                 targetValue = if (animationType == AnimationType.EXPAND_ANIMATION) Color.Black else Color.Transparent,
                 animationSpec = tween(durationMillis = 300)
@@ -264,7 +216,7 @@ fun PagerScreen(
                         }
                         LaunchedEffect(key1 = zoomableState.scale) {
                             if(zoomableState.scale <= 0.5) {
-                                currentScale = zoomableState.scale
+                                onImageScreenEvent(ImageScreenEvent.OnCurrentScaleChange(zoomableState.scale))
                                 if(!isTouching) {
                                     onImageScreenEvent(ImageScreenEvent.OnBackToGallery)
                                 }

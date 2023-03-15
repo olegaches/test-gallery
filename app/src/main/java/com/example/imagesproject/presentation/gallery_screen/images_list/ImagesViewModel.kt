@@ -72,6 +72,32 @@ class ImagesViewModel @Inject constructor(
             is ImageScreenEvent.OnDeleteImageUrl -> {
                 deleteImageUrl(event.pagerIndex)
             }
+            is ImageScreenEvent.OnDeleteDialogVisibilityChange -> {
+                changeDeleteDialogVisibility(event.visible)
+            }
+            is ImageScreenEvent.OnCurrentScaleChange -> {
+                changeCurrentScale(event.scale)
+            }
+        }
+    }
+
+    private fun changeCurrentScale(scale: Float) {
+        _state.update {
+            it.copy(
+                pagerScreenState = it.pagerScreenState.copy(
+                    currentScale = scale
+                )
+            )
+        }
+    }
+
+    private fun changeDeleteDialogVisibility(visible: Boolean) {
+        _state.update {
+            it.copy(
+                pagerScreenState = it.pagerScreenState.copy(
+                    deleteDialogOpened = visible
+                )
+            )
         }
     }
 
@@ -302,6 +328,7 @@ class ImagesViewModel @Inject constructor(
                 it.copy(
                     pagerScreenState = it.pagerScreenState.copy(
                         systemNavigationBarVisible = true,
+                        currentScale = 1f,
                         topBarText = "",
                         isVisible = false,
                         animationState = it.pagerScreenState.animationState.copy(

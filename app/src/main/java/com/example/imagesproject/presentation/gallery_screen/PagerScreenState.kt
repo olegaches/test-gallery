@@ -10,6 +10,8 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class PagerScreenState(
     val isAnimatedScale: Boolean = false,
+    val deleteDialogOpened: Boolean = false,
+    val currentScale: Float = 1f,
     val animationState: AnimationState = AnimationState(),
     val pagerIndex: Int = 0,
     val isVisible: Boolean = false,
