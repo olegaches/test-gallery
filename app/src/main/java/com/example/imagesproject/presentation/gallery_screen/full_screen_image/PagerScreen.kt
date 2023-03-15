@@ -62,14 +62,16 @@ fun PagerScreen(
             onImageScreenEvent(ImageScreenEvent.OnBackToGallery)
         }
         val systemUiController = rememberSystemUiController()
-        LaunchedEffect(key1 = pagerScreenState.systemNavigationBarVisible) {
-            systemUiController.isNavigationBarVisible = pagerScreenState.systemNavigationBarVisible
+        val systemNavigationBarVisible = pagerScreenState.systemNavigationBarVisible
+        LaunchedEffect(key1 = systemNavigationBarVisible) {
+            systemUiController.isNavigationBarVisible = systemNavigationBarVisible
         }
         TransparentSystemBars(
             true,
         )
+        val pagerIndex = pagerScreenState.pagerIndex
         val pagerState = rememberPagerState(
-            initialPage = pagerScreenState.pagerIndex
+            initialPage = pagerIndex
         )
         val unknownException = stringResource(id = R.string.unknown_exception)
         val snackbarHostState = remember { SnackbarHostState() }
@@ -77,22 +79,26 @@ fun PagerScreen(
         if(pagerScreenState.deleteDialogOpened) {
             DeleteAlertDialog(
                 confirmButtonClick = {
-                    onImageScreenEvent(ImageScreenEvent.OnDeleteImageUrl(pagerScreenState.pagerIndex))
+                    onImageScreenEvent(ImageScreenEvent.OnDeleteImageUrl(pagerIndex))
                     onImageScreenEvent(ImageScreenEvent.OnDeleteDialogVisibilityChange(false))
                 },
                 onDismissRequest = { onImageScreenEvent(ImageScreenEvent.OnDeleteDialogVisibilityChange(false)) },
             )
         }
+        val transparentColor = remember {
+            Color.Transparent
+        }
+        val topBarVisible = pagerScreenState.topBarVisible
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            containerColor = Color.Transparent,
+            containerColor = transparentColor,
             snackbarHost = {
                 SnackbarHost(snackbarHostState)
             },
             bottomBar = {
                 ImageScreenBottomBar(
-                    imageUrl = imagesList[pagerScreenState.pagerIndex],
-                    isVisible = pagerScreenState.topBarVisible,
+                    imageUrl = imagesList[pagerIndex],
+                    isVisible = topBarVisible,
                     onErrorOccurred = {
                         coroutineScope.launch {
                             snackbarHostState.showSnackbar(message = unknownException)
@@ -102,7 +108,7 @@ fun PagerScreen(
             },
             topBar = {
                 ImageScreenTopBar(
-                    isVisible = pagerScreenState.topBarVisible,
+                    isVisible = topBarVisible,
                     title = pagerScreenState.topBarText,
                     onBackClicked = {
                         onImageScreenEvent(ImageScreenEvent.OnBackToGallery)
@@ -115,35 +121,39 @@ fun PagerScreen(
         ) {
             val isHorizontalOrientation = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
             val isRightLayoutDirection = LocalConfiguration.current.layoutDirection == Configuration.SCREENLAYOUT_LAYOUTDIR_RTL
+            val animationState = pagerScreenState.animationState
+            val stateAnimationType = animationState.animationType
+            val expandAnimationType = remember { AnimationType.EXPAND_ANIMATION }
             LaunchedEffect(key1 = true) {
-                if(pagerScreenState.animationState.animationType != AnimationType.EXPAND_ANIMATION) {
+                if(stateAnimationType != expandAnimationType) {
                     onImageScreenEvent(ImageScreenEvent.OnBarsVisibilityChange)
-                    onImageScreenEvent(ImageScreenEvent.OnAnimate(AnimationType.EXPAND_ANIMATION))
+                    onImageScreenEvent(ImageScreenEvent.OnAnimate(expandAnimationType))
                 }
             }
 
             var animationType by remember {
-                mutableStateOf(pagerScreenState.animationState.animationType)
+                mutableStateOf(stateAnimationType)
             }
-            LaunchedEffect(key1 = pagerScreenState.animationState.animationType) {
-                animationType = pagerScreenState.animationState.animationType
+            LaunchedEffect(key1 = stateAnimationType) {
+                animationType = stateAnimationType
             }
-            LaunchedEffect(key1 = pagerState.currentPage) {
+            val currentPage = pagerState.currentPage
+            LaunchedEffect(key1 = currentPage) {
                 onImageScreenEvent(
                     ImageScreenEvent.OnPagerIndexChanged(
-                        pagerState.currentPage
+                        currentPage
                     ))
             }
             val imageContent = animatedImage(
                 pagerScreenState = pagerScreenState,
-                imageUrl = imagesList[pagerScreenState.pagerIndex],
+                imageUrl = imagesList[pagerIndex],
                 isHorizontalOrientation = isHorizontalOrientation,
                 isRightLayoutDirection = isRightLayoutDirection,
                 paddingValues = paddingValues,
                 animationType = animationType,
             )
             val backGroundColor by animateColorAsState(
-                targetValue = if (animationType == AnimationType.EXPAND_ANIMATION) Color.Black else Color.Transparent,
+                targetValue = if (animationType == expandAnimationType) Color.Black else transparentColor,
                 animationSpec = tween(durationMillis = 300)
             )
             Box(
@@ -151,23 +161,24 @@ fun PagerScreen(
                     .background(backGroundColor)
                     .fillMaxSize()
             ) {
-                if(pagerScreenState.animationState.isAnimationInProgress) {
+                if(animationState.isAnimationInProgress) {
                     Orbital(
                         modifier = Modifier
                             .fillMaxSize()
                     ) {
                         imageContent()
                     }
-                } else if(animationType == AnimationType.EXPAND_ANIMATION) {
+                } else if(animationType == expandAnimationType) {
                     var isTouching by remember {
                         mutableStateOf(false)
                     }
                     var prevPagerIndex by remember {
-                        mutableStateOf(pagerState.currentPage)
+                        mutableStateOf(currentPage)
                     }
+                    val imageListSize = imagesList.size
                     HorizontalPager(
                         state = pagerState,
-                        pageCount = imagesList.size,
+                        pageCount = imageListSize,
                         modifier = Modifier
                             .fillMaxSize(),
                         pageSpacing = 16.dp,
@@ -191,32 +202,33 @@ fun PagerScreen(
                             mutableStateOf<Size?>(null)
                         }
                         LaunchedEffect(key1 = isTouching) {
-                            if(prevPagerIndex != pagerState.currentPage && !isTouching) {
+                            if(prevPagerIndex != currentPage && !isTouching) {
                                 launch(Dispatchers.Main) {
                                     zoomableState.animateScaleTo(1f)
-                                    prevPagerIndex = pagerState.currentPage
+                                    prevPagerIndex = currentPage
                                 }
                             }
                         }
                         LaunchedEffect(pagerState) {
-                            snapshotFlow { pagerState.currentPage }.collect { page ->
-                                if(imageSize != null && pagerState.currentPage == index)
+                            snapshotFlow { currentPage }.collect { page ->
+                                if(imageSize != null && currentPage == index)
                                     onImageScreenEvent(
                                         ImageScreenEvent.OnPagerCurrentImageChange(
                                             imageSize!!
                                         ))
                             }
                         }
-                        LaunchedEffect(key1 = imagesList.size) {
-                            if(imageSize != null && pagerState.currentPage == index)
+                        LaunchedEffect(key1 = imageListSize) {
+                            if(imageSize != null && currentPage == index)
                                 onImageScreenEvent(
                                     ImageScreenEvent.OnPagerCurrentImageChange(
                                         imageSize!!
                                     ))
                         }
-                        LaunchedEffect(key1 = zoomableState.scale) {
-                            if(zoomableState.scale <= 0.5) {
-                                onImageScreenEvent(ImageScreenEvent.OnCurrentScaleChange(zoomableState.scale))
+                        val zoomableStateScale = zoomableState.scale
+                        LaunchedEffect(key1 = zoomableStateScale) {
+                            if(zoomableStateScale <= 0.5) {
+                                onImageScreenEvent(ImageScreenEvent.OnCurrentScaleChange(zoomableStateScale))
                                 if(!isTouching) {
                                     onImageScreenEvent(ImageScreenEvent.OnBackToGallery)
                                 }
@@ -241,6 +253,9 @@ fun PagerScreen(
                                 onImageScreenEvent(ImageScreenEvent.OnBarsVisibilityChange)
                             },
                         ) {
+                            val imageNotFoundId = remember {
+                                R.drawable.image_not_found
+                            }
                             AsyncImage(
                                 modifier = Modifier
                                     .then(
@@ -252,10 +267,10 @@ fun PagerScreen(
                                         } else
                                             Modifier.fillMaxSize()
                                     ),
-                                error = painterResource(id = R.drawable.image_not_found),
+                                error = painterResource(id = imageNotFoundId),
                                 model = imagesList[index],
                                 contentScale = ContentScale.Fit,
-                                placeholder = painterResource(id = R.drawable.image_not_found),
+                                placeholder = painterResource(id = imageNotFoundId),
                                 onError = { painterState ->
                                     imageSize = painterState.painter?.intrinsicSize
                                 },

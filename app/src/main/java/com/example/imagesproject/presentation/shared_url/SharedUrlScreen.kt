@@ -48,6 +48,8 @@ fun SharedUrlScreen(
     val activity = remember {
         (context as? Activity)
     }
+    val imageUrl = state.url
+    val visibleBars = state.visibleBars
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = Color.Black,
@@ -55,14 +57,15 @@ fun SharedUrlScreen(
             SharedUrlScreenBottomBar(
                 isSuccess = isSuccess,
                 onSaveImage = {
-                    viewModel.onSaveImage(state.url)
-                    navController.navigate(Screen.ImagesScreen.route) {
-                        popUpTo(Screen.ImagesScreen.route) {
+                    viewModel.onSaveImage(imageUrl)
+                    val imagesScreenRoute = Screen.ImagesScreen.route
+                    navController.navigate(imagesScreenRoute) {
+                        popUpTo(imagesScreenRoute) {
                             inclusive = true
                         }
                     }
                 },
-                isVisible = state.visibleBars && !isLoading,
+                isVisible = visibleBars && !isLoading,
                 onCancel = {
                     activity?.finishAndRemoveTask()
                 }
@@ -70,8 +73,8 @@ fun SharedUrlScreen(
         },
         topBar = {
             SharedUrlScreenTopBar(
-                isVisible = state.visibleBars,
-                title = state.url,
+                isVisible = visibleBars,
+                title = imageUrl,
                 onBackClicked = {
                     navController.navigateUp()
                 }
@@ -102,6 +105,7 @@ fun SharedUrlScreen(
                     viewModel.onBarsVisibilityChange()
                 },
             ) {
+                val imageNotFoundId = remember { R.drawable.image_not_found }
                 AsyncImage(
                     modifier = Modifier
                         .then(
@@ -113,12 +117,12 @@ fun SharedUrlScreen(
                             } else
                                 Modifier.fillMaxSize()
                         ),
-                    model = state.url,
+                    model = imageUrl,
                     contentScale = ContentScale.Fit,
-                    error = painterResource(id = R.drawable.image_not_found),
+                    error = painterResource(id = imageNotFoundId),
                     placeholder = if(isSuccess)
                         painterResource(id = R.drawable.placeholder) else {
-                        painterResource(R.drawable.image_not_found)
+                        painterResource(imageNotFoundId)
                     },
                     onSuccess = { painterState ->
                         isSuccess = true

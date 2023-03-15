@@ -114,9 +114,10 @@ class ImagesViewModel @Inject constructor(
     private fun onAnimate(animationType: AnimationType) {
         viewModelScope.launch {
             _state.update {
+                val pagerScreenState = it.pagerScreenState
                 it.copy(
-                    pagerScreenState = it.pagerScreenState.copy(
-                        animationState = it.pagerScreenState.animationState.copy(
+                    pagerScreenState = pagerScreenState.copy(
+                        animationState = pagerScreenState.animationState.copy(
                             isAnimationInProgress = true,
                             animationType = animationType
                         )
@@ -125,9 +126,10 @@ class ImagesViewModel @Inject constructor(
             }
             delay(400)
             _state.update {
+                val pagerScreenState = it.pagerScreenState
                 it.copy(
-                    pagerScreenState = it.pagerScreenState.copy(
-                        animationState = it.pagerScreenState.animationState.copy(
+                    pagerScreenState = pagerScreenState.copy(
+                        animationState = pagerScreenState.animationState.copy(
                             isAnimationInProgress = false,
                         )
                     )
@@ -138,11 +140,12 @@ class ImagesViewModel @Inject constructor(
 
     private fun onPagerIndexChanged(index: Int) {
         _state.update {
-            notifyOpenedImage(it.imagesList[index])
+            val url = it.imagesList[index]
+            notifyOpenedImage(url)
             it.copy(
                 pagerScreenState = it.pagerScreenState.copy(
                     pagerIndex = index,
-                    topBarText = it.imagesList[index]
+                    topBarText = url
                 )
             )
         }
@@ -182,11 +185,11 @@ class ImagesViewModel @Inject constructor(
 
     private fun changeImageSize(size: Size) {
         _state.update {
-            val imageState = _state.value.pagerScreenState
+            val imageState = it.pagerScreenState
             if(imageState.painterIntrinsicSize.toSize() == size)
                 return
             it.copy(
-                pagerScreenState = it.pagerScreenState.copy(
+                pagerScreenState = imageState.copy(
                     painterIntrinsicSize = ParcelableSize(size.width, size.height)
                 )
             )
@@ -195,9 +198,10 @@ class ImagesViewModel @Inject constructor(
 
     private fun onBarsVisibilityChange() {
         _state.update {
+            val pagerScreenState = it.pagerScreenState
             it.copy(
-                pagerScreenState = it.pagerScreenState.copy(
-                    topBarVisible = !it.pagerScreenState.topBarVisible,
+                pagerScreenState = pagerScreenState.copy(
+                    topBarVisible = !pagerScreenState.topBarVisible,
                 )
             )
         }
@@ -206,10 +210,11 @@ class ImagesViewModel @Inject constructor(
 
     private fun onNavigationBarVisibilityChange() {
         _state.update {
+            val pagerScreenState = it.pagerScreenState
             it.copy(
-                pagerScreenState = it.pagerScreenState
+                pagerScreenState = pagerScreenState
                     .copy(
-                        systemNavigationBarVisible = it.pagerScreenState.topBarVisible
+                        systemNavigationBarVisible = pagerScreenState.topBarVisible
                     )
             )
         }
@@ -265,9 +270,8 @@ class ImagesViewModel @Inject constructor(
     }
 
     private fun onImageClick(index: Int) {
-        val stateValue = _state.value
-        val gridItemSize = stateValue.lazyGridState.layoutInfo.visibleItemsInfo.first().size.toSize()
         _state.update {
+            val gridItemSize = it.lazyGridState.layoutInfo.visibleItemsInfo.first().size.toSize()
             val imageUrl = it.imagesList[index]
             notifyOpenedImage(imageUrl)
             it.copy(
@@ -285,17 +289,20 @@ class ImagesViewModel @Inject constructor(
         onHideNotification()
         val stateValue = state.value
         val imageStateValue = stateValue.pagerScreenState
-        val visibleItemsInfo = stateValue.lazyGridState.layoutInfo.visibleItemsInfo
+        val layoutInfo = stateValue.lazyGridState.layoutInfo
+        val visibleItemsInfo = layoutInfo.visibleItemsInfo
         val imageIndex = imageStateValue.pagerIndex
         val gridItem = visibleItemsInfo.find { it.index == imageIndex }
         val isScrollToEnd: Boolean?
         var indexToScroll = imageIndex
+        val gridItemOffset = gridItem?.offset
+        val gridItemOffsetY = gridItemOffset?.y
         if (gridItem == null) {
             isScrollToEnd = imageIndex > visibleItemsInfo.last().index
-        } else if (gridItem.offset.y < 0) {
+        } else if (gridItemOffsetY!! < 0) {
             isScrollToEnd = false
             indexToScroll = gridItem.index
-        } else if (gridItem.offset.y + gridItem.size.height > stateValue.lazyGridState.layoutInfo.viewportSize.height) {
+        } else if (gridItemOffsetY + gridItem.size.height > layoutInfo.viewportSize.height) {
             isScrollToEnd = true
             indexToScroll = gridItem.index
         } else {
@@ -304,19 +311,20 @@ class ImagesViewModel @Inject constructor(
 
         viewModelScope.launch {
             if(isScrollToEnd == null) {
-                changeCurrentGridItemOffset(gridItem!!.offset)
+                changeCurrentGridItemOffset(gridItemOffset!!)
             } else {
                 viewModelScope.launch(Dispatchers.Main) {
                     onScrollToImage(indexToScroll, isScrollToEnd)
                 }.join()
-                val newGridItem = state.value.lazyGridState.layoutInfo.visibleItemsInfo.find { it.index ==  imageIndex } ?: visibleItemsInfo.last()
+                val newGridItem = state.value.lazyGridState.layoutInfo.visibleItemsInfo.find { it.index == imageIndex } ?: visibleItemsInfo.last()
                 changeCurrentGridItemOffset(newGridItem.offset)
             }
             _state.update {
+                val pagerScreenState = it.pagerScreenState
                 it.copy(
-                    pagerScreenState = it.pagerScreenState.copy(
+                    pagerScreenState = pagerScreenState.copy(
                         topBarVisible = false,
-                        animationState = it.pagerScreenState.animationState.copy(
+                        animationState = pagerScreenState.animationState.copy(
                             isAnimationInProgress = true,
                             animationType = AnimationType.HIDE_ANIMATION
                         )
@@ -325,13 +333,14 @@ class ImagesViewModel @Inject constructor(
             }
             delay(350)
             _state.update {
+                val pagerScreenState = it.pagerScreenState
                 it.copy(
-                    pagerScreenState = it.pagerScreenState.copy(
+                    pagerScreenState = pagerScreenState.copy(
                         systemNavigationBarVisible = true,
                         currentScale = 1f,
                         topBarText = "",
                         isVisible = false,
-                        animationState = it.pagerScreenState.animationState.copy(
+                        animationState = pagerScreenState.animationState.copy(
                             isAnimationInProgress = true
                         )
                     )

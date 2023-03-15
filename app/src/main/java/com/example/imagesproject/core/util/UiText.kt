@@ -6,24 +6,32 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 
 sealed interface UiText {
-    data class DynamicString(val value: String): UiText
+    data class DynamicString(val value: String): UiText {
+        override fun asString(context: Context): String {
+            return value
+        }
+
+        @Composable
+        override fun asString(): String {
+            return value
+        }
+    }
+
     class StringResource(
         @StringRes val resId: Int,
         vararg val args: Any
-    ): UiText
+    ): UiText {
+        override fun asString(context: Context): String {
+            return context.getString(resId, *args)
+        }
 
+        @Composable
+        override fun asString(): String {
+            return stringResource(id = resId, *args)
+        }
+    }
+
+    fun asString(context: Context): String
     @Composable
-    fun asString(): String {
-        return when(this) {
-            is DynamicString -> value
-            is StringResource -> stringResource(id = resId, *args)
-        }
-    }
-
-    fun asString(context: Context): String {
-        return when(this) {
-            is DynamicString -> value
-            is StringResource -> context.getString(resId, *args)
-        }
-    }
+    fun asString(): String
 }

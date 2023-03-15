@@ -22,13 +22,14 @@ data class GalleryScreenState(
         val Saver: Saver<MutableStateFlow<GalleryScreenState>, *> = listSaver(
             save = { stateFlow ->
                 val value = stateFlow.value
+                val lazyGridState = value.lazyGridState
                 listOf(
                     value.isLoading,
                     value.imagesList.joinToString(separator = " ")
                     ,
                     value.error.toString(),
-                    value.lazyGridState.firstVisibleItemIndex,
-                    value.lazyGridState.firstVisibleItemScrollOffset,
+                    lazyGridState.firstVisibleItemIndex,
+                    lazyGridState.firstVisibleItemScrollOffset,
                     value.itemOffsetToScroll,
                     value.pagerScreenState,
                 )

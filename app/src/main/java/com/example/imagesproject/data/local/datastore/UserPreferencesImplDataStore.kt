@@ -68,8 +68,9 @@ class UserPreferencesImplDataStore @Inject constructor(
     override suspend fun toggleDynamicColors() {
         tryIt {
             dataStorePreferences.edit { preferences ->
-                val current = preferences[PreferencesKeys.useDynamicColors] ?: true
-                preferences[PreferencesKeys.useDynamicColors] = !current
+                val key = PreferencesKeys.useDynamicColors
+                val current = preferences[key] ?: true
+                preferences[key] = !current
             }
         }
     }
@@ -77,8 +78,9 @@ class UserPreferencesImplDataStore @Inject constructor(
     private suspend fun updateDataStoreFlow() {
         tryIt {
             dataStorePreferences.edit { preferences ->
-                val current = preferences[PreferencesKeys.updateFlag] ?: false
-                preferences[PreferencesKeys.updateFlag] = !current
+                val key = PreferencesKeys.updateFlag
+                val current = preferences[key] ?: false
+                preferences[key] = !current
             }
         }
     }
@@ -99,14 +101,19 @@ class UserPreferencesImplDataStore @Inject constructor(
         }
     }
 
-    private fun String?.toThemeStyleType(): ThemeStyleType = when (this) {
-        ThemeStyleType.LightMode.name -> ThemeStyleType.LightMode
-        ThemeStyleType.DarkMode.name -> ThemeStyleType.DarkMode
-        ThemeStyleType.FollowPowerSavingMode.name -> ThemeStyleType.FollowPowerSavingMode
-        else -> if(!isCompatibleWithApi28()) {
-            ThemeStyleType.FollowPowerSavingMode
-        } else {
-            ThemeStyleType.FollowAndroidSystem
+    private fun String?.toThemeStyleType(): ThemeStyleType {
+        val lightMode = ThemeStyleType.LightMode
+        val darkMode = ThemeStyleType.DarkMode
+        val followPowerSavingMode = ThemeStyleType.FollowPowerSavingMode
+        return when (this) {
+            lightMode.name -> lightMode
+            darkMode.name -> darkMode
+            followPowerSavingMode.name -> followPowerSavingMode
+            else -> if (!isCompatibleWithApi28()) {
+                followPowerSavingMode
+            } else {
+                ThemeStyleType.FollowAndroidSystem
+            }
         }
     }
 

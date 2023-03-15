@@ -68,6 +68,7 @@ class RepositoryImpl @Inject constructor(
                             DownloadState.Finished -> {
                                 val file = fileProvider.getFile()
                                 val lines = file.readLines().reversed()
+                                val imageUrlDao = imageUrlDao
                                 for(line in lines) {
                                     if(!imageUrlDao.hasItem(line)) {
                                         imageUrlDao.insertImageUrl(ImageUrlEntity(imageUrl = line))
@@ -97,15 +98,12 @@ class RepositoryImpl @Inject constructor(
     private fun handleThrowableException(throwable: Throwable): UiText {
         return when(throwable) {
             is HttpException -> {
-                if(throwable.localizedMessage.isNullOrEmpty()) {
+                val localizedMessage = throwable.localizedMessage
+                if(localizedMessage.isNullOrEmpty()) {
                     UiText.StringResource(R.string.unknown_exception)
                 }
                 else {
-                    if(throwable.localizedMessage != null) {
-                        UiText.DynamicString(throwable.localizedMessage!!)
-                    } else {
-                        UiText.StringResource(R.string.unknown_exception)
-                    }
+                    UiText.DynamicString(localizedMessage)
                 }
             }
             is IOException -> {

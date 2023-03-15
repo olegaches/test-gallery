@@ -8,11 +8,10 @@ class AddImageUrlToRoomDbUseCase @Inject constructor(
     private val imageUrlDao: ImageUrlDao
 ) {
     suspend operator fun invoke(imageUrl: String) {
+        val imageUrlDao = imageUrlDao
         if(imageUrlDao.hasItem(imageUrl)) {
             imageUrlDao.deleteImageUrl(imageUrl)
-            imageUrlDao.insertImageUrl(ImageUrlEntity(imageUrl = imageUrl))
-        } else {
-            imageUrlDao.insertImageUrl(ImageUrlEntity(imageUrl = imageUrl))
         }
+        imageUrlDao.insertImageUrl(ImageUrlEntity(imageUrl = imageUrl))
     }
 }

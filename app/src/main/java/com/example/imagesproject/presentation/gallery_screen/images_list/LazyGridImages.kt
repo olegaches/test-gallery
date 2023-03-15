@@ -41,17 +41,18 @@ fun LazyGridImages(
             var isSuccess by rememberSaveable {
                 mutableStateOf(true)
             }
+            val imageNotFoundId = remember { R.drawable.image_not_found }
             val contentScale = ContentScale.Crop
             val painter = rememberAsyncImagePainter(
                 model = ImageRequest
                     .Builder(context)
                     .data(imageUrl)
                     .size(coil.size.Size.ORIGINAL)
-                    .error(R.drawable.image_not_found)
+                    .error(imageNotFoundId)
                     .placeholder(
                         if(isSuccess)
                             R.drawable.placeholder else {
-                            R.drawable.image_not_found
+                            imageNotFoundId
                         }
                     )
                     .build(),
@@ -74,13 +75,14 @@ fun LazyGridImages(
                     .clickable(
                         onClick = {
                             val size = painter.intrinsicSize
+                            val layoutInfo = lazyGridState.layoutInfo
                             val visibleItems =
-                                lazyGridState.layoutInfo.visibleItemsInfo
+                                layoutInfo.visibleItemsInfo
                             val lastElement = visibleItems.last()
                             val currentGridItemOffset =
                                 visibleItems.find { it.index == index }?.offset ?: IntOffset.Zero
                             val offset =
-                                lazyGridState.layoutInfo.viewportSize.height - lastElement.size.height
+                                layoutInfo.viewportSize.height - lastElement.size.height
                             onGalleryScreenEvent(GalleryScreenEvent.OnSavePainterIntrinsicSize(size))
                             onGalleryScreenEvent(
                                 GalleryScreenEvent.OnSaveGridItemOffsetToScroll(

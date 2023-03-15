@@ -41,38 +41,39 @@ class ImageServiceImpl @Inject constructor(): ImageService, Service() {
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         val url = intent.getStringExtra(Constants.SERVICE_PARAM_IMAGE_URL)
-        val resultIntent = Intent(applicationContext, MainActivity::class.java)
+        val currentApplicationContext = applicationContext
+        val resultIntent = Intent(currentApplicationContext, MainActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
         val resultPendingIntent = if(isCompatibleWithApi23()) {
             PendingIntent.getActivity(
-                applicationContext, 1, resultIntent, PendingIntent.FLAG_IMMUTABLE
+                currentApplicationContext, 1, resultIntent, PendingIntent.FLAG_IMMUTABLE
             )
         } else {
             PendingIntent.getActivity(
-                applicationContext, 1, resultIntent, PendingIntent.FLAG_IMMUTABLE
+                currentApplicationContext, 1, resultIntent, PendingIntent.FLAG_IMMUTABLE
             )
         }
-        try {
-            val notification = NotificationCompat.Builder(
-                applicationContext,
-                Constants.NOTIFICATION_CHANNEL_ID
-            )
-                .setOngoing(true)
-                .setPriority(NotificationCompat.PRIORITY_MIN)
-                .setSilent(true)
-                .setContentText(url.orEmpty())
-                .setSmallIcon(R.drawable.ic_android_24)
-                .setContentIntent(resultPendingIntent)
-                .build()
-            currentNotification = notification
+        val notification = NotificationCompat.Builder(
+            currentApplicationContext,
+            Constants.NOTIFICATION_CHANNEL_ID
+        )
+            .setOngoing(true)
+            .setPriority(NotificationCompat.PRIORITY_MIN)
+            .setSilent(true)
+            .setContentText(url.orEmpty())
+            .setSmallIcon(R.drawable.ic_android_24)
+            .setContentIntent(resultPendingIntent)
+            .build()
+        currentNotification = notification
+        trySystemAction {
             notificationManager.notify(1, notification)
-        } catch (_: Exception) {
         }
         return START_STICKY
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         trySystemAction {
+            val context = context
             notificationManager.cancel(1)
             context.stopService(Intent(context, ImageServiceImpl::class.java))
         }
@@ -82,10 +83,12 @@ class ImageServiceImpl @Inject constructor(): ImageService, Service() {
 
     override fun showNotification(url: String) {
         currentUrl = url
+        val context = context
         context.startService(Intent(context, ImageServiceImpl::class.java).putExtra(Constants.SERVICE_PARAM_IMAGE_URL, url))
     }
 
     override fun hideNotification() {
+        val context = context
         trySystemAction {
             notificationManager.cancel(1)
             context.stopService(Intent(context, ImageServiceImpl::class.java))
