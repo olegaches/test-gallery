@@ -32,10 +32,12 @@ fun animatedImage(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            val ratio = pagerScreenState.painterIntrinsicSize.width/pagerScreenState.painterIntrinsicSize.height
+            val painterIntrinsicSize = pagerScreenState.painterIntrinsicSize
+            val ratio = painterIntrinsicSize.width/painterIntrinsicSize.height
             var isSuccess by remember {
                 mutableStateOf(true)
             }
+            val imageNotFoundId = R.drawable.image_not_found
             AsyncImage(
                 modifier = if (animationType == AnimationType.EXPAND_ANIMATION) {
                     Modifier
@@ -55,7 +57,6 @@ fun animatedImage(
                         .offset { pagerScreenState.imageOffset.toIntOffset() }
                         .size(
                             pagerScreenState.gridItemSize.width.dp,
-                            pagerScreenState.gridItemSize.width.dp
                         )
                 }.animateSharedElementTransition(
                     orbitalScope,
@@ -65,8 +66,8 @@ fun animatedImage(
                 onError = {
                     isSuccess = false
                 },
-                placeholder = painterResource(id = R.drawable.image_not_found),
-                error = painterResource(id = R.drawable.image_not_found),
+                placeholder = painterResource(id = imageNotFoundId),
+                error = painterResource(id = imageNotFoundId),
                 model = imageUrl,
                 contentScale = ContentScale.Crop,
                 contentDescription = null,

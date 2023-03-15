@@ -36,17 +36,18 @@ private fun getIntentChooser(context: Context, intent: Intent, chooserTitle: Cha
     val targetIntents: MutableList<Intent> = ArrayList()
     resolveInfos.forEach {
         val activityInfo = it.activityInfo
-        val componentName = ComponentName(activityInfo.packageName, activityInfo.name)
-        if(activityInfo.packageName == context.packageName) {
+        val packageName = activityInfo.packageName
+        val componentName = ComponentName(packageName, activityInfo.name)
+        if(packageName == context.packageName) {
             excludedComponentNames.add(componentName)
         } else {
             val targetIntent = Intent(intent)
-            targetIntent.setPackage(activityInfo.packageName)
+            targetIntent.setPackage(packageName)
             targetIntent.component = componentName
             // wrap with LabeledIntent to show correct name and icon
             val labeledIntent = LabeledIntent(
                 targetIntent,
-                activityInfo.packageName,
+                packageName,
                 it.labelRes,
                 it.icon
             )
@@ -91,19 +92,19 @@ fun ImageScreenBottomBar(imageUrl: String, isVisible: Boolean, onErrorOccurred: 
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 val context = LocalContext.current
+                val intentExtraText = Intent.EXTRA_TEXT
                 val intent = remember {
                     val targetIntent = Intent(Intent.ACTION_SEND)
                     targetIntent.type = "text/plain"
                     targetIntent.putExtra(Intent.EXTRA_SUBJECT, "subject")
-                    targetIntent.putExtra(Intent.EXTRA_TEXT, imageUrl)
+                    targetIntent.putExtra(intentExtraText, imageUrl)
                 }
                 var chooserIntent: Intent? = null
                 IconButton(
                     onClick = {
                         if(chooserIntent == null) {
-                            chooserIntent = getIntentChooser(context, intent.putExtra(Intent.EXTRA_TEXT, imageUrl))
+                            chooserIntent = getIntentChooser(context, intent.putExtra(intentExtraText, imageUrl))
                         }
-                        //chooserIntent = getIntentChooser(context, intent.putExtra(Intent.EXTRA_TEXT, imageUrl))
                         if(!trySystemAction {
                             context.startActivity(chooserIntent)
                         }) {

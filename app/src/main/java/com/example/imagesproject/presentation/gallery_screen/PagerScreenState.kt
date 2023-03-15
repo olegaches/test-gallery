@@ -34,8 +34,6 @@ data class ParcelableSize(
     companion object {
         @Stable
         val Zero = ParcelableSize(0.0f, 0.0f)
-        @Stable
-        val Unspecified = ParcelableSize(Float.NaN, Float.NaN)
     }
 }
 

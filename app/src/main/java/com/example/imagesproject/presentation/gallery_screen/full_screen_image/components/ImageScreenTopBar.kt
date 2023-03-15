@@ -29,6 +29,8 @@ fun ImageScreenTopBar(
             animationSpec = tween(Constants.TOP_BAR_VISIBILITY_EXIT_ANIMATION_TIME)
         )
     ) {
+        val iconsDefault = Icons.Default
+        val whiteColor = Color.White
         TopAppBar(
             title = {
                     Text(
@@ -37,9 +39,9 @@ fun ImageScreenTopBar(
                     )
             },
             colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                titleContentColor = Color.White,
+                titleContentColor = whiteColor,
                 containerColor = Color.Black.copy(alpha = 0.6f),
-                navigationIconContentColor = Color.White,
+                navigationIconContentColor = whiteColor,
             ),
             actions = {
                 IconButton(
@@ -47,7 +49,7 @@ fun ImageScreenTopBar(
                 ) {
                     Icon(
                         contentDescription = null,
-                        imageVector = Icons.Default.Delete
+                        imageVector = iconsDefault.Delete
                     )
                 }
             },
@@ -57,7 +59,7 @@ fun ImageScreenTopBar(
                 ) {
                     Icon(
                         contentDescription = null,
-                        imageVector = Icons.Default.ArrowBack
+                        imageVector = iconsDefault.ArrowBack
                     )
                 }
             }
