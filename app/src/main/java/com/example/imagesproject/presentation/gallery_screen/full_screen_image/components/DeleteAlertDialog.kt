@@ -5,7 +5,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import com.example.imagesproject.R
 
 @Composable
@@ -13,6 +15,7 @@ fun DeleteAlertDialog(
     onDismissRequest: () -> Unit,
     confirmButtonClick: () -> Unit,
 ) {
+    val mediumFontWeight = remember { FontWeight.Medium }
     AlertDialog(
         onDismissRequest = onDismissRequest,
         title = {
@@ -26,7 +29,8 @@ fun DeleteAlertDialog(
             ) {
                 Text(
                     color = MaterialTheme.colorScheme.error,
-                    text = stringResource(R.string.delete_button_text)
+                    text = stringResource(R.string.delete_button_text),
+                    fontWeight = mediumFontWeight,
                 )
             }
         },
@@ -35,7 +39,8 @@ fun DeleteAlertDialog(
                 onClick = onDismissRequest,
             ) {
                 Text(
-                    text = stringResource(R.string.cancel_button_text)
+                    text = stringResource(R.string.cancel_button_text),
+                    fontWeight = mediumFontWeight,
                 )
             }
         },

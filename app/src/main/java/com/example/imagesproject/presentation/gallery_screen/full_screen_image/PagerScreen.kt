@@ -43,7 +43,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PagerScreen(
     imagesList: List<String>,
@@ -173,9 +173,6 @@ fun PagerScreen(
                     var isTouching by remember {
                         mutableStateOf(false)
                     }
-                    var prevPagerIndex by remember {
-                        mutableStateOf(currentPage)
-                    }
                     val imageListSize = imagesList.size
                     HorizontalPager(
                         state = pagerState,
@@ -203,10 +200,10 @@ fun PagerScreen(
                             mutableStateOf<Size?>(null)
                         }
                         LaunchedEffect(key1 = isTouching) {
-                            if(prevPagerIndex != currentPage && !isTouching) {
-                                launch(Dispatchers.Main) {
+                            val currentImageOffset = pagerState.currentPageOffsetFraction
+                            if(currentImageOffset > 0.1f || currentImageOffset < -0.1f) {
+                                coroutineScope.launch(Dispatchers.Main) {
                                     zoomableState.animateScaleTo(1f)
-                                    prevPagerIndex = currentPage
                                 }
                             }
                         }

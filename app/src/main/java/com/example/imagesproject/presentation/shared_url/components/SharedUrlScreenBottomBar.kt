@@ -7,11 +7,12 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.imagesproject.R
 import com.example.imagesproject.presentation.Constants
@@ -43,6 +44,7 @@ fun SharedUrlScreenBottomBar(
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                val mediumWeight = remember { FontWeight.Medium }
                 ImagesProjectTheme(darkTheme = true) {
                     OutlinedButton(
                         modifier = Modifier
@@ -52,18 +54,19 @@ fun SharedUrlScreenBottomBar(
                     ) {
                         Text(
                             text = stringResource(R.string.cancel_saving_image_button_text),
-                            textAlign = TextAlign.Center
+                            fontWeight = mediumWeight,
                         )
                     }
                     Button(
                         modifier = Modifier
-                            .padding(horizontal = 10.dp)
+                            .padding(horizontal = 8.dp)
                             .weight(1f),
                         onClick = onSaveImage,
                         enabled = isSuccess,
                     ) {
                         Text(
-                            text = stringResource(R.string.save_image_button_text)
+                            fontWeight = mediumWeight,
+                            text = stringResource(R.string.save_image_button_text),
                         )
                     }
                 }
