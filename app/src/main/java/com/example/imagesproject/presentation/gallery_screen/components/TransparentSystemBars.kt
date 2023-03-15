@@ -8,17 +8,18 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
 fun TransparentSystemBars(isDarkTheme: Boolean) {
+    val transparentColor = Color.Transparent
     val systemUiController = rememberSystemUiController()
     SideEffect {
         systemUiController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        systemUiController.setSystemBarsColor(Color.Transparent)
+        systemUiController.setSystemBarsColor(transparentColor)
         systemUiController.setNavigationBarColor(
             darkIcons = !isDarkTheme,
-            color = Color.Transparent,
+            color = transparentColor,
             navigationBarContrastEnforced = false,
         )
         systemUiController.setStatusBarColor(
-            color = Color.Transparent,
+            color = transparentColor,
             darkIcons = !isDarkTheme
         )
     }

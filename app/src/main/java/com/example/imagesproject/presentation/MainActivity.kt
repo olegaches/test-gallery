@@ -113,16 +113,17 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun TransparentSystemBars(isDarkTheme: Boolean) {
     val systemUiController = rememberSystemUiController()
+    val transparentColor = Color.Transparent
 
     SideEffect {
-        systemUiController.setSystemBarsColor(Color.Transparent)
+        systemUiController.setSystemBarsColor(transparentColor)
         systemUiController.setNavigationBarColor(
             darkIcons = !isDarkTheme,
-            color = Color.Transparent,
+            color = transparentColor,
             navigationBarContrastEnforced = false,
         )
         systemUiController.setStatusBarColor(
-            color = Color.Transparent,
+            color = transparentColor,
             darkIcons = !isDarkTheme
         )
     }
