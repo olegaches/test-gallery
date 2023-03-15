@@ -119,8 +119,9 @@ fun PagerScreen(
                 )
             }
         ) {
-            val isHorizontalOrientation = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-            val isRightLayoutDirection = LocalConfiguration.current.layoutDirection == Configuration.SCREENLAYOUT_LAYOUTDIR_RTL
+            val localConfiguration = LocalConfiguration.current
+            val isHorizontalOrientation = localConfiguration.orientation == Configuration.ORIENTATION_LANDSCAPE
+            val isRightLayoutDirection = localConfiguration.layoutDirection == Configuration.SCREENLAYOUT_LAYOUTDIR_RTL
             val animationState = pagerScreenState.animationState
             val stateAnimationType = animationState.animationType
             val expandAnimationType = remember { AnimationType.EXPAND_ANIMATION }
