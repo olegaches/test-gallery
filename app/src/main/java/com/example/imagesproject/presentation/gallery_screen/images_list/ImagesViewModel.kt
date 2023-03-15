@@ -113,6 +113,7 @@ class ImagesViewModel @Inject constructor(
 
     private fun onAnimate(animationType: AnimationType) {
         viewModelScope.launch {
+            val _state = _state
             _state.update {
                 val pagerScreenState = it.pagerScreenState
                 it.copy(
@@ -319,6 +320,7 @@ class ImagesViewModel @Inject constructor(
                 val newGridItem = state.value.lazyGridState.layoutInfo.visibleItemsInfo.find { it.index == imageIndex } ?: visibleItemsInfo.last()
                 changeCurrentGridItemOffset(newGridItem.offset)
             }
+            val _state = _state
             _state.update {
                 val pagerScreenState = it.pagerScreenState
                 it.copy(
@@ -359,6 +361,7 @@ class ImagesViewModel @Inject constructor(
 
     private fun loadImageUrlList() {
         viewModelScope.launch {
+            val _state = _state
             _state.update {
                 it.copy(
                     isLoading = true,

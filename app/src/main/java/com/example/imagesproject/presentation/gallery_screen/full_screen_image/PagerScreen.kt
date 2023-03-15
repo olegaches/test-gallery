@@ -210,14 +210,12 @@ fun PagerScreen(
                                 }
                             }
                         }
-                        LaunchedEffect(pagerState) {
-                            snapshotFlow { currentPage }.collect { page ->
-                                if(imageSize != null && currentPage == index)
-                                    onImageScreenEvent(
-                                        ImageScreenEvent.OnPagerCurrentImageChange(
-                                            imageSize!!
-                                        ))
-                            }
+                        LaunchedEffect(key1 = currentPage) {
+                            if(imageSize != null && currentPage == index)
+                                onImageScreenEvent(
+                                    ImageScreenEvent.OnPagerCurrentImageChange(
+                                        imageSize!!
+                                    ))
                         }
                         LaunchedEffect(key1 = imageListSize) {
                             if(imageSize != null && currentPage == index)

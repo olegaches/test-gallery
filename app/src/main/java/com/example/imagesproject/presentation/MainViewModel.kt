@@ -35,7 +35,9 @@ class MainViewModel @Inject constructor(
     private var job: Job? = null
 
     fun cancelNotification() {
+        val imageService = imageService
         val activeNotification = imageService.getCurrentUrl()
+        val viewModelState = viewModelState
         activeNotification?.let {
             viewModelState.update { state ->
                 state.copy(
@@ -53,6 +55,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun delayCancelNotification() {
+        val imageService = imageService
         val activeNotification = imageService.getCurrentUrl()
         activeNotification?.let {
             viewModelState.update { state ->
@@ -69,6 +72,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun recreateNotification() {
+        val viewModelState = viewModelState
         job?.cancel()
         job = null
         viewModelState.value.currentUrl?.let { currentUrl ->
@@ -79,6 +83,7 @@ class MainViewModel @Inject constructor(
 
     private fun watchAppConfigurationStream() {
         viewModelScope.launch {
+            val viewModelState = viewModelState
             viewModelState.update { it.copy(isLoading = true) }
             getAppConfigurationStreamUseCase().collectLatest { appConfiguration ->
                 viewModelState.update { state ->

@@ -76,7 +76,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             val viewModel: MainViewModel = hiltViewModel()
             val activityState by viewModel.activityState.collectAsState()
-            navHostController = rememberNavController()
+            val navController = rememberNavController()
+            navHostController = navController
             if(isCompatibleWithApi33()) {
                 val notificationPermissionState = rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
                 if(!notificationPermissionState.status.isGranted) {
@@ -85,7 +86,8 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
-            TransparentSystemBars(shouldUseDarkTheme(themeStyle = activityState.themeStyle))
+            val themeStyle = activityState.themeStyle
+            TransparentSystemBars(shouldUseDarkTheme(themeStyle = themeStyle))
             when (activityState.isLoading) {
                 true -> ImagesProjectTheme {
                     Box(
@@ -95,14 +97,14 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 false -> ImagesProjectTheme(
-                    darkTheme = shouldUseDarkTheme(themeStyle = activityState.themeStyle),
+                    darkTheme = shouldUseDarkTheme(themeStyle = themeStyle),
                     dynamicColor = activityState.useDynamicColors
                 ) {
                     Surface(
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background
                     ) {
-                        Navigation(navHostController, wasLaunchedFromRecents(intent = intent))
+                        Navigation(navController, wasLaunchedFromRecents(intent = intent))
                     }
                 }
             }
@@ -130,13 +132,14 @@ fun TransparentSystemBars(isDarkTheme: Boolean) {
 }
 
 @Composable
-fun Navigation(navHostController: NavHostController, isLaunchedFromRecents: Boolean) {
+fun Navigation(navHostController: NavHostController, isLaunchedFromRecent: Boolean) {
+    val imagesScreenRoute = remember { Screen.ImagesScreen.route }
     NavHost(
         navController = navHostController,
-        startDestination = Screen.ImagesScreen.route
+        startDestination = imagesScreenRoute
     ) {
         composable(
-            route = Screen.ImagesScreen.route
+            route = imagesScreenRoute
         ) {
             GalleryScreen(
                 navController = navHostController
@@ -149,7 +152,7 @@ fun Navigation(navHostController: NavHostController, isLaunchedFromRecents: Bool
                 navController = navHostController
             )
         }
-        if(!isLaunchedFromRecents) {
+        if(!isLaunchedFromRecent) {
             composable(
                 route = Screen.SharedUrlScreen.route,
                 deepLinks = listOf(
