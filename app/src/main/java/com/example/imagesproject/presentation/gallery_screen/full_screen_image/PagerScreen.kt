@@ -155,7 +155,7 @@ fun PagerScreen(
             )
             val backGroundColor by animateColorAsState(
                 targetValue = if (animationType == expandAnimationType) Color.Black else transparentColor,
-                animationSpec = tween(durationMillis = 300)
+                animationSpec = tween(durationMillis = 270)
             )
             Box(
                 modifier = Modifier

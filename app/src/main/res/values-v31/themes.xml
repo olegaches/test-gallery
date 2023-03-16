@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.Transparent" parent="android:Theme.Material.Light.NoActionBar.TranslucentDecor">
+        <item name="android:windowSplashScreenAnimatedIcon">
+            @drawable/logo
+        </item>
+        <item name="android:windowSplashScreenBackground">
+            @color/light_gray
+        </item>
+        <item name="android:windowSplashScreenBrandingImage">
+            @drawable/logo_title
+        </item>
+        <item name="android:windowBackground">
+            @color/light_gray
+        </item>
+    </style>
+</resources>

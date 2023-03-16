@@ -52,12 +52,13 @@ fun animatedImage(
                                 if (isRightLayoutDirection)
                                     LayoutDirection.Rtl else
                                     LayoutDirection.Ltr
-                            ),
+                            )
                         )
                         .offset { pagerScreenState.imageOffset.toIntOffset() }
                         .size(
                             pagerScreenState.gridItemSize.width.dp,
                         )
+                        .padding(1.dp)
                 }.animateSharedElementTransition(
                     orbitalScope,
                     SpringSpec(stiffness = 1200f),

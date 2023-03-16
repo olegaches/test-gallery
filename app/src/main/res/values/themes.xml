@@ -2,5 +2,7 @@
 <resources>
 
     <style name="Theme.ImagesProject" parent="android:Theme.Material.Light.NoActionBar" />
-    <style name="Theme.Transparent" parent="android:Theme.Material.Light.NoActionBar.TranslucentDecor" />
+    <style name="Theme.Transparent"
+        parent="android:Theme.Material.Light.NoActionBar.TranslucentDecor">
+    </style>
 </resources>
