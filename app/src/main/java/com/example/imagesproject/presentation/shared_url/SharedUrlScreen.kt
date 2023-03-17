@@ -1,13 +1,21 @@
 package com.example.imagesproject.presentation.shared_url
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.Activity.RESULT_OK
+import android.content.Context
+import android.content.IntentSender
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
@@ -24,10 +32,51 @@ import com.example.imagesproject.domain.type.Screen
 import com.example.imagesproject.presentation.gallery_screen.components.TransparentSystemBars
 import com.example.imagesproject.presentation.shared_url.components.SharedUrlScreenBottomBar
 import com.example.imagesproject.presentation.shared_url.components.SharedUrlScreenTopBar
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.*
+import com.google.android.gms.tasks.Task
 import com.mxalbert.zoomable.OverZoomConfig
 import com.mxalbert.zoomable.Zoomable
 import com.mxalbert.zoomable.rememberZoomableState
 
+fun checkLocationSetting(
+    context: Context,
+    onDisabled: (IntentSenderRequest) -> Unit,
+    onEnabled: () -> Unit
+) {
+
+    val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
+        .setWaitForAccurateLocation(false)
+        .setMinUpdateIntervalMillis(1000)
+        .build()
+
+    val client: SettingsClient = LocationServices.getSettingsClient(context)
+    val builder: LocationSettingsRequest.Builder = LocationSettingsRequest
+        .Builder()
+        .addLocationRequest(locationRequest)
+
+    val gpsSettingTask: Task<LocationSettingsResponse> =
+        client.checkLocationSettings(builder.build())
+
+    gpsSettingTask.addOnSuccessListener { onEnabled() }
+    gpsSettingTask.addOnFailureListener { exception ->
+        if (exception is ResolvableApiException) {
+            try {
+                val intentSenderRequest = IntentSenderRequest
+                    .Builder(exception.resolution)
+                    .build()
+                onDisabled(intentSenderRequest)
+            } catch (sendEx: IntentSender.SendIntentException) {
+                // ignore here
+            }
+        }
+    }
+
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 fun SharedUrlScreen(
@@ -35,6 +84,10 @@ fun SharedUrlScreen(
     viewModel: SharedUrlViewModel = hiltViewModel()
 ) {
     TransparentSystemBars(true)
+    val notificationPermissionState = rememberPermissionState(
+        permission = Manifest.permission.ACCESS_COARSE_LOCATION,
+        onPermissionResult = viewModel::onPermissionResult
+    )
     val state = viewModel.state.collectAsState().value
     var isSuccess by remember {
         mutableStateOf(true)
@@ -48,6 +101,17 @@ fun SharedUrlScreen(
     }
     val imageUrl = state.url
     val visibleBars = state.visibleBars
+
+    val settingResultRequest = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { activityResult ->
+        if (activityResult.resultCode == RESULT_OK)
+            //Log.d("appDebug", "Accepted")
+        else {
+            //Log.d("appDebug", "Denied")
+        }
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = Color.Black,
@@ -75,9 +139,25 @@ fun SharedUrlScreen(
                 title = imageUrl,
                 onBackClicked = {
                     navController.navigateUp()
+                },
+                onSwitchToggle = {
+                    viewModel.onSwitchToggle(notificationPermissionState)
+                    checkLocationSetting(
+                        context = context,
+                        onDisabled = { intentSenderRequest ->
+                            settingResultRequest.launch(intentSenderRequest)
+                        },
+                        onEnabled = {
+                            viewModel.onSwitchToggle(notificationPermissionState)
+                        }
+                    )
                 }
             )
-        }
+        },
+        snackbarHost = {
+            SnackbarHost(state.snackbarHostState)
+        },
+
     ) {
         BackHandler {
             activity?.finishAndRemoveTask()

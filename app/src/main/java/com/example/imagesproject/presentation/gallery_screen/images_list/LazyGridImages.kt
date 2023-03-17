@@ -36,13 +36,9 @@ fun LazyGridImages(
         state = lazyGridState,
         columns = GridCells.Adaptive(90.dp),
     ) {
-        items(
-            count = imagesUrlList.size,
-            key = {
-                imagesUrlList[it]
-            }
-        ) { index ->
-            val imageUrl = remember { imagesUrlList[index] }
+        itemsIndexed(
+            imagesUrlList
+        ) { index, imageUrl ->
             var isSuccess by rememberSaveable {
                 mutableStateOf(true)
             }

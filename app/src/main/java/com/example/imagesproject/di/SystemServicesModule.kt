@@ -2,6 +2,7 @@ package com.example.imagesproject.di
 
 import android.app.NotificationManager
 import android.content.Context
+import android.location.LocationManager
 import android.os.PowerManager
 import androidx.core.content.ContextCompat
 import dagger.Module
@@ -34,6 +35,15 @@ object SystemServicesModule {
             PowerManager::class.java
         ) as PowerManager
         return powerManager
+    }
+
+    @Provides
+    @Singleton
+    fun provideLocationManager(
+        @ApplicationContext context: Context,
+    ): LocationManager {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager
     }
 
 }

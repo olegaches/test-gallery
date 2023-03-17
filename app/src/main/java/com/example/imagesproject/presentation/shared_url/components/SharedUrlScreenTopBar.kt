@@ -7,7 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import com.example.imagesproject.presentation.Constants
 
@@ -17,6 +17,7 @@ fun SharedUrlScreenTopBar(
     isVisible: Boolean,
     title: String,
     onBackClicked: () -> Unit,
+    onSwitchToggle: () -> Unit,
 ) {
     AnimatedVisibility(
         visible = isVisible,
@@ -27,6 +28,9 @@ fun SharedUrlScreenTopBar(
             animationSpec = tween(Constants.TOP_BAR_VISIBILITY_EXIT_ANIMATION_TIME)
         )
     ) {
+        var isLocationTracking by remember {
+            mutableStateOf(false)
+        }
         TopAppBar(
             title = {
                 Text(
@@ -48,6 +52,17 @@ fun SharedUrlScreenTopBar(
                         imageVector = Icons.Default.ArrowBack
                     )
                 }
+            },
+            actions = {
+                Switch(
+                    checked = isLocationTracking,
+                    onCheckedChange = {
+                        isLocationTracking = it
+                        if(it) {
+                            onSwitchToggle()
+                        }
+                    }
+                )
             }
         )
     }
