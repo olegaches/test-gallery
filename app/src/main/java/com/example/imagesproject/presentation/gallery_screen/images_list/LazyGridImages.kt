@@ -34,15 +34,20 @@ fun LazyGridImages(
             .fillMaxSize()
         ,
         state = lazyGridState,
-        columns = GridCells.Adaptive(90.dp)
+        columns = GridCells.Adaptive(90.dp),
     ) {
-        items(imagesUrlList.size) { index ->
-            val imageUrl = imagesUrlList[index]
+        items(
+            count = imagesUrlList.size,
+            key = {
+                imagesUrlList[it]
+            }
+        ) { index ->
+            val imageUrl = remember { imagesUrlList[index] }
             var isSuccess by rememberSaveable {
                 mutableStateOf(true)
             }
             val imageNotFoundId = remember { R.drawable.image_not_found }
-            val contentScale = ContentScale.Crop
+            val contentScale = remember { ContentScale.Crop }
             val painter = rememberAsyncImagePainter(
                 model = ImageRequest
                     .Builder(context)
