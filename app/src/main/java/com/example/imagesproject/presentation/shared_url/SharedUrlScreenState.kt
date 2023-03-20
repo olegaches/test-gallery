@@ -8,4 +8,5 @@ data class SharedUrlScreenState(
     val url: String = "",
     val location: Location? = null,
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
+    val isLocationTracking: Boolean = false,
 )

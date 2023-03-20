@@ -1,12 +1,10 @@
 package com.example.imagesproject.presentation.shared_url
 
 import android.content.Intent
-import android.location.LocationManager
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.example.imagesproject.core.util.Extension
 import com.example.imagesproject.domain.location_tracker.LocationTracker
 import com.example.imagesproject.domain.type.LocationParams
 import com.example.imagesproject.domain.use_case.AddImageUrlToRoomDbUseCase
@@ -14,8 +12,6 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -27,7 +23,6 @@ class SharedUrlViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val locationTracker: LocationTracker,
 ): ViewModel() {
-    private val permissionSharedFlow = MutableSharedFlow<Boolean>()
 
     private val _state = MutableStateFlow(SharedUrlScreenState())
     val state = _state.asStateFlow()
@@ -39,14 +34,6 @@ class SharedUrlViewModel @Inject constructor(
                 )
             }
         }
-
-        viewModelScope.launch {
-            permissionSharedFlow.collect { isSuccess ->
-                if(isSuccess) {
-                    getLocation()
-                }
-            }
-        }
     }
 
     fun onBarsVisibilityChange() {
@@ -54,12 +41,6 @@ class SharedUrlViewModel @Inject constructor(
             it.copy(
                 visibleBars = !it.visibleBars
             )
-        }
-    }
-
-    fun onPermissionResult(isSuccess: Boolean) {
-        viewModelScope.launch {
-            permissionSharedFlow.emit(isSuccess)
         }
     }
 
@@ -77,7 +58,8 @@ class SharedUrlViewModel @Inject constructor(
             } else {
                 _state.update {
                     it.copy(
-                        location = null
+                        location = null,
+                        isLocationTracking = false,
                     )
                 }
             }
@@ -93,7 +75,8 @@ class SharedUrlViewModel @Inject constructor(
                 locationTracker.stopTracking()
                 state.update {
                     it.copy(
-                        location = location
+                        location = location,
+                        isLocationTracking = true,
                     )
                 }
                 state.value.snackbarHostState.showSnackbar(location.toString())

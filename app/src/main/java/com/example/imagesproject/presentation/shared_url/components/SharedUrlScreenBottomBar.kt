@@ -21,10 +21,12 @@ import com.example.imagesproject.ui.theme.*
 fun SharedUrlScreenBottomBar(
     isVisible: Boolean,
     isSuccess: Boolean,
+    isLocationTracking: Boolean,
     onSaveImage: () -> Unit,
     onCancel: () -> Unit,
     onSwitchToggle: (Boolean) -> Unit,
 ) {
+    val backgroundColor = Color.Black.copy(alpha = 0.6f)
     AnimatedVisibility(
         visible = isVisible,
         enter = fadeIn(
@@ -34,24 +36,29 @@ fun SharedUrlScreenBottomBar(
             animationSpec = tween(Constants.TOP_BAR_VISIBILITY_EXIT_ANIMATION_TIME)
         )
     ) {
-        BottomAppBar(
-            containerColor = Color.Black.copy(alpha = 0.6f)
-        ) {
-            Column {
-                var isLocationTracking by remember {
-                    mutableStateOf(false)
+        Column {
+            ListItem(
+                headlineText = {
+                    Text(
+                        text = stringResource(R.string.track_location_text)
+                    )
+                },
+                colors = ListItemDefaults.colors(
+                    containerColor = backgroundColor
+                )
+                ,
+                trailingContent = {
+                    Switch(
+                        checked = isLocationTracking,
+                        onCheckedChange = {
+                            onSwitchToggle(it)
+                        }
+                    )
                 }
-                Text(
-                    text = stringResource(R.string.track_location_text)
-                )
-                Switch(
-                    checked = isLocationTracking,
-                    onCheckedChange = {
-                        isLocationTracking = it
-                        onSwitchToggle(it)
-                    }
-                )
-
+            )
+            BottomAppBar(
+                containerColor = backgroundColor
+            ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()

@@ -32,6 +32,7 @@ import com.example.imagesproject.domain.type.Screen
 import com.example.imagesproject.presentation.gallery_screen.components.TransparentSystemBars
 import com.example.imagesproject.presentation.shared_url.components.SharedUrlScreenBottomBar
 import com.example.imagesproject.presentation.shared_url.components.SharedUrlScreenTopBar
+import com.example.imagesproject.ui.theme.ImagesProjectTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.android.gms.common.api.ResolvableApiException
@@ -87,7 +88,6 @@ fun SharedUrlScreen(
     TransparentSystemBars(true)
     val notificationPermissionState = rememberPermissionState(
         permission = Manifest.permission.ACCESS_COARSE_LOCATION,
-        onPermissionResult = viewModel::onPermissionResult
     )
     val state = viewModel.state.collectAsState().value
     var isSuccess by remember {
@@ -113,110 +113,113 @@ fun SharedUrlScreen(
         }
     }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = Color.Black,
-        bottomBar = {
-            SharedUrlScreenBottomBar(
-                isSuccess = isSuccess,
-                onSaveImage = {
-                    viewModel.onSaveImage(imageUrl)
-                    val imagesScreenRoute = Screen.ImagesScreen.route
-                    navController.navigate(imagesScreenRoute) {
-                        popUpTo(imagesScreenRoute) {
-                            inclusive = true
-                        }
-                    }
-                },
-                isVisible = visibleBars && !isLoading,
-                onCancel = {
-                    activity?.finishAndRemoveTask()
-                },
-                onSwitchToggle = {
-                    if(!it) {
-                        viewModel.onSwitchToggle(notificationPermissionState, false)
-                    } else {
-                        checkLocationSetting(
-                            context = context,
-                            onDisabled = { intentSenderRequest ->
-                                settingResultRequest.launch(intentSenderRequest)
-                            },
-                            onEnabled = {
-                                viewModel.onSwitchToggle(notificationPermissionState, true)
+    ImagesProjectTheme(darkTheme = true) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = Color.Black,
+            bottomBar = {
+                SharedUrlScreenBottomBar(
+                    isSuccess = isSuccess,
+                    onSaveImage = {
+                        viewModel.onSaveImage(imageUrl)
+                        val imagesScreenRoute = Screen.ImagesScreen.route
+                        navController.navigate(imagesScreenRoute) {
+                            popUpTo(imagesScreenRoute) {
+                                inclusive = true
                             }
-                        )
-                    }
-                }
-            )
-        },
-        topBar = {
-            SharedUrlScreenTopBar(
-                isVisible = visibleBars,
-                title = imageUrl,
-                onBackClicked = {
-                    navController.navigateUp()
-                },
-            )
-        },
-        snackbarHost = {
-            SnackbarHost(state.snackbarHostState)
-        },
-
-    ) {
-        BackHandler {
-            activity?.finishAndRemoveTask()
-        }
-        Box(modifier = Modifier
-            .fillMaxSize()) {
-            var imageSize by remember {
-                mutableStateOf<Size?>(null)
-            }
-            val overZoomConfig = OverZoomConfig(
-                minSnapScale = 1f,
-                maxSnapScale = 1.7f
-            )
-            val zoomableState = rememberZoomableState(
-                initialScale = 1f,
-                minScale = 0.1f,
-                overZoomConfig = overZoomConfig,
-            )
-            val isHorizontalOrientation = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-            Zoomable(
-                state = zoomableState,
-                onTap = {
-                    viewModel.onBarsVisibilityChange()
-                },
-            ) {
-                val imageNotFoundId = remember { R.drawable.image_not_found }
-                AsyncImage(
-                    modifier = Modifier
-                        .then(
-                            if (imageSize != null) {
-                                Modifier.aspectRatio(
-                                    imageSize!!.width / imageSize!!.height,
-                                    isHorizontalOrientation
-                                )
-                            } else
-                                Modifier.fillMaxSize()
-                        ),
-                    model = imageUrl,
-                    contentScale = ContentScale.Fit,
-                    error = painterResource(id = imageNotFoundId),
-                    placeholder = if(isSuccess)
-                        painterResource(id = R.drawable.placeholder) else {
-                        painterResource(imageNotFoundId)
+                        }
                     },
-                    onSuccess = { painterState ->
-                        isSuccess = true
-                        imageSize = painterState.painter.intrinsicSize
-                        isLoading = false
+                    isVisible = visibleBars && !isLoading,
+                    onCancel = {
+                        activity?.finishAndRemoveTask()
                     },
-                    onError = {
-                        isSuccess = false
-                        isLoading = false
+                    onSwitchToggle = {
+                        if(!it) {
+                            viewModel.onSwitchToggle(notificationPermissionState, false)
+                        } else {
+                            checkLocationSetting(
+                                context = context,
+                                onDisabled = { intentSenderRequest ->
+                                    settingResultRequest.launch(intentSenderRequest)
+                                },
+                                onEnabled = {
+                                    viewModel.onSwitchToggle(notificationPermissionState, true)
+                                }
+                            )
+                        }
                     },
-                    contentDescription = null,
+                    isLocationTracking = state.isLocationTracking
                 )
+            },
+            topBar = {
+                SharedUrlScreenTopBar(
+                    isVisible = visibleBars,
+                    title = imageUrl,
+                    onBackClicked = {
+                        navController.navigateUp()
+                    },
+                )
+            },
+            snackbarHost = {
+                SnackbarHost(state.snackbarHostState)
+            },
+
+            ) {
+            BackHandler {
+                activity?.finishAndRemoveTask()
+            }
+            Box(modifier = Modifier
+                .fillMaxSize()) {
+                var imageSize by remember {
+                    mutableStateOf<Size?>(null)
+                }
+                val overZoomConfig = OverZoomConfig(
+                    minSnapScale = 1f,
+                    maxSnapScale = 1.7f
+                )
+                val zoomableState = rememberZoomableState(
+                    initialScale = 1f,
+                    minScale = 0.1f,
+                    overZoomConfig = overZoomConfig,
+                )
+                val isHorizontalOrientation = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+                Zoomable(
+                    state = zoomableState,
+                    onTap = {
+                        viewModel.onBarsVisibilityChange()
+                    },
+                ) {
+                    val imageNotFoundId = remember { R.drawable.image_not_found }
+                    AsyncImage(
+                        modifier = Modifier
+                            .then(
+                                if (imageSize != null) {
+                                    Modifier.aspectRatio(
+                                        imageSize!!.width / imageSize!!.height,
+                                        isHorizontalOrientation
+                                    )
+                                } else
+                                    Modifier.fillMaxSize()
+                            ),
+                        model = imageUrl,
+                        contentScale = ContentScale.Fit,
+                        error = painterResource(id = imageNotFoundId),
+                        placeholder = if(isSuccess)
+                            painterResource(id = R.drawable.placeholder) else {
+                            painterResource(imageNotFoundId)
+                        },
+                        onSuccess = { painterState ->
+                            isSuccess = true
+                            imageSize = painterState.painter.intrinsicSize
+                            isLoading = false
+                        },
+                        onError = {
+                            isSuccess = false
+                            isLoading = false
+                        },
+                        contentDescription = null,
+                    )
+                }
             }
         }
     }
