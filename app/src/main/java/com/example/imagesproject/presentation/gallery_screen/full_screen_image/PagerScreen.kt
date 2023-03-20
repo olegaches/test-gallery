@@ -56,6 +56,7 @@ fun PagerScreen(
             TransparentSystemBars(
                 shouldUseDarkTheme(themeStyle = pagerScreenState.currentTheme),
             )
+            rememberSystemUiController().isNavigationBarVisible = true
             return@ImagesProjectTheme
         }
         BackHandler {

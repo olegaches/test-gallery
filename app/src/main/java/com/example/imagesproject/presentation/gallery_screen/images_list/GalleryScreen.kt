@@ -1,17 +1,11 @@
 package com.example.imagesproject.presentation.gallery_screen.images_list
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.pager.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.*
-import androidx.compose.ui.layout.*
 import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -21,7 +15,6 @@ import com.example.imagesproject.presentation.gallery_screen.images_list.compone
 import com.example.imagesproject.presentation.gallery_screen.full_screen_image.PagerScreen
 import kotlinx.collections.immutable.toImmutableList
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GalleryScreen(
     navController: NavController,
