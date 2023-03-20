@@ -10,6 +10,10 @@ import androidx.core.content.ContextCompat
 import com.example.imagesproject.core.util.Extension
 import com.example.imagesproject.domain.location_tracker.LocationTracker
 import com.google.android.gms.location.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
 import kotlin.coroutines.resume
@@ -20,18 +24,20 @@ class DefaultLocationTracker @Inject constructor(
     private val locationManager: LocationManager,
 ): LocationTracker {
 
-    private var currentLocation: Location? = null
+    private val _currentLocation = MutableStateFlow<Location?>(null)
+
+    override val currentLocation = _currentLocation.asStateFlow()
 
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(p0: LocationResult) {
             for (lo in p0.locations) {
                 // Update UI with location data
-                currentLocation = lo
+                _currentLocation.value = lo
             }
         }
     }
 
-    override suspend fun getCurrentLocation(): Location? {
+    override fun getCurrentLocation() {
         val hasAccessFineLocationPermission = ContextCompat.checkSelfPermission(
             application,
             Manifest.permission.ACCESS_FINE_LOCATION
@@ -46,7 +52,7 @@ class DefaultLocationTracker @Inject constructor(
                     locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
         }
         if(!hasAccessCoarseLocationPermission || !isGpsEnabled) {
-            return null
+            return
         }
 
         locationCallback.let {
@@ -60,33 +66,9 @@ class DefaultLocationTracker @Inject constructor(
                 Looper.getMainLooper()
             )
         }
-
-        return currentLocation
-
-//        return suspendCancellableCoroutine { cont ->
-//            locationClient.lastLocation.apply {
-//                if(isComplete) {
-//                    if(isSuccessful) {
-//                        cont.resume(result)
-//                    } else {
-//                        cont.resume(null)
-//                    }
-//                    return@suspendCancellableCoroutine
-//                }
-//                addOnSuccessListener {
-//                    cont.resume(it)
-//                }
-//                addOnFailureListener {
-//                    cont.resume(null)
-//                }
-//                addOnCanceledListener {
-//                    cont.cancel()
-//                }
-//            }
-//        }
     }
 
     override suspend fun stopTracking() {
-        //locationClient.removeLocationUpdates()
+        locationClient.removeLocationUpdates(locationCallback)
     }
 }

@@ -1,10 +1,14 @@
 package com.example.imagesproject.presentation.gallery_screen.images_list
 
+import android.annotation.SuppressLint
+import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import com.example.imagesproject.R
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -12,17 +16,42 @@ import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.*
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.recyclerview.widget.RecyclerView
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import kotlinx.collections.immutable.ImmutableList
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun LazyGridImages(
     lazyGridState: LazyGridState,
     imagesUrlList: ImmutableList<String>,
     onGalleryScreenEvent: (GalleryScreenEvent) -> Unit,
 ) {
+//    val localContext = LocalContext.current
+//    val adapter = remember { ImageListAdapter() }
+//    val layoutManager = remember { AdaptiveGridLayoutManager(localContext, 270) }
+//    LaunchedEffect(key1 = imagesUrlList) {
+//        adapter.submitList(imagesUrlList)
+//    }
+//    Scaffold {
+//        Box(modifier = Modifier
+//            .fillMaxSize()) {
+//            AndroidView(
+//                factory = { context ->
+//                    RecyclerView(context).apply {
+//                        this.layoutManager = layoutManager
+//                        this.adapter = adapter
+//                        this.layoutParams = ViewGroup.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+//                    }
+//                }
+//            )
+//        }
+//    }
+
+
     val context = LocalContext.current
     val gridItemModifier = Modifier
         .padding(1.dp)

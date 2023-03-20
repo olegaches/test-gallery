@@ -14,6 +14,9 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -21,13 +24,10 @@ import javax.inject.Inject
 @HiltViewModel
 class SharedUrlViewModel @Inject constructor(
     private val addImageUrlToRoomDbUseCase: AddImageUrlToRoomDbUseCase,
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val locationTracker: LocationTracker,
-    private val locationManager: LocationManager,
 ): ViewModel() {
     private val permissionSharedFlow = MutableSharedFlow<Boolean>()
-//    private val _openGpsRequest = MutableSharedFlow<Boolean>()
-//    val openGpsRequest = _openGpsRequest.asSharedFlow()
 
     private val _state = MutableStateFlow(SharedUrlScreenState())
     val state = _state.asStateFlow()
@@ -63,24 +63,40 @@ class SharedUrlViewModel @Inject constructor(
         }
     }
 
+    private var locationJob: Job? = null
     @OptIn(ExperimentalPermissionsApi::class)
-    fun onSwitchToggle(permissionState: PermissionState) {
-        viewModelScope.launch {
-            if(!permissionState.status.isGranted) {
-                permissionState.launchPermissionRequest()
+    fun onSwitchToggle(permissionState: PermissionState, isSwitched: Boolean) {
+        locationJob?.cancel()
+        locationJob = viewModelScope.launch {
+            if(isSwitched) {
+                if(!permissionState.status.isGranted) {
+                    permissionState.launchPermissionRequest()
+                } else {
+                    getLocation()
+                }
             } else {
-                getLocation()
+                _state.update {
+                    it.copy(
+                        location = null
+                    )
+                }
             }
         }
     }
 
     private suspend fun getLocation() {
-        locationTracker.getCurrentLocation()?.let { location ->
-            _state.update {
-                it.snackbarHostState.showSnackbar(message = location.toString())
-                it.copy(
-                    location = location,
-                )
+        val locationTracker = locationTracker
+        locationTracker.getCurrentLocation()
+        val state = _state
+        locationTracker.currentLocation.collect { location ->
+            location?.let {
+                locationTracker.stopTracking()
+                state.update {
+                    it.copy(
+                        location = location
+                    )
+                }
+                state.value.snackbarHostState.showSnackbar(location.toString())
             }
         }
     }

@@ -6,8 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,6 +23,7 @@ fun SharedUrlScreenBottomBar(
     isSuccess: Boolean,
     onSaveImage: () -> Unit,
     onCancel: () -> Unit,
+    onSwitchToggle: (Boolean) -> Unit,
 ) {
     AnimatedVisibility(
         visible = isVisible,
@@ -37,37 +37,53 @@ fun SharedUrlScreenBottomBar(
         BottomAppBar(
             containerColor = Color.Black.copy(alpha = 0.6f)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                ,
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                val mediumWeight = remember { FontWeight.Medium }
-                ImagesProjectTheme(darkTheme = true) {
-                    OutlinedButton(
-                        modifier = Modifier
-                            .padding(horizontal = 8.dp)
-                            .weight(1f),
-                        onClick = onCancel,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cancel_saving_image_button_text),
-                            fontWeight = mediumWeight,
-                        )
+            Column {
+                var isLocationTracking by remember {
+                    mutableStateOf(false)
+                }
+                Text(
+                    text = stringResource(R.string.track_location_text)
+                )
+                Switch(
+                    checked = isLocationTracking,
+                    onCheckedChange = {
+                        isLocationTracking = it
+                        onSwitchToggle(it)
                     }
-                    Button(
-                        modifier = Modifier
-                            .padding(horizontal = 8.dp)
-                            .weight(1f),
-                        onClick = onSaveImage,
-                        enabled = isSuccess,
-                    ) {
-                        Text(
-                            fontWeight = mediumWeight,
-                            text = stringResource(R.string.save_image_button_text),
-                        )
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                    ,
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    val mediumWeight = remember { FontWeight.Medium }
+                    ImagesProjectTheme(darkTheme = true) {
+                        OutlinedButton(
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp)
+                                .weight(1f),
+                            onClick = onCancel,
+                        ) {
+                            Text(
+                                text = stringResource(R.string.cancel_saving_image_button_text),
+                                fontWeight = mediumWeight,
+                            )
+                        }
+                        Button(
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp)
+                                .weight(1f),
+                            onClick = onSaveImage,
+                            enabled = isSuccess,
+                        ) {
+                            Text(
+                                fontWeight = mediumWeight,
+                                text = stringResource(R.string.save_image_button_text),
+                            )
+                        }
                     }
                 }
             }

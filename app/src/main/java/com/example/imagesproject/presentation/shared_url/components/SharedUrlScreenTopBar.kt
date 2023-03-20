@@ -17,7 +17,6 @@ fun SharedUrlScreenTopBar(
     isVisible: Boolean,
     title: String,
     onBackClicked: () -> Unit,
-    onSwitchToggle: () -> Unit,
 ) {
     AnimatedVisibility(
         visible = isVisible,
@@ -28,9 +27,6 @@ fun SharedUrlScreenTopBar(
             animationSpec = tween(Constants.TOP_BAR_VISIBILITY_EXIT_ANIMATION_TIME)
         )
     ) {
-        var isLocationTracking by remember {
-            mutableStateOf(false)
-        }
         TopAppBar(
             title = {
                 Text(
@@ -53,17 +49,6 @@ fun SharedUrlScreenTopBar(
                     )
                 }
             },
-            actions = {
-                Switch(
-                    checked = isLocationTracking,
-                    onCheckedChange = {
-                        isLocationTracking = it
-                        if(it) {
-                            onSwitchToggle()
-                        }
-                    }
-                )
-            }
         )
     }
 }

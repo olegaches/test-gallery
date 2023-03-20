@@ -41,6 +41,7 @@ import com.mxalbert.zoomable.OverZoomConfig
 import com.mxalbert.zoomable.Zoomable
 import com.mxalbert.zoomable.rememberZoomableState
 
+
 fun checkLocationSetting(
     context: Context,
     onDisabled: (IntentSenderRequest) -> Unit,
@@ -106,7 +107,7 @@ fun SharedUrlScreen(
         contract = ActivityResultContracts.StartIntentSenderForResult()
     ) { activityResult ->
         if (activityResult.resultCode == RESULT_OK)
-            //Log.d("appDebug", "Accepted")
+            viewModel.onSwitchToggle(notificationPermissionState, true)
         else {
             //Log.d("appDebug", "Denied")
         }
@@ -130,6 +131,21 @@ fun SharedUrlScreen(
                 isVisible = visibleBars && !isLoading,
                 onCancel = {
                     activity?.finishAndRemoveTask()
+                },
+                onSwitchToggle = {
+                    if(!it) {
+                        viewModel.onSwitchToggle(notificationPermissionState, false)
+                    } else {
+                        checkLocationSetting(
+                            context = context,
+                            onDisabled = { intentSenderRequest ->
+                                settingResultRequest.launch(intentSenderRequest)
+                            },
+                            onEnabled = {
+                                viewModel.onSwitchToggle(notificationPermissionState, true)
+                            }
+                        )
+                    }
                 }
             )
         },
@@ -140,18 +156,6 @@ fun SharedUrlScreen(
                 onBackClicked = {
                     navController.navigateUp()
                 },
-                onSwitchToggle = {
-                    viewModel.onSwitchToggle(notificationPermissionState)
-                    checkLocationSetting(
-                        context = context,
-                        onDisabled = { intentSenderRequest ->
-                            settingResultRequest.launch(intentSenderRequest)
-                        },
-                        onEnabled = {
-                            viewModel.onSwitchToggle(notificationPermissionState)
-                        }
-                    )
-                }
             )
         },
         snackbarHost = {

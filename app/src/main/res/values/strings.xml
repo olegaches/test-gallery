@@ -20,4 +20,5 @@
     <string name="delete_dialog_title">Удаление</string>
     <string name="delete_button_text">Удалить</string>
     <string name="cancel_button_text">Отмена</string>
+    <string name="track_location_text">Отслеживать геолокацию</string>
 </resources>
