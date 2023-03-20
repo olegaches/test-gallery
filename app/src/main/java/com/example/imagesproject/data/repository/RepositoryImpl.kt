@@ -74,7 +74,7 @@ class RepositoryImpl @Inject constructor(
                                         imageUrlDao.insertImageUrl(ImageUrlEntity(imageUrl = line))
                                     }
                                 }
-                                emit(Resource.Success(imageUrlDao.getImageUrlList().map { it.imageUrl }))
+                                emit(Resource.Success(imageUrlDao.getImageUrlList().map { "${it.imageUrl}${it.location ?: ""}" }))
                             }
                         }
                     }

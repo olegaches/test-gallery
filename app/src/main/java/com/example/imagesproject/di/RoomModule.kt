@@ -34,13 +34,26 @@ object RoomModule {
             database.execSQL("ALTER TABLE `$IMAGES_URL_TABLE_NAME_NEW` RENAME TO `$IMAGES_URL_TABLE_NAME`")
         }
     }
+
+    private val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            // create new table
+            database.execSQL("CREATE TABLE IF NOT EXISTS `$IMAGES_URL_TABLE_NAME_NEW` (`imageUrl` TEXT NOT NULL, `id` INTEGER PRIMARY KEY, `location` TEXT)")
+            // copy data to new table
+            database.execSQL("INSERT INTO `$IMAGES_URL_TABLE_NAME_NEW` (`imageUrl`, `location`) SELECT `imageUrl`, null FROM `$IMAGES_URL_TABLE_NAME`")
+            // remove the old table
+            database.execSQL("DROP TABLE `$IMAGES_URL_TABLE_NAME`")
+            // rename new table
+            database.execSQL("ALTER TABLE `$IMAGES_URL_TABLE_NAME_NEW` RENAME TO `$IMAGES_URL_TABLE_NAME`")
+        }
+    }
     @Provides
     @Singleton
     fun provideAppDatabase(app: Application): AppDatabase {
         return Room.databaseBuilder(
             app, AppDatabase::class.java, AppDatabase.name
         )
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .build()
     }
 

@@ -6,7 +6,7 @@ import com.example.imagesproject.data.local.entity.ImageUrlEntity
 
 @Database(
     entities = [ImageUrlEntity::class],
-    version = 2
+    version = 3
 )
 
 abstract class AppDatabase: RoomDatabase() {

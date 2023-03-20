@@ -86,23 +86,11 @@ fun SharedUrlScreen(
     viewModel: SharedUrlViewModel = hiltViewModel()
 ) {
     TransparentSystemBars(true)
+    val context = LocalContext.current
     val notificationPermissionState = rememberPermissionState(
         permission = Manifest.permission.ACCESS_COARSE_LOCATION,
+        onPermissionResult = viewModel::onPermissionResult
     )
-    val state = viewModel.state.collectAsState().value
-    var isSuccess by remember {
-        mutableStateOf(true)
-    }
-    var isLoading by remember {
-        mutableStateOf(true)
-    }
-    val context = LocalContext.current
-    val activity = remember {
-        (context as? Activity)
-    }
-    val imageUrl = state.url
-    val visibleBars = state.visibleBars
-
     val settingResultRequest = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
     ) { activityResult ->
@@ -112,6 +100,19 @@ fun SharedUrlScreen(
             //Log.d("appDebug", "Denied")
         }
     }
+    val state = viewModel.state.collectAsState().value
+    var isSuccess by remember {
+        mutableStateOf(true)
+    }
+    var isLoading by remember {
+        mutableStateOf(true)
+    }
+    val activity = remember {
+        (context as? Activity)
+    }
+    val imageUrl = state.url
+    val visibleBars = state.visibleBars
+
 
     ImagesProjectTheme(darkTheme = true) {
         Scaffold(

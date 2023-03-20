@@ -13,10 +13,9 @@ class AddImageUrlToRoomDbUseCase @Inject constructor(
         if(imageUrlDao.hasItem(imageUrl)) {
             imageUrlDao.deleteImageUrl(imageUrl)
         }
-        val newUrl = if(locationParams != null)
-            "$imageUrl#${locationParams.latitude},${locationParams.longitude}" else {
-            imageUrl
+        val location = locationParams?.let {
+            "#${locationParams.latitude},${locationParams.longitude}"
         }
-        imageUrlDao.insertImageUrl(ImageUrlEntity(imageUrl = newUrl))
+        imageUrlDao.insertImageUrl(ImageUrlEntity(imageUrl = imageUrl, location = location))
     }
 }

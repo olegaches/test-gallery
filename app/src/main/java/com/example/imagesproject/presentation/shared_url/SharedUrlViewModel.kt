@@ -66,6 +66,15 @@ class SharedUrlViewModel @Inject constructor(
         }
     }
 
+    fun onPermissionResult(success: Boolean) {
+        if(success) {
+            locationJob?.cancel()
+            locationJob = viewModelScope.launch {
+                getLocation()
+            }
+        }
+    }
+
     private suspend fun getLocation() {
         val locationTracker = locationTracker
         locationTracker.getCurrentLocation()
