@@ -1,8 +1,10 @@
 package com.example.imagesproject.presentation.gallery_screen.images_list
 
+import android.graphics.drawable.Drawable
 import android.view.View
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.aspectRatio
@@ -29,6 +31,10 @@ import coil.size.Size
 import com.bumptech.glide.Glide
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.example.imagesproject.R
 
 
@@ -41,6 +47,9 @@ class ImageViewHolder(
     fun bind(url: String) {
         with(composeView) {
             val imageView = this.findViewById<ImageView>(R.id.imageView)
+            imageView.setOnClickListener {
+                Toast.makeText(it.context, url, Toast.LENGTH_SHORT).show()
+            }
             Glide
                 .with(this.rootView.context)
                 .load(url)
@@ -48,9 +57,6 @@ class ImageViewHolder(
                 .placeholder(R.drawable.placeholder)
                 .error(R.drawable.image_not_found)
                 .into(imageView)
-            imageView.setOnClickListener {
-
-            }
         }
 
 //        composeView.setContent {
@@ -59,6 +65,9 @@ class ImageViewHolder(
 //                    .padding(1.dp)
 //                    .fillMaxWidth()
 //                    .aspectRatio(1f)
+//                    .clickable {
+//                        Toast.makeText(composeView.context, url, Toast.LENGTH_SHORT).show()
+//                    }
 //                ,
 //                model = url,
 //                contentDescription = null,

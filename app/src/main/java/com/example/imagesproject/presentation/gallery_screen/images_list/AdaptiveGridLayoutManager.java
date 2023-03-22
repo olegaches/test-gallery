@@ -1,11 +1,17 @@
 package com.example.imagesproject.presentation.gallery_screen.images_list;
 
 import android.content.Context;
+import android.os.Parcelable;
+import android.view.View;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
 
 public class AdaptiveGridLayoutManager extends GridLayoutManager {
 
@@ -23,6 +29,31 @@ public class AdaptiveGridLayoutManager extends GridLayoutManager {
             this.columnWidth = newColumnWidth;
             columnWidthChanged = true;
         }
+    }
+
+    @Override
+    public Parcelable onSaveInstanceState() {
+        return super.onSaveInstanceState();
+    }
+
+    @Override
+    public boolean onAddFocusables(@NonNull RecyclerView recyclerView, @NonNull ArrayList<View> views, int direction, int focusableMode) {
+        return super.onAddFocusables(recyclerView, views, direction, focusableMode);
+    }
+
+    @Override
+    public boolean onRequestChildFocus(@NonNull RecyclerView parent, @NonNull RecyclerView.State state, @NonNull View child, @Nullable View focused) {
+        return super.onRequestChildFocus(parent, state, child, focused);
+    }
+
+    @Override
+    public void onAdapterChanged(@Nullable RecyclerView.Adapter oldAdapter, @Nullable RecyclerView.Adapter newAdapter) {
+        super.onAdapterChanged(oldAdapter, newAdapter);
+    }
+
+    @Override
+    public void onDetachedFromWindow(RecyclerView view, RecyclerView.Recycler recycler) {
+        super.onDetachedFromWindow(view, recycler);
     }
 
     @Override
