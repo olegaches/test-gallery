@@ -38,7 +38,7 @@ fun SharedUrlScreenBottomBar(
     ) {
         Column {
             ListItem(
-                headlineText = {
+                headlineContent = {
                     Text(
                         text = stringResource(R.string.track_location_text)
                     )

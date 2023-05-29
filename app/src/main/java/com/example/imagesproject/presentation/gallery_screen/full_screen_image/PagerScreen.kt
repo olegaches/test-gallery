@@ -71,9 +71,13 @@ fun PagerScreen(
             true,
         )
         val pagerIndex = pagerScreenState.pagerIndex
+        val imageListSize = imagesList.size
         val pagerState = rememberPagerState(
-            initialPage = pagerIndex
-        )
+            initialPage = pagerIndex,
+            initialPageOffsetFraction = 0f
+        ) {
+            imageListSize
+        }
         val unknownException = stringResource(id = R.string.unknown_exception)
         val snackbarHostState = remember { SnackbarHostState() }
         val coroutineScope = rememberCoroutineScope()
@@ -174,10 +178,8 @@ fun PagerScreen(
                     var isTouching by remember {
                         mutableStateOf(false)
                     }
-                    val imageListSize = imagesList.size
                     HorizontalPager(
                         state = pagerState,
-                        pageCount = imageListSize,
                         modifier = Modifier
                             .fillMaxSize(),
                         pageSpacing = 16.dp,

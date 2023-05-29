@@ -52,7 +52,7 @@ fun ThemeSettingsScreen(
         ) {
             if (isCompatibleWithDynamicColors()) {
                 ListItem(
-                    headlineText = {
+                    headlineContent = {
                         Text(
                             text = stringResource(R.string.use_dynamic_colors_text),
                             style = MaterialTheme.typography.bodyLarge
