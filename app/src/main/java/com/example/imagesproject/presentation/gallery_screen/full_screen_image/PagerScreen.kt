@@ -71,12 +71,7 @@ fun PagerScreen(
             true,
         )
         val pagerIndex = pagerScreenState.pagerIndex
-        val pagerState = rememberPagerState(
-            initialPage = pagerIndex,
-            initialPageOffsetFraction = 0f
-        ) {
-            imagesList.size
-        }
+        val pagerState = rememberPagerState(initialPage = pagerIndex)
         val unknownException = stringResource(id = R.string.unknown_exception)
         val snackbarHostState = remember { SnackbarHostState() }
         val coroutineScope = rememberCoroutineScope()
@@ -188,6 +183,7 @@ fun PagerScreen(
                             pagerSnapDistance = PagerSnapDistance.atMost(0)
                         ),
                         contentPadding = PaddingValues(0.dp),
+                        pageCount = imageListSize,
                         verticalAlignment = Alignment.CenterVertically,
                     ) { index ->
                         val overZoomConfig = OverZoomConfig(
